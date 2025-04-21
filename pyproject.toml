@@ -1,0 +1,88 @@
+[tool.poetry]
+name = "clickhouse-async"
+version = "0.1.0"
+description = "Async Python client for ClickHouse"
+authors = ["Author <author@example.com>"]
+readme = "README.md"
+packages = [{include = "clickhouse_async"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+asyncio = "^3.4.3"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+pytest-asyncio = "^0.26.0"
+ruff = "^0.11.6"
+mypy = "^1.15.0"
+commitizen = "^4.6.0"
+types-setuptools = "^78.1.0.20250329"
+pytest-random-order = "^1.1.1"
+
+[tool.ruff]
+# Enable pycodestyle (E), Pyflakes (F), isort (I), and more
+lint.select = ["E", "F", "I", "W", "N", "B", "A", "C4", "UP", "ANN", "RUF"]
+# Exclude a variety of commonly ignored directories
+exclude = [
+    ".git",
+    ".ruff_cache",
+    "__pycache__",
+    "dist",
+    "build",
+]
+# Same as Black
+line-length = 88
+# Allow unused variables when underscore-prefixed
+lint.ignore = ["E501"]
+# Assume Python 3.11
+target-version = "py311"
+
+# Ignore `E402` (import violations) in all `__init__.py` files
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["E402"]
+
+# Configure isort
+[tool.ruff.lint.isort]
+known-first-party = ["clickhouse_async"]
+
+# Configure formatter
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.1.0"
+tag_format = "v$version"
+version_files = [
+    "pyproject.toml:version",
+    "clickhouse_async/__init__.py:__version__"
+]
+update_changelog_on_bump = true
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+strict_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+addopts = "--random-order"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]

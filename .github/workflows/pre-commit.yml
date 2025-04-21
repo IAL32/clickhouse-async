@@ -1,0 +1,30 @@
+name: Pre-commit Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    # Don't run on tags to avoid duplicate runs with the release workflow
+    tags-ignore: ['*']
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 2.1.1
+          
+      - name: Install dependencies
+        run: poetry install
+        
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1

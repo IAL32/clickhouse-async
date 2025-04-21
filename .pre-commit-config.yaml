@@ -1,0 +1,25 @@
+repos:
+  - repo: local
+    hooks:
+      - id: commitizen
+        name: Check commit message
+        entry: poetry run cz check --commit-msg-file
+        language: system
+        stages: [commit-msg]
+
+      - id: ruff-check
+        name: ruff check
+        entry: poetry run ruff check
+        language: system
+        types: [python]
+
+      - id: ruff-format
+        name: ruff format
+        entry: poetry run ruff format
+        language: system
+        types: [python]
+
+      - id: mypy
+        name: mypy
+        entry: /bin/bash -c "poetry run mypy ."
+        language: system

@@ -1,6 +1,7 @@
 """Stream implementations for ClickHouse client."""
 
 import io
+import struct
 
 from .socket import AsyncSocket
 from .wire_format import WireFormat
@@ -26,23 +27,39 @@ class InputStream:
 
         Returns:
             Read data
+
+        Raises:
+            EOFError: If end of stream is reached before n bytes are read
         """
+        # If we already have enough data in the buffer, return it
         if len(self.buffer) >= n:
             data = bytes(self.buffer[:n])
             self.buffer = self.buffer[n:]
             return data
 
-        # Read more data from the socket
-        data = await self.socket.receive(max(n, 4096))
-        if not data:
-            if len(self.buffer) > 0:
-                result = bytes(self.buffer)
-                self.buffer.clear()
-                return result
-            return b""
+        # Use a loop instead of recursion to avoid stack overflow
+        while len(self.buffer) < n:
+            # Read more data from the socket
+            try:
+                data = await self.socket.receive(max(n - len(self.buffer), 4096))
+                if not data:
+                    # If no more data is available and we haven't read enough,
+                    # raise an EOFError
+                    if n > 0:
+                        raise EOFError(
+                            f"End of stream reached before {n} bytes could be read"
+                        )
+                    return b""
+            except ConnectionError as e:
+                # If the connection is closed, raise an EOFError
+                raise EOFError(f"Connection closed: {e}") from e
 
-        self.buffer.extend(data)
-        return await self.read(n)
+            self.buffer.extend(data)
+
+        # We have enough data in the buffer
+        data = bytes(self.buffer[:n])
+        self.buffer = self.buffer[n:]
+        return data
 
     async def read_exactly(self, n: int) -> bytes:
         """Read exactly n bytes from the stream.
@@ -56,22 +73,11 @@ class InputStream:
         Raises:
             EOFError: If end of stream is reached before n bytes are read
         """
-        if len(self.buffer) >= n:
-            data = bytes(self.buffer[:n])
-            self.buffer = self.buffer[n:]
-            return data
-
-        # Read more data from the socket
-        remaining = n - len(self.buffer)
-        data = await self.socket.receive_exactly(remaining)
-
-        if len(data) < remaining:
-            self.buffer.extend(data)
+        # Use the improved read method to read exactly n bytes
+        data = await self.read(n)
+        if len(data) < n:
             raise EOFError(f"End of stream reached before {n} bytes could be read")
-
-        result = bytes(self.buffer) + data
-        self.buffer.clear()
-        return result
+        return data
 
     async def read_varint(self) -> int:
         """Read a variable-length integer from the stream.
@@ -114,6 +120,24 @@ class InputStream:
         """
         length = await self.read_varint()
         return await self.read_exactly(length)
+
+    async def read_float32(self) -> float:
+        """Read a 32-bit floating-point value from the stream.
+
+        Returns:
+            Float32 value
+        """
+        data = await self.read_exactly(4)
+        return struct.unpack("<f", data)[0]  # type: ignore[no-any-return]
+
+    async def read_float64(self) -> float:
+        """Read a 64-bit floating-point value from the stream.
+
+        Returns:
+            Float64 value
+        """
+        data = await self.read_exactly(8)
+        return struct.unpack("<d", data)[0]  # type: ignore[no-any-return]
 
 
 class OutputStream:
@@ -165,6 +189,24 @@ class OutputStream:
         data = io.BytesIO()
         WireFormat.write_binary_string(data, value)
         await self.write(data.getvalue())
+
+    async def write_float32(self, value: float) -> None:
+        """Write a 32-bit floating-point value to the stream.
+
+        Args:
+            value: Float32 value to write
+        """
+        data = struct.pack("<f", value)
+        await self.write(data)
+
+    async def write_float64(self, value: float) -> None:
+        """Write a 64-bit floating-point value to the stream.
+
+        Args:
+            value: Float64 value to write
+        """
+        data = struct.pack("<d", value)
+        await self.write(data)
 
     async def flush(self) -> None:
         """Flush the buffer to the socket."""

@@ -24,10 +24,15 @@ async def test_execute_returns_empty_list() -> None:
     """Test that the execute method returns an empty list (placeholder implementation)."""
     client = ClickHouseClient()
 
-    # Use patch to mock the connect method
+    # Use patch to mock the connect method and connection
     with pytest.MonkeyPatch.context() as monkeypatch:
         mock_connect = AsyncMock()
+        mock_connection = AsyncMock()
+        mock_connection.execute_query = AsyncMock(return_value=[])
+
+        # Set up the mocks
         monkeypatch.setattr(client, "connect", mock_connect)
+        monkeypatch.setattr(client, "connection", mock_connection)
 
         result = await client.execute("SELECT 1")
         assert isinstance(result, list)
@@ -35,6 +40,8 @@ async def test_execute_returns_empty_list() -> None:
 
         # Verify that connect was called
         mock_connect.assert_called_once()
+        # Verify that execute_query was called
+        mock_connection.execute_query.assert_called_once_with("SELECT 1", None)
 
 
 async def test_connect_and_disconnect(

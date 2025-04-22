@@ -11,9 +11,9 @@ class AsyncSocket:
         self,
         host: str,
         port: int,
-        connect_timeout: float = 5.0,
-        send_timeout: float = 5.0,
-        receive_timeout: float = 5.0,
+        connect_timeout: float = 10.0,
+        send_timeout: float = 10.0,
+        receive_timeout: float = 30.0,
     ) -> None:
         """Initialize async socket.
 

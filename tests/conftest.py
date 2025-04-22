@@ -17,9 +17,13 @@ def clickhouse_container() -> Generator[ClickHouseContainer, None, None]:
     Returns:
         Generator yielding a ClickHouseContainer instance
     """
-    with ClickHouseContainer("clickhouse/clickhouse-server:21.8") as container:
+    with ClickHouseContainer(
+        image="clickhouse/clickhouse-server:21.8",
+        username="default",
+        password="test",
+        dbname="test",
+    ) as container:
         # Wait for container to be ready
-        container.start()
         yield container
 
 
@@ -35,14 +39,15 @@ def clickhouse_connection_params(
     """
     # Get the host and port directly from the container
     host = clickhouse_container.get_container_host_ip()
-    # Always use the native protocol port (9000)
+    # Get the exposed port for the native protocol port (9000)
     port = clickhouse_container.get_exposed_port(9000)
 
     # Create and return a ClientOptions object
-    return ClientOptions(
+    options = ClientOptions(
         host=host,
         port=int(port),
-        user="test",
+        user="default",
         password="test",
-        database="default",
+        database="test",
     )
+    return options

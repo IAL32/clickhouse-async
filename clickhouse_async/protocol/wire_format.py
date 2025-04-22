@@ -180,6 +180,58 @@ class WireFormat:
         return WireFormat.read_binary_string(stream).decode("utf-8")
 
     @staticmethod
+    def read_binary_float32(stream: BinaryIO) -> float:
+        """Read a 32-bit floating-point value from the stream.
+
+        Args:
+            stream: Binary stream to read from
+
+        Returns:
+            Float32 value
+        """
+        data = stream.read(4)
+        if len(data) != 4:
+            raise EOFError("Unexpected end of stream while reading float32")
+
+        return struct.unpack("<f", data)[0]  # type: ignore[no-any-return]
+
+    @staticmethod
+    def write_binary_float32(stream: BinaryIO, value: float) -> None:
+        """Write a 32-bit floating-point value to the stream.
+
+        Args:
+            stream: Binary stream to write to
+            value: Float32 value to write
+        """
+        stream.write(struct.pack("<f", value))
+
+    @staticmethod
+    def read_binary_float64(stream: BinaryIO) -> float:
+        """Read a 64-bit floating-point value from the stream.
+
+        Args:
+            stream: Binary stream to read from
+
+        Returns:
+            Float64 value
+        """
+        data = stream.read(8)
+        if len(data) != 8:
+            raise EOFError("Unexpected end of stream while reading float64")
+
+        return struct.unpack("<d", data)[0]  # type: ignore[no-any-return]
+
+    @staticmethod
+    def write_binary_float64(stream: BinaryIO, value: float) -> None:
+        """Write a 64-bit floating-point value to the stream.
+
+        Args:
+            stream: Binary stream to write to
+            value: Float64 value to write
+        """
+        stream.write(struct.pack("<d", value))
+
+    @staticmethod
     def write_string(stream: BinaryIO, value: str) -> None:
         """Write a UTF-8 string to the stream.
 

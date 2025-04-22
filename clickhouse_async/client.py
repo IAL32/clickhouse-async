@@ -1,6 +1,5 @@
 """ClickHouse async client implementation."""
 
-import asyncio
 import types
 from collections.abc import AsyncGenerator
 from typing import Any
@@ -129,17 +128,16 @@ class ClickHouseClient:
 
         Raises:
             ConnectionError: If connection fails
+            Exception: If query execution fails
         """
-        # This is a placeholder implementation
-        # In a real implementation, we would:
-        # 1. Connect to the server if not connected
-        # 2. Send the query
-        # 3. Process the results
-        # 4. Return the results
-
+        # Connect to the server if not connected
         await self.connect()
-        await asyncio.sleep(0.1)  # Simulate network delay
-        return []
+
+        if self.connection is None:
+            raise ConnectionError("Failed to connect to the server")
+
+        # Execute the query
+        return await self.connection.execute_query(query, params)
 
     async def execute_iter(
         self, query: str, params: dict[str, Any] | None = None
@@ -155,22 +153,15 @@ class ClickHouseClient:
 
         Raises:
             ConnectionError: If connection fails
+            Exception: If query execution fails
         """
-        # This is a placeholder implementation
-        # In a real implementation, we would:
-        # 1. Connect to the server if not connected
-        # 2. Send the query
-        # 3. Process the results
-        # 4. Yield each row as it is received
+        # Get all results at once for now
+        # In the future, we'll implement true streaming
+        results = await self.execute(query, params)
 
-        await self.connect()
-        await asyncio.sleep(0.1)  # Simulate network delay
-
-        # For now, this is just a placeholder that yields nothing
-        for _ in range(
-            0
-        ):  # This is a valid empty loop that satisfies the AsyncGenerator type
-            yield {}
+        # Yield each row
+        for row in results:
+            yield row
 
     async def __aenter__(self) -> "ClickHouseClient":
         """Enter async context manager."""

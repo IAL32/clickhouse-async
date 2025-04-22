@@ -2,6 +2,22 @@
 
 An asyncio ClickHouse Python Driver with native (TCP) interface support.
 
+## Status
+
+This project is currently in development and not ready for production use. The following features are implemented:
+
+- Connection string parsing
+- Client options
+- Basic protocol implementation (handshake, ping)
+- Connection management
+- Data type serialization/deserialization (basic, complex, and special types)
+
+The following features are still in development:
+
+- Query execution protocol
+- Data insertion
+- Connection pooling
+
 ## Installation
 
 ```bash
@@ -24,19 +40,29 @@ async def main():
     # Initialize the client
     client = ClickHouseClient(
         host="localhost",
-        port=8123,
+        port=9000,  # Native protocol port
         user="default",
         password="",
         database="default"
     )
     
-    # Execute a query
-    result = await client.execute("SELECT 1")
-    print(result)
+    # Connect to the server
+    await client.connect()
     
-    # Use the iterator interface for large result sets
-    async for row in client.execute_iter("SELECT number FROM system.numbers LIMIT 10"):
-        print(row)
+    try:
+        # Check server info
+        print(f"Connected to {client.server_info.name} {client.server_info.version_major}.{client.server_info.version_minor}")
+        
+        # Ping the server
+        if await client.ping():
+            print("Ping successful")
+        
+        # Execute a query (not fully implemented yet)
+        # result = await client.execute("SELECT 1")
+        # print(result)
+    finally:
+        # Disconnect from the server
+        await client.disconnect()
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -45,9 +71,11 @@ if __name__ == "__main__":
 ## Features
 
 - Asynchronous API using Python's asyncio
-- Support for ClickHouse HTTP interface
+- Support for ClickHouse native protocol
+- Connection string support
 - Simple, intuitive interface
 - Type annotations for better IDE support
+- Integration testing with testcontainers
 
 ## Development
 

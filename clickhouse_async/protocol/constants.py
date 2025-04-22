@@ -46,7 +46,13 @@ class CompressionState(IntEnum):
     ENABLE = 1
 
 
-class Protocol:
+class Stages(IntEnum):
+    """Query processing stages."""
+
+    COMPLETE = 2
+
+
+class ClickHouseProtocol:
     """Protocol version constants."""
 
     # Minimum revisions for various features
@@ -58,10 +64,12 @@ class Protocol:
     MIN_REVISION_WITH_SERVER_LOGS = 54406
     MIN_REVISION_WITH_CLIENT_WRITE_INFO = 54420
     MIN_REVISION_WITH_SETTINGS_SERIALIZED_AS_STRINGS = 54429
+    MIN_REVISION_WITH_INTERSERVER_SECRET = 54441
+    MIN_PROTOCOL_VERSION_WITH_PARAMETERS = 54459
 
     # Current revision
-    DBMS_VERSION_MAJOR = 1
-    DBMS_VERSION_MINOR = 0
+    DBMS_VERSION_MAJOR = 21
+    DBMS_VERSION_MINOR = 8
     DBMS_VERSION_PATCH = 0
-    DBMS_PROTOCOL_VERSION = 54429  # Current protocol version
+    DBMS_PROTOCOL_VERSION = 54449  # Current protocol version (matching server revision)
     DBMS_NAME = "ClickHouse"

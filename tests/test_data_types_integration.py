@@ -10,6 +10,31 @@ from clickhouse_async.client_options import ClientOptions
 
 
 @pytest.fixture
+async def simple_client(
+    clickhouse_connection_params: ClientOptions,
+) -> AsyncGenerator[ClickHouseClient, None]:
+    """Simple client fixture that just connects without creating tables.
+
+    Args:
+        clickhouse_connection_params: Connection parameters for the ClickHouse container
+
+    Yields:
+        ClickHouseClient connected to the test database
+    """
+    client = ClickHouseClient(
+        clickhouse_connection_params,
+        connect_timeout=10.0,
+        send_receive_timeout=10.0,
+    )
+    await client.connect()
+
+    try:
+        yield client
+    finally:
+        await client.disconnect()
+
+
+@pytest.fixture
 async def test_tables(
     clickhouse_connection_params: ClientOptions,
 ) -> AsyncGenerator[ClickHouseClient, None]:
@@ -324,3 +349,30 @@ async def test_extreme_values(test_tables: ClickHouseClient) -> None:
     finally:
         # Clean up
         await test_tables.execute("DROP TABLE IF EXISTS test_extreme_values")
+
+
+async def test_system_tables(simple_client: ClickHouseClient) -> None:
+    """Test SELECT from system tables to verify basic functionality."""
+    # Query system.numbers table which always has data
+    result = await simple_client.execute("SELECT number FROM system.numbers LIMIT 5")
+
+    assert len(result) == 5
+    assert result[0]["number"] == 0
+    assert result[1]["number"] == 1
+    assert result[2]["number"] == 2
+    assert result[3]["number"] == 3
+    assert result[4]["number"] == 4
+
+    # Query system.one table
+    result = await simple_client.execute("SELECT * FROM system.one")
+    assert len(result) == 1
+    assert result[0]["dummy"] == 0
+
+    # Query with WHERE clause
+    result = await simple_client.execute(
+        "SELECT number FROM system.numbers WHERE number >= 10 LIMIT 3"
+    )
+    assert len(result) == 3
+    assert result[0]["number"] == 10
+    assert result[1]["number"] == 11
+    assert result[2]["number"] == 12

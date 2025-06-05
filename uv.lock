@@ -92,6 +92,7 @@ dev = [
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-random-order" },
+    { name = "pytest-timeout" },
     { name = "requests" },
     { name = "ruff" },
     { name = "testcontainers" },
@@ -109,6 +110,7 @@ dev = [
     { name = "pytest", specifier = ">=8.3.5,<9" },
     { name = "pytest-asyncio", specifier = ">=0.26.0,<0.27" },
     { name = "pytest-random-order", specifier = ">=1.1.1,<2" },
+    { name = "pytest-timeout", specifier = ">=2.4.0" },
     { name = "requests", specifier = ">=2.32.3,<3" },
     { name = "ruff", specifier = ">=0.11.6,<0.12" },
     { name = "testcontainers", specifier = ">=4.10.0,<5" },
@@ -354,6 +356,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/93/e5/89654b4354b10e89969a74130f391b017dbdc113ce27f0e8ff9fa23e44e1/pytest-random-order-1.1.1.tar.gz", hash = "sha256:4472d7d34f1f1c5f3a359c4ffc5c13ed065232f31eca19c8844c1ab406e79080", size = 14626, upload-time = "2024-01-20T09:25:07.218Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/91/02/944cf846bcd6027a1805c69fec90581f916e99ccafcbe409ae6c76833255/pytest_random_order-1.1.1-py3-none-any.whl", hash = "sha256:882727a8b597ecd06ede28654ffeb8a6d511a1e4abe1054cca7982f2e42008cd", size = 11521, upload-time = "2024-01-20T09:25:05.098Z" },
+]
+
+[[package]]
+name = "pytest-timeout"
+version = "2.4.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ac/82/4c9ecabab13363e72d880f2fb504c5f750433b2b6f16e99f4ec21ada284c/pytest_timeout-2.4.0.tar.gz", hash = "sha256:7e68e90b01f9eff71332b25001f85c75495fc4e3a836701876183c4bcfd0540a", size = 17973, upload-time = "2025-05-05T19:44:34.99Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fa/b6/3127540ecdf1464a00e5a01ee60a1b09175f6913f0644ac748494d9c4b21/pytest_timeout-2.4.0-py3-none-any.whl", hash = "sha256:c42667e5cdadb151aeb5b26d114aff6bdf5a907f176a007a30b940d3d865b5c2", size = 14382, upload-time = "2025-05-05T19:44:33.502Z" },
 ]
 
 [[package]]

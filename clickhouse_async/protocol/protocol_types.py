@@ -32,28 +32,44 @@ class SupportsRead(Protocol):
 class SupportsWrite(Protocol):
     """Protocol for writing to a stream."""
 
+    async def write(self, data: bytes) -> None:
+        """Write raw bytes to the stream."""
+        ...
+
     async def write_varint(self, value: int) -> None:
-        """Write a variable-length integer to the stream."""
+        """Write a variable-length integer."""
         ...
 
     async def write_string(self, value: str) -> None:
-        """Write a string to the stream."""
+        """Write a string."""
         ...
 
-    async def write(self, data: bytes) -> None:
-        """Write data to the stream."""
+    async def write_binary_string(self, value: bytes) -> None:
+        """Write a binary string."""
         ...
 
     async def write_float32(self, value: float) -> None:
-        """Write a 32-bit floating-point value to the stream."""
+        """Write a 32-bit floating-point value."""
         ...
 
     async def write_float64(self, value: float) -> None:
-        """Write a 64-bit floating-point value to the stream."""
+        """Write a 64-bit floating-point value."""
+        ...
+
+    async def write_uint8(self, value: int) -> None:
+        """Write an 8-bit unsigned integer."""
+        ...
+
+    async def write_int32(self, value: int) -> None:
+        """Write a 32-bit signed integer."""
+        ...
+
+    async def write_int64(self, value: int) -> None:
+        """Write a 64-bit signed integer."""
         ...
 
     async def flush(self) -> None:
-        """Flush the buffer to the socket."""
+        """Flush the output stream."""
         ...
 
 

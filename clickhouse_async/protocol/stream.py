@@ -1,10 +1,13 @@
 """Stream implementations for ClickHouse client."""
 
 import io
+import logging
 import struct
 
 from .socket import AsyncSocket
 from .wire_format import WireFormat
+
+logger = logging.getLogger(__name__)
 
 
 class InputStream:
@@ -41,17 +44,30 @@ class InputStream:
         while len(self.buffer) < n:
             # Read more data from the socket
             try:
-                data = await self.socket.receive(max(n - len(self.buffer), 4096))
+                bytes_to_read = max(n - len(self.buffer), 4096)
+                logger.debug(f"Attempting to read {bytes_to_read} bytes from socket")
+                data = await self.socket.receive(bytes_to_read)
                 if not data:
                     # If no more data is available and we haven't read enough,
                     # raise an EOFError
+                    logger.debug(
+                        f"Socket returned no data, buffer has {len(self.buffer)} bytes, need {n} bytes"
+                    )
                     if n > 0:
                         raise EOFError(
                             f"End of stream reached before {n} bytes could be read"
                         )
                     return b""
+                logger.debug(f"Read {len(data)} bytes from socket")
+                # Log first few bytes for debugging
+                if len(data) > 0:
+                    hex_preview = " ".join(
+                        f"{b:02x}" for b in data[: min(50, len(data))]
+                    )
+                    logger.debug(f"Received data (hex): {hex_preview}")
             except ConnectionError as e:
                 # If the connection is closed, raise an EOFError
+                logger.debug(f"Connection error: {e}")
                 raise EOFError(f"Connection closed: {e}") from e
 
             self.buffer.extend(data)
@@ -110,7 +126,11 @@ class InputStream:
         """
         length = await self.read_varint()
         data = await self.read_exactly(length)
-        return data.decode("utf-8")
+        try:
+            return data.decode("utf-8")
+        except UnicodeDecodeError:
+            # If UTF-8 decoding fails, try latin-1 which can decode any byte sequence
+            return data.decode("latin-1")
 
     async def read_binary_string(self) -> bytes:
         """Read a binary string from the stream.
@@ -208,9 +228,43 @@ class OutputStream:
         data = struct.pack("<d", value)
         await self.write(data)
 
+    async def write_uint8(self, value: int) -> None:
+        """Write an 8-bit unsigned integer to the stream.
+
+        Args:
+            value: UInt8 value to write
+        """
+        data = struct.pack("<B", value)
+        await self.write(data)
+
+    async def write_int32(self, value: int) -> None:
+        """Write a 32-bit signed integer to the stream.
+
+        Args:
+            value: Int32 value to write
+        """
+        data = struct.pack("<i", value)
+        await self.write(data)
+
+    async def write_int64(self, value: int) -> None:
+        """Write a 64-bit signed integer to the stream.
+
+        Args:
+            value: Int64 value to write
+        """
+        data = struct.pack("<q", value)
+        await self.write(data)
+
     async def flush(self) -> None:
         """Flush the buffer to the socket."""
         data = self.buffer.getvalue()
         if data:
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.debug(f"Flushing {len(data)} bytes to socket")
+            # Log first 200 bytes in hex for debugging
+            hex_preview = " ".join(f"{b:02x}" for b in data[: min(200, len(data))])
+            logger.debug(f"Data preview (hex): {hex_preview}")
             await self.socket.send(data)
             self.buffer = io.BytesIO()

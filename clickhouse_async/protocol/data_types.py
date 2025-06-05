@@ -150,7 +150,8 @@ class UInt8Type(IntegerType):
         Returns:
             UInt8 value
         """
-        return await input_stream.read_varint()
+        data = await input_stream.read_exactly(1)
+        return data[0]
 
     async def write_value(self, output_stream: SupportsWrite, value: int) -> None:
         """Write a UInt8 value to the output stream.
@@ -159,7 +160,7 @@ class UInt8Type(IntegerType):
             output_stream: Output stream to write to
             value: UInt8 value to write
         """
-        await output_stream.write_varint(value)
+        await output_stream.write(bytes([value]))
 
 
 class UInt16Type(IntegerType):
@@ -174,7 +175,8 @@ class UInt16Type(IntegerType):
         Returns:
             UInt16 value
         """
-        return await input_stream.read_varint()
+        data = await input_stream.read_exactly(2)
+        return struct.unpack("<H", data)[0]  # type: ignore[no-any-return]
 
     async def write_value(self, output_stream: SupportsWrite, value: int) -> None:
         """Write a UInt16 value to the output stream.
@@ -183,7 +185,8 @@ class UInt16Type(IntegerType):
             output_stream: Output stream to write to
             value: UInt16 value to write
         """
-        await output_stream.write_varint(value)
+        data = struct.pack("<H", value)
+        await output_stream.write(data)
 
 
 class UInt32Type(IntegerType):
@@ -198,7 +201,8 @@ class UInt32Type(IntegerType):
         Returns:
             UInt32 value
         """
-        return await input_stream.read_varint()
+        data = await input_stream.read_exactly(4)
+        return struct.unpack("<I", data)[0]  # type: ignore[no-any-return]
 
     async def write_value(self, output_stream: SupportsWrite, value: int) -> None:
         """Write a UInt32 value to the output stream.
@@ -207,7 +211,8 @@ class UInt32Type(IntegerType):
             output_stream: Output stream to write to
             value: UInt32 value to write
         """
-        await output_stream.write_varint(value)
+        data = struct.pack("<I", value)
+        await output_stream.write(data)
 
 
 class UInt64Type(IntegerType):
@@ -222,7 +227,8 @@ class UInt64Type(IntegerType):
         Returns:
             UInt64 value
         """
-        return await input_stream.read_varint()
+        data = await input_stream.read_exactly(8)
+        return struct.unpack("<Q", data)[0]  # type: ignore[no-any-return]
 
     async def write_value(self, output_stream: SupportsWrite, value: int) -> None:
         """Write a UInt64 value to the output stream.
@@ -231,7 +237,8 @@ class UInt64Type(IntegerType):
             output_stream: Output stream to write to
             value: UInt64 value to write
         """
-        await output_stream.write_varint(value)
+        data = struct.pack("<Q", value)
+        await output_stream.write(data)
 
 
 class Int8Type(IntegerType):
@@ -246,8 +253,8 @@ class Int8Type(IntegerType):
         Returns:
             Int8 value
         """
-        value = await input_stream.read_varint()
-        return value if value < 128 else value - 256
+        data = await input_stream.read_exactly(1)
+        return struct.unpack("<b", data)[0]  # type: ignore[no-any-return]
 
     async def write_value(self, output_stream: SupportsWrite, value: int) -> None:
         """Write an Int8 value to the output stream.
@@ -256,9 +263,8 @@ class Int8Type(IntegerType):
             output_stream: Output stream to write to
             value: Int8 value to write
         """
-        if value < 0:
-            value += 256
-        await output_stream.write_varint(value)
+        data = struct.pack("<b", value)
+        await output_stream.write(data)
 
 
 class Int16Type(IntegerType):
@@ -273,8 +279,8 @@ class Int16Type(IntegerType):
         Returns:
             Int16 value
         """
-        value = await input_stream.read_varint()
-        return value if value < 32768 else value - 65536
+        data = await input_stream.read_exactly(2)
+        return struct.unpack("<h", data)[0]  # type: ignore[no-any-return]
 
     async def write_value(self, output_stream: SupportsWrite, value: int) -> None:
         """Write an Int16 value to the output stream.
@@ -283,9 +289,8 @@ class Int16Type(IntegerType):
             output_stream: Output stream to write to
             value: Int16 value to write
         """
-        if value < 0:
-            value += 65536
-        await output_stream.write_varint(value)
+        data = struct.pack("<h", value)
+        await output_stream.write(data)
 
 
 class Int32Type(IntegerType):
@@ -300,8 +305,8 @@ class Int32Type(IntegerType):
         Returns:
             Int32 value
         """
-        value = await input_stream.read_varint()
-        return value if value < 2147483648 else value - 4294967296
+        data = await input_stream.read_exactly(4)
+        return struct.unpack("<i", data)[0]  # type: ignore[no-any-return]
 
     async def write_value(self, output_stream: SupportsWrite, value: int) -> None:
         """Write an Int32 value to the output stream.
@@ -310,9 +315,8 @@ class Int32Type(IntegerType):
             output_stream: Output stream to write to
             value: Int32 value to write
         """
-        if value < 0:
-            value += 4294967296
-        await output_stream.write_varint(value)
+        data = struct.pack("<i", value)
+        await output_stream.write(data)
 
 
 class Int64Type(IntegerType):
@@ -327,8 +331,8 @@ class Int64Type(IntegerType):
         Returns:
             Int64 value
         """
-        value = await input_stream.read_varint()
-        return value if value < 9223372036854775808 else value - 18446744073709551616
+        data = await input_stream.read_exactly(8)
+        return struct.unpack("<q", data)[0]  # type: ignore[no-any-return]
 
     async def write_value(self, output_stream: SupportsWrite, value: int) -> None:
         """Write an Int64 value to the output stream.
@@ -337,9 +341,8 @@ class Int64Type(IntegerType):
             output_stream: Output stream to write to
             value: Int64 value to write
         """
-        if value < 0:
-            value += 18446744073709551616
-        await output_stream.write_varint(value)
+        data = struct.pack("<q", value)
+        await output_stream.write(data)
 
 
 class FloatType(NumericType, ABC):

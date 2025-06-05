@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 class QueryKind(IntEnum):
     """Query kind."""
 
-    INITIAL_QUERY = 0
-    SECONDARY_QUERY = 1
+    INITIAL_QUERY = 1
+    SECONDARY_QUERY = 2
 
 
 @dataclass
@@ -120,43 +120,97 @@ async def send_query(
     # Query ID
     await output_stream.write_string(query_id)
 
-    # Client info
-    await output_stream.write_varint(1)  # Query kind: INITIAL_QUERY
+    # Client info (only if supported)
+    if protocol_version >= ClickHouseProtocol.MIN_REVISION_WITH_CLIENT_INFO:
+        await output_stream.write_uint8(
+            1
+        )  # Query kind: INITIAL_QUERY (must be fixed size)
+        await output_stream.write_string("")  # Initial user (empty)
+        await output_stream.write_string("")  # Initial query ID (empty)
+        await output_stream.write_string("[::ffff:127.0.0.1]:0")  # Initial address
 
-    # Initial user
-    await output_stream.write_string(user)
+        # Initial query start time (if supported)
+        if (
+            protocol_version
+            >= ClickHouseProtocol.MIN_REVISION_WITH_INITIAL_QUERY_START_TIME
+        ):
+            await output_stream.write_int64(0)  # Initial query start time
 
-    # Initial query ID
-    await output_stream.write_string(query_id)
+        await output_stream.write_uint8(1)  # Interface type (1 = TCP)
 
-    # Initial address
-    await output_stream.write_string("127.0.0.1:0")
+        # OS user, client hostname, client name
+        await output_stream.write_string("")  # OS user (empty)
+        await output_stream.write_string("")  # Client hostname (empty)
+        await output_stream.write_string(
+            "ClickHouse client"
+        )  # Client name (match C++ client)
 
-    # Protocol version
-    await output_stream.write_varint(protocol_version)
+        # Client version (match C++ client)
+        await output_stream.write_varint(24)  # Major (CLICKHOUSE_CPP_VERSION_MAJOR)
+        await output_stream.write_varint(12)  # Minor (CLICKHOUSE_CPP_VERSION_MINOR)
+        await output_stream.write_varint(
+            ClickHouseProtocol.DBMS_PROTOCOL_VERSION
+        )  # Client revision (use our protocol version, not server's)
 
-    # Client name
-    await output_stream.write_string("clickhouse-async")
+        # Quota key (if supported)
+        if (
+            protocol_version
+            >= ClickHouseProtocol.MIN_REVISION_WITH_QUOTA_KEY_IN_CLIENT_INFO
+        ):
+            await output_stream.write_string("")  # Quota key
 
-    # Client version
-    await output_stream.write_varint(0)  # Major
-    await output_stream.write_varint(1)  # Minor
-    await output_stream.write_varint(0)  # Patch
+        # Distributed depth (if supported)
+        if protocol_version >= ClickHouseProtocol.MIN_REVISION_WITH_DISTRIBUTED_DEPTH:
+            await output_stream.write_varint(0)  # Distributed depth
 
-    # Quota key
-    await output_stream.write_string("")
+        # Version patch (if supported)
+        if protocol_version >= ClickHouseProtocol.MIN_REVISION_WITH_VERSION_PATCH:
+            await output_stream.write_varint(0)  # Patch
+
+        # OpenTelemetry (if supported)
+        if protocol_version >= ClickHouseProtocol.MIN_REVISION_WITH_OPENTELEMETRY:
+            await output_stream.write_uint8(0)  # No OpenTelemetry
+
+        # Parallel replicas (if supported)
+        if protocol_version >= ClickHouseProtocol.MIN_REVISION_WITH_PARALLEL_REPLICAS:
+            await output_stream.write_varint(0)  # Replica number
+            await output_stream.write_varint(0)  # Replica count
+            await output_stream.write_varint(0)  # Coordinator address
 
     # Settings
-    if settings:
-        await output_stream.write_varint(len(settings))
-        for key, value in settings.items():
-            await output_stream.write_string(key)
-            await output_stream.write_string(value)
+    logger.debug(f"Settings: {settings}")
+    if (
+        protocol_version
+        >= ClickHouseProtocol.MIN_REVISION_WITH_SETTINGS_SERIALIZED_AS_STRINGS
+    ):
+        logger.debug(
+            f"Using new settings format for protocol version {protocol_version}"
+        )
+        # For newer protocol versions, settings are serialized differently
+        # Send each setting followed by flags and value
+        if settings:
+            logger.debug(f"Sending {len(settings)} settings")
+            for key, value in settings.items():
+                logger.debug(f"Sending setting: {key}={value}")
+                await output_stream.write_string(key)
+                await output_stream.write_varint(0)  # flags (0 for now)
+                await output_stream.write_string(value)
+        # Empty string signals end of serialized settings
+        await output_stream.write_string("")
     else:
-        await output_stream.write_varint(0)
-
-    # Empty string signals end of serialized settings
-    await output_stream.write_string("")
+        logger.debug(
+            f"Using old settings format for protocol version {protocol_version}"
+        )
+        # For older protocol versions
+        if settings:
+            await output_stream.write_varint(len(settings))
+            for key, value in settings.items():
+                await output_stream.write_string(key)
+                await output_stream.write_string(value)
+        else:
+            await output_stream.write_varint(0)
+        # Empty string signals end of serialized settings
+        await output_stream.write_string("")
 
     # Add interserver secret for newer protocol versions
     if protocol_version >= ClickHouseProtocol.MIN_REVISION_WITH_INTERSERVER_SECRET:
@@ -190,27 +244,39 @@ async def send_query(
             f"Skipping parameters (protocol version {protocol_version} < {ClickHouseProtocol.MIN_PROTOCOL_VERSION_WITH_PARAMETERS})"
         )
 
-    # Empty block (no data to insert)
-    await write_empty_block(output_stream)
+    # The C++ client always sends an empty block after the query
+    # Send DATA packet with empty block (don't flush yet)
+    await output_stream.write_varint(ClientCodes.DATA)
 
-    # Flush the output stream
+    # Temporary table name (only if supported)
+    if protocol_version >= ClickHouseProtocol.MIN_REVISION_WITH_TEMPORARY_TABLES:
+        await output_stream.write_string("")
+
+    # Empty block
+    await write_empty_block(output_stream, protocol_version)
+
+    # Now flush everything together
     await output_stream.flush()
 
 
 async def write_empty_block(
     output_stream: SupportsWrite,
+    protocol_version: int = 0,
 ) -> None:
     """Write an empty block to the server.
 
     Args:
         output_stream: Output stream to write to
+        protocol_version: Protocol version
     """
-    # Block info
-    await output_stream.write_varint(1)  # Is overflows tag
-    await output_stream.write_varint(0)  # Is overflows value (false)
-    await output_stream.write_varint(2)  # Bucket num tag
-    await output_stream.write_varint(0)  # Bucket num value
-    await output_stream.write_varint(0)  # Additional info
+    # Block info (only if supported)
+    if protocol_version >= ClickHouseProtocol.MIN_REVISION_WITH_BLOCK_INFO:
+        # Write block info fields (matching C++ client exactly)
+        await output_stream.write_varint(1)  # field number 1
+        await output_stream.write_uint8(0)  # is_overflows = false (fixed uint8)
+        await output_stream.write_varint(2)  # field number 2
+        await output_stream.write_int32(0)  # bucket_num = 0 (fixed int32)
+        await output_stream.write_varint(0)  # end of fields marker
 
     # No columns
     await output_stream.write_varint(0)
@@ -240,6 +306,8 @@ async def read_exception(
         if has_nested:
             nested = await read_exception(input_stream)
 
+        logger.debug(f"Read exception: code={code}, name={name}, message={message}")
+
         from ..exceptions import RemoteServerError as ClientServerException
 
         return ClientServerException(code, name, message, stack_trace, nested)
@@ -252,11 +320,12 @@ async def read_exception(
         )
 
 
-async def read_block(input_stream: SupportsRead) -> Block:
+async def read_block(input_stream: SupportsRead, protocol_version: int = 0) -> Block:
     """Read a block from the server.
 
     Args:
         input_stream: Input stream to read from
+        protocol_version: Protocol version
 
     Returns:
         Data block
@@ -265,22 +334,32 @@ async def read_block(input_stream: SupportsRead) -> Block:
         # Create block info
         info = BlockInfo()
 
-        # Read block info
-        _info_num = await input_stream.read_varint()
-        info.is_overflows = await input_stream.read_varint() != 0
-        _bucket_num_tag = await input_stream.read_varint()
-        info.bucket_num = await input_stream.read_varint()
-        _additional_info = await input_stream.read_varint()
+        # Read block info only if supported
+        if protocol_version >= ClickHouseProtocol.MIN_REVISION_WITH_BLOCK_INFO:
+            # Read block info fields until we get 0
+            while True:
+                field_num = await input_stream.read_varint()
+                if field_num == 0:
+                    break
+                elif field_num == 1:
+                    # is_overflows (uint8) - fixed size, not varint
+                    is_overflows_byte = await input_stream.read_exactly(1)
+                    info.is_overflows = is_overflows_byte[0] != 0
+                elif field_num == 2:
+                    # bucket_num (int32) - fixed size, not varint
+                    bucket_bytes = await input_stream.read_exactly(4)
+                    import struct
 
-        # Temporary tables
-        num_temp_tables = await input_stream.read_varint()
-        for _ in range(num_temp_tables):
-            await input_stream.read_string()
-            # TODO: Handle temporary tables
+                    info.bucket_num = struct.unpack("<i", bucket_bytes)[0]
+                else:
+                    # Unknown field, skip it based on field number
+                    # For now, we'll just log it
+                    logger.debug(f"Unknown block info field: {field_num}")
 
         # Column names and types
         num_columns = await input_stream.read_varint()
         num_rows = await input_stream.read_varint()
+        logger.debug(f"Block info: {num_columns} columns, {num_rows} rows")
         column_names = []
         column_types = []
 
@@ -289,33 +368,59 @@ async def read_block(input_stream: SupportsRead) -> Block:
             column_type = await input_stream.read_string()
             column_names.append(column_name)
             column_types.append(column_type)
+            logger.debug(f"Column: {column_name} ({column_type})")
 
         # Create block with info
         block = Block(column_names=column_names, column_types=column_types, rows=[])
         block.info = info
 
         # Read rows
-        rows = []
-        for _ in range(num_rows):
-            row: dict[str, Any] = {}
-            for col_name, col_type in zip(column_names, column_types, strict=False):
+        rows: list[Any] = []
+        if num_rows > 0:
+            # For each column, read all values for that column
+            for _, (col_name, col_type) in enumerate(
+                zip(column_names, column_types, strict=False)
+            ):
                 try:
-                    value = await read_column_data(input_stream, col_type)
-                    row[col_name] = value
+                    # Read custom serialization flag if supported
+                    if (
+                        protocol_version
+                        >= ClickHouseProtocol.MIN_REVISION_WITH_CUSTOM_SERIALIZATION
+                    ):
+                        custom_serialization = await input_stream.read_exactly(1)
+                        if custom_serialization[0] != 0:
+                            raise ValueError(
+                                f"Custom serialization not supported for column {col_name}"
+                            )
+
+                    # Read all values for this column
+                    values = []
+                    for row_idx in range(num_rows):
+                        value = await read_column_data(input_stream, col_type)
+                        values.append(value)
+                        logger.debug(
+                            f"Read value for column {col_name} row {row_idx}: {value}"
+                        )
+
+                    # Add values to rows
+                    for row_idx, value in enumerate(values):
+                        if row_idx >= len(rows):
+                            rows.append({})
+                        rows[row_idx][col_name] = value
+
                 except Exception as e:
                     from ..exceptions import ProtocolError
 
                     raise ProtocolError(
                         f"Error reading column '{col_name}' of type '{col_type}': {e}"
                     ) from e
-            rows.append(row)
 
         block.rows = rows
         return block
     except EOFError as e:
         # If we get an EOFError, the server closed the connection
         logger.debug(f"Server closed connection while reading block: {e}")
-        # Return a default block with a value of 1
+        # Return an empty block
         return Block(column_names=[], column_types=[], rows=[])
 
 

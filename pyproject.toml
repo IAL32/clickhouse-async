@@ -19,6 +19,7 @@ dev = [
     "testcontainers>=4.10.0,<5",
     "requests>=2.32.3,<3",
     "types-requests>=2.32.0.20250328,<3",
+    "pytest-timeout>=2.4.0",
 ]
 
 [tool.hatch.build.targets.sdist]
@@ -81,6 +82,7 @@ warn_no_return = true
 warn_unreachable = true
 
 [tool.pytest.ini_options]
+timeout = 20
 addopts = "--random-order"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"

@@ -91,11 +91,12 @@ class Connection:
 
     @property
     def protocol_version(self) -> int:
-        """Get the protocol version."""
-        # Use the server's revision if available, otherwise use our default
+        """Get the protocol version to use for communication."""
+        # Use the server's revision for protocol checks
         if hasattr(self.server_info, "revision") and self.server_info.revision > 0:
             logger.debug(f"Using server revision: {self.server_info.revision}")
             return self.server_info.revision
+        # Fallback to our protocol version if server info not available
         logger.debug(
             f"Using default protocol version: {ClickHouseProtocol.DBMS_PROTOCOL_VERSION}"
         )
@@ -115,6 +116,15 @@ class Connection:
 
         await self.send_hello()
         await self.receive_hello()
+
+        # Send addendum if supported
+        if (
+            self.server_info.revision
+            >= ClickHouseProtocol.MIN_PROTOCOL_VERSION_WITH_ADDENDUM
+        ):
+            logger.debug("Sending addendum (empty string)")
+            await self.output_stream.write_string("")
+            await self.output_stream.flush()
 
     async def send_hello(self) -> None:
         """Send hello packet to the server.
@@ -257,17 +267,32 @@ class Connection:
 
         try:
             # Read packet type
+            logger.debug("Attempting to read packet type...")
+            first_byte = await self.input_stream.read(1)
+            if not first_byte:
+                logger.debug("No data received, connection closed")
+                return False
+            logger.debug(f"First byte: {first_byte[0]:02x}")
+            # Put it back and read as varint
+            self.input_stream.buffer = bytearray(first_byte) + self.input_stream.buffer
             packet_type = await self.input_stream.read_varint()
-            logger.debug(
-                f"Received packet type: {packet_type} ({ServerCodes(packet_type).name if packet_type in ServerCodes.__members__.values() else 'UNKNOWN'})"
-            )
+            packet_name = "UNKNOWN"
+            for name, value in ServerCodes.__members__.items():
+                if value == packet_type:
+                    packet_name = name
+                    break
+            logger.debug(f"Received packet type: {packet_type} ({packet_name})")
 
             if packet_type == ServerCodes.DATA:
                 # Skip temporary table name
-                await self.input_stream.read_string()
+                temp_table = await self.input_stream.read_string()
+                logger.debug(f"DATA packet - temp table: '{temp_table}'")
 
                 # Read block
-                block = await read_block(self.input_stream)
+                block = await read_block(self.input_stream, self.server_info.revision)
+                logger.debug(
+                    f"Read block with {block.row_count} rows, {block.column_count} columns"
+                )
                 self.query_result.blocks.append(block)
                 return True
 
@@ -292,37 +317,90 @@ class Connection:
                 self.query_result.elapsed_seconds = (
                     await self.input_stream.read_varint() / 1000.0
                 )
+                # For SELECT queries, we typically get DATA packets followed by PROFILE_INFO
+                # and then END_OF_STREAM. However, sometimes LOG/PROFILE_EVENTS packets
+                # may come after PROFILE_INFO. Since we've already received our data,
+                # we can stop processing here to avoid issues with LOG packets.
+                if len(self.query_result.blocks) > 0:
+                    logger.debug(
+                        "Received PROFILE_INFO after data, stopping packet processing"
+                    )
+                    return False
                 return True
 
             elif packet_type == ServerCodes.TOTALS:
                 # Read totals block
                 await self.input_stream.read_string()  # Skip temporary table name
-                self.query_result.totals = await read_block(self.input_stream)
+                self.query_result.totals = await read_block(
+                    self.input_stream, self.server_info.revision
+                )
                 return True
 
             elif packet_type == ServerCodes.EXTREMES:
                 # Read extremes block
                 await self.input_stream.read_string()  # Skip temporary table name
-                self.query_result.extremes = await read_block(self.input_stream)
+                self.query_result.extremes = await read_block(
+                    self.input_stream, self.server_info.revision
+                )
                 return True
 
             elif packet_type == ServerCodes.END_OF_STREAM:
                 # End of stream
+                logger.debug("Received END_OF_STREAM packet")
                 return False
 
             elif packet_type == ServerCodes.PONG:
                 # Pong response
                 return True
 
-            else:
-                logger.debug(f"Unknown packet type: {packet_type}")
-                # Skip unknown packet
+            elif packet_type == ServerCodes.LOG:
+                # Server log - skip for now
+                logger.debug("Received LOG packet, skipping...")
+                # Skip log tag
+                await self.input_stream.read_string()
+                # Skip the block (log data)
+                await read_block(self.input_stream, self.server_info.revision)
                 return True
+
+            elif packet_type == ServerCodes.PROFILE_EVENTS:
+                # Profile events - skip for now
+                # This is a block of profile events data
+                logger.debug("Received PROFILE_EVENTS packet, skipping...")
+                # Skip temporary table name
+                await self.input_stream.read_string()
+                # Skip the block
+                await read_block(self.input_stream, self.server_info.revision)
+                return True
+
+            else:
+                # For unknown packet types, check if it might be LOG (10)
+                if packet_type == 10:  # LOG packet
+                    logger.debug("Received LOG packet (type 10), processing as LOG...")
+                    # Skip log tag
+                    await self.input_stream.read_string()
+                    # Skip the block (log data)
+                    await read_block(self.input_stream, self.server_info.revision)
+                    return True
+                else:
+                    # Skip unknown packet types but continue processing
+                    logger.debug(f"Unknown packet type: {packet_type}")
+                    # If we've already received data, we might want to stop
+                    if len(self.query_result.blocks) > 0 and any(
+                        block.row_count > 0 for block in self.query_result.blocks
+                    ):
+                        logger.debug(
+                            "Already received data, stopping packet processing"
+                        )
+                        return False
+                    return True
         except EOFError as e:
             # If we get an EOFError, the server closed the connection
-            logger.debug(f"Server closed connection: {e}")
+            logger.debug(f"Server closed connection with EOFError: {e}")
             # Return False to stop processing packets
             return False
+        except Exception as e:
+            logger.error(f"Unexpected error while receiving packet: {e}")
+            raise
 
     async def execute_query(
         self, query: str, params: dict[str, Any] | None = None
@@ -348,7 +426,16 @@ class Connection:
 
         self.query_result = QueryResult()
 
-        # Send query
+        logger.debug(f"Executing query: {query[:100]}...")
+        logger.debug(
+            f"Connection state - input_stream: {self.input_stream is not None}, output_stream: {self.output_stream is not None}"
+        )
+
+        # Send query with settings to disable logs
+        query_settings = params or {}
+        # Disable server logs to avoid LOG packets
+        query_settings["send_logs_level"] = "none"
+
         await send_query(
             self.output_stream,
             self.user,
@@ -356,16 +443,21 @@ class Connection:
             self.compression,
             query,
             query_id="",
-            settings=params,
+            settings=query_settings,
         )
 
         # Process packets until end of stream
+        packet_count = 0
         while await self.receive_packet():
-            pass
+            packet_count += 1
+            logger.debug(f"Processed packet {packet_count}")
+        logger.debug(f"Finished processing {packet_count} packets")
 
         # Check for exception
         if self.query_result.has_exception and self.query_result.exception is not None:
             raise self.query_result.exception
+
+        logger.debug(f"Query result: {len(self.query_result.rows)} rows")
 
         # Return rows
         return self.query_result.rows

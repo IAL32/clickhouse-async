@@ -24,10 +24,10 @@ The following features are still in development:
 pip install clickhouse-async
 ```
 
-Or with Poetry:
+Or with uv:
 
 ```bash
-poetry add clickhouse-async
+uv add clickhouse-async
 ```
 
 ## Basic Usage
@@ -86,11 +86,11 @@ if __name__ == "__main__":
 git clone https://github.com/yourusername/clickhouse-async.git
 cd clickhouse-async
 
-# Install dependencies with Poetry
-poetry install
+# Install dependencies with uv
+uv install
 
 # Run tests
-poetry run pytest
+uv run pytest
 ```
 
 ## License

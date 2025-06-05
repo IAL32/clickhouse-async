@@ -7,8 +7,8 @@ Thank you for considering contributing to clickhouse-async! This document provid
 1. Fork the repository
 2. Clone your fork: `git clone https://github.com/your-username/clickhouse-async.git`
 3. Change into the project directory: `cd clickhouse-async`
-4. Install dependencies with Poetry: `poetry install`
-5. Activate the virtual environment: `poetry shell`
+4. Install dependencies with uv: `uv install`
+5. Activate the virtual environment: `uv shell`
 
 ## Development Workflow
 
@@ -61,7 +61,7 @@ feat!: redesign API
 
 You can use Commitizen to help format your commit messages:
 ```bash
-poetry run cz commit
+uv run cz commit
 ```
 
 ## Code Style
@@ -72,13 +72,13 @@ This project uses Ruff for code formatting and linting, which enforces PEP 8 sty
 
 ```bash
 # Run all tests
-poetry run pytest
+uv run pytest
 
 # Run tests with coverage
-poetry run pytest --cov=clickhouse_async
+uv run pytest --cov=clickhouse_async
 
 # Run specific tests
-poetry run pytest tests/test_specific_file.py
+uv run pytest tests/test_specific_file.py
 ```
 
 ## Building Documentation
@@ -87,7 +87,7 @@ Documentation is built using Sphinx. To build the documentation:
 
 ```bash
 cd docs
-poetry run make html
+uv run make html
 ```
 
 ## Releasing

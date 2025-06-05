@@ -19,16 +19,18 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
+      - uses: astral-sh/setup-uv@v6
         with:
-          version: 2.1.1
+          enable-cache: true
+          cache-dependency-glob: |
+            pyproject.toml
+            uv.lock
 
       - name: Install dependencies
-        run: poetry install
+        run: uv sync --frozen
 
       - name: Run tests
-        run: poetry run pytest
+        run: uv run pytest
 
       - name: Create release
         env:
@@ -36,12 +38,12 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          poetry run cz bump --yes
+          uv run cz bump --yes
 
       - name: Build and publish to PyPI
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
-          poetry config pypi-token.pypi $PYPI_TOKEN
-          poetry build
-          poetry publish
+          uv config pypi-token.pypi $PYPI_TOKEN
+          uv build
+          uv publish

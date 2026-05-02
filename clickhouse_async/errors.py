@@ -44,6 +44,15 @@ class QueryCancellationError(ClickHouseError):
         self.reason = reason
 
 
+class MissingExtraError(ClickHouseError):
+    """A feature was requested but its optional dependency isn't installed.
+
+    Raised when, for example, the user enables LZ4 compression on a
+    connection but the ``[lz4]`` extra wasn't installed. The message
+    names the extra and includes the exact ``pip install`` command.
+    """
+
+
 class UnsupportedFeatureError(ClickHouseError):
     """A feature was requested but the negotiated protocol revision
     doesn't support it.

@@ -26,6 +26,16 @@ class AsyncBinaryReader:
         self._stream = stream
         self._pos = 0
 
+    @classmethod
+    def from_bytes(cls, data: bytes) -> AsyncBinaryReader:
+        """Wrap an in-memory byte buffer as a reader. Used by the
+        compression layer (06h) to feed a decompressed frame into the
+        rest of the codec stack without spinning up a real socket."""
+        stream = asyncio.StreamReader()
+        stream.feed_data(data)
+        stream.feed_eof()
+        return cls(stream)
+
     @property
     def position(self) -> int:
         return self._pos

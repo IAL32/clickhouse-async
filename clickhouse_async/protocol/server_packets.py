@@ -19,7 +19,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from clickhouse_async.protocol.block import Block, read_block
+from clickhouse_async.protocol.block import Block
+from clickhouse_async.protocol.compression import (
+    CompressionMethod,
+    read_block_framed,
+)
 from clickhouse_async.protocol.io import AsyncBinaryReader
 from clickhouse_async.protocol.packets import (
     DBMS_MIN_PROTOCOL_VERSION_WITH_SERVER_QUERY_TIME_IN_PROGRESS,
@@ -129,15 +133,26 @@ async def read_profile_info(
 
 
 async def read_block_packet_body(
-    reader: AsyncBinaryReader, *, revision: int
+    reader: AsyncBinaryReader,
+    *,
+    revision: int,
+    compression: CompressionMethod = CompressionMethod.NONE,
 ) -> tuple[str, Block]:
     """Read the body shared by Data / Totals / Extremes / Log / ProfileEvents.
 
     Layout: ``string external_table_name`` (often empty) + ``Block``.
+
+    ``compression`` controls whether the block bytes are framed: pass
+    the connection's compression method for ``DATA`` / ``TOTALS`` /
+    ``EXTREMES``, and ``CompressionMethod.NONE`` for ``LOG`` /
+    ``PROFILE_EVENTS`` (which upstream always sends raw, even when the
+    connection has compression on).
     """
 
     table_name = await reader.read_string()
-    block = await read_block(reader, revision=revision)
+    block = await read_block_framed(
+        reader, revision=revision, compression=compression
+    )
     return table_name, block
 
 

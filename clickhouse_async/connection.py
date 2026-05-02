@@ -44,7 +44,11 @@ from clickhouse_async.errors import (
     ServerError,
     UnsupportedFeatureError,
 )
-from clickhouse_async.protocol.block import Block, BlockInfo, write_block
+from clickhouse_async.protocol.block import Block, BlockInfo
+from clickhouse_async.protocol.compression import (
+    CompressionMethod,
+    write_block_framed,
+)
 from clickhouse_async.protocol.exception_packet import read_exception_body
 from clickhouse_async.protocol.handshake import (
     ServerInfo,
@@ -141,11 +145,13 @@ class Connection:
         port: int = 9000,
         *,
         ssl_context: _ssl_module.SSLContext | None = None,
+        compression: CompressionMethod = CompressionMethod.NONE,
         transport_factory: TransportFactory | None = None,
     ) -> None:
         self._host = host
         self._port = port
         self._ssl_context = ssl_context
+        self._compression = compression
         self._transport_factory: TransportFactory = (
             transport_factory or _default_transport_factory
         )
@@ -346,6 +352,7 @@ class Connection:
             revision=self._negotiated_revision,
             settings=settings,
             parameters=formatted_params,
+            compression=self._compression != CompressionMethod.NONE,
         )
         self._writer.write(out.getvalue())
         await self._writer.drain()
@@ -377,10 +384,11 @@ class Connection:
         out = BinaryWriter()
         out.write_varuint(ClientPacket.DATA)
         out.write_string("")  # external table name (empty = main table)
-        write_block(
+        write_block_framed(
             out,
             block if block is not None else Block(info=BlockInfo()),
             revision=self._negotiated_revision,
+            compression=self._compression,
         )
         self._writer.write(out.getvalue())
         await self._writer.drain()
@@ -501,21 +509,26 @@ class Connection:
             )
         assert self._reader is not None
         revision = self._negotiated_revision
+        # DATA / TOTALS / EXTREMES blocks travel through the connection's
+        # negotiated compression; LOG / PROFILE_EVENTS are always raw
+        # (upstream sendLogs / sendProfileEvents bypass the compression
+        # layer regardless of the per-query compression flag).
+        compression = self._compression
         while True:
             packet_id = await self._reader.read_varuint()
             if packet_id == ServerPacket.DATA:
                 _, block = await read_block_packet_body(
-                    self._reader, revision=revision
+                    self._reader, revision=revision, compression=compression
                 )
                 yield StreamedBlock(kind="data", block=block)
             elif packet_id == ServerPacket.TOTALS:
                 _, block = await read_block_packet_body(
-                    self._reader, revision=revision
+                    self._reader, revision=revision, compression=compression
                 )
                 yield StreamedBlock(kind="totals", block=block)
             elif packet_id == ServerPacket.EXTREMES:
                 _, block = await read_block_packet_body(
-                    self._reader, revision=revision
+                    self._reader, revision=revision, compression=compression
                 )
                 yield StreamedBlock(kind="extremes", block=block)
             elif packet_id == ServerPacket.END_OF_STREAM:

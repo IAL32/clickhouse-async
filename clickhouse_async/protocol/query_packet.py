@@ -17,9 +17,9 @@ mirrored in ``.plans/06-connection.md``):
 10. trailing empty Data packet — ``Client.Data`` + empty external-table
     name + empty block
 
-For 06c, ``write_query_packet`` is called with empty settings and no
-parameters; 06d wires the per-query settings API, 06f the parameters,
-06h flips the compression flag.
+``write_query_packet`` accepts settings, parameters, and a compression
+flag; each is gated on the matching protocol revision and emitted in
+the documented order.
 """
 
 from __future__ import annotations
@@ -158,8 +158,8 @@ def write_query_packet(
 
     Settings and parameters values are strings on the wire — type
     coercion happens at the call site. ``compression`` only flips the
-    flag; the actual compressed framing of the trailing/data blocks
-    lands in 06h.
+    flag here; the actual compressed framing lives in
+    ``protocol/compression.py``.
     """
 
     writer.write_varuint(ClientPacket.QUERY)
@@ -193,8 +193,8 @@ def write_query_packet(
                 writer.write_string(value)
         writer.write_string("")  # terminator
 
-    # Trailing empty Data packet — signals "no inline data" for SELECTs and
-    # is followed by the actual data blocks for INSERTs (which 06e wires).
+    # Trailing empty Data packet — signals "no inline data" for SELECTs;
+    # for INSERTs the caller follows it with real Data packets.
     writer.write_varuint(ClientPacket.DATA)
     writer.write_string("")  # external table name (empty = main table)
     write_block(

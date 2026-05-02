@@ -1,4 +1,4 @@
-"""Tests for the INSERT data path (06e).
+"""Tests for the INSERT data path.
 
 The Connection-level surface is just ``send_data(block | None)`` plus
 the existing ``iter_packets`` / ``send_query`` machinery. Orchestration

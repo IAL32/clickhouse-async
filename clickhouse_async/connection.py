@@ -1,13 +1,15 @@
 """The native-protocol Connection.
 
 A ``Connection`` owns one TCP socket and one protocol state machine. It
-is the layer the high-level ``Client`` is thin over. Substeps so far:
-06a (lifecycle), 06b (Hello), 06c (Query + minimal packet loop), 06d
-(full steady-state dispatch + callback hooks), 06e (``send_data`` for
-the INSERT path). Parameters (06f), cancellation (06g), and compression
-(06h) sit on top.
+is the layer the high-level ``Client`` is thin over. Responsibilities:
+TCP open/close, the Hello handshake (which sets ``server_info`` and
+``negotiated_revision``), the Query packet, the steady-state packet
+loop with optional callbacks for the non-yielded packets, the INSERT
+``send_data`` path, server-side parameter binding, cooperative
+cancellation with bounded drain, and per-block LZ4 / ZSTD framing
+when compression is enabled.
 
-INSERT sequence (orchestrated by the Client in 07):
+INSERT sequence (orchestrated by the higher-level ``Client``):
 
 1. ``await conn.send_query("INSERT INTO t VALUES", ...)``
 2. ``async for streamed in conn.iter_packets(): ...`` — the server
@@ -134,9 +136,9 @@ async def _default_transport_factory(
 class Connection:
     """Native-protocol connection skeleton.
 
-    For 06a, ``open()`` takes the transport up to ``CONNECTING`` and
-    stops. The Hello exchange that promotes ``CONNECTING → READY`` is
-    06b's job. ``close()`` is idempotent and safe from any state.
+    ``open()`` brings the transport up and runs the Hello handshake;
+    on success the connection ends in ``READY``. ``close()`` is
+    idempotent and safe from any state, including mid-open.
     """
 
     def __init__(
@@ -372,8 +374,8 @@ class Connection:
         v0 does not validate the block's columns against the header
         the server emitted; misaligned schemas surface as a
         ``ServerError`` from the next ``iter_packets`` read. Header
-        validation lives at the Client layer (07) where the
-        header→block flow is owned.
+        validation lives at the higher-level ``Client`` where the
+        full header→block flow is owned.
         """
         if self._state != State.IN_FLIGHT:
             raise RuntimeError(

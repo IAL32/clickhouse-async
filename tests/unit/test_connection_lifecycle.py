@@ -1,8 +1,7 @@
 """Lifecycle and state-machine tests for ``Connection``.
 
-Substep 06a covers the state machine and transport open/close. After
-06b lands, ``open()`` also runs the Hello handshake, so tests that
-reach an open connection feed a scripted Hello reply via
+``open()`` brings the transport up *and* runs the Hello handshake, so
+tests that reach an open connection feed a scripted Hello reply via
 ``encode_server_hello``.
 """
 

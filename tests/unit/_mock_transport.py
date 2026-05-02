@@ -1,9 +1,9 @@
 """A scripted transport for unit-testing ``Connection`` without a socket.
 
-Acts as the ``transport_factory`` argument to ``Connection``, so each
-substep above 06a (handshake, query, packet loop, cancellation, …) can
-drive the connection against pre-recorded server bytes and assert the
-exact bytes the connection wrote in response.
+Acts as the ``transport_factory`` argument to ``Connection``, so tests
+can drive the connection against pre-recorded server bytes and assert
+the exact bytes the connection wrote in response — handshake, query,
+packet loop, cancel, compression — without spinning up a real socket.
 """
 
 from __future__ import annotations

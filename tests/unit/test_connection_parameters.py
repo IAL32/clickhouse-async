@@ -1,8 +1,8 @@
-"""Server-side parameter binding (06f).
+"""Server-side parameter binding for ``Connection.send_query``.
 
-Covers ``Connection.send_query(..., params=...)`` and the
-``format_param`` registry it uses to coerce typed Python values into
-the textual form ClickHouse expects.
+Covers ``send_query(..., params=...)`` and the ``format_param``
+registry it uses to coerce typed Python values into the textual form
+ClickHouse expects.
 """
 
 from __future__ import annotations

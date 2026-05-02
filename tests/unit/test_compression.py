@@ -1,4 +1,4 @@
-"""Compression layer tests (06h).
+"""Compression layer tests.
 
 Covers:
 - Bare-install discipline: importing the compression module never

@@ -1,9 +1,10 @@
-"""Tests for the steady-state packet-loop dispatch (06d).
+"""Tests for the steady-state packet-loop dispatch.
 
-Substep 06d extends ``iter_packets`` past the minimum 06c set
-(DATA / END_OF_STREAM / EXCEPTION) to handle every server packet a
-SELECT can produce, with optional callback hooks for the non-yielded
-ones.
+``iter_packets`` handles every server packet a SELECT can produce —
+yields ``DATA`` / ``TOTALS`` / ``EXTREMES`` as ``StreamedBlock``,
+fires the matching callback for non-yielded packets (Progress,
+ProfileInfo, Log, TableColumns, TimezoneUpdate, ProfileEvents), and
+terminates on ``END_OF_STREAM`` (READY) or ``EXCEPTION`` (raises).
 """
 
 from __future__ import annotations

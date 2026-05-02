@@ -20,8 +20,9 @@ For v0 we cover the common types in ``DESIGN.md §7``:
 - ``IPv4Address`` / ``IPv6Address`` — ``str(value)``
 - ``bytes`` — hex-encoded
 
-Anything else raises ``TypeError``. Custom types belong in 07's
-type-aware client layer, not here.
+Anything else raises ``TypeError``. Custom types belong at the
+higher-level ``Client`` where the type-aware conversion lives, not
+here.
 """
 
 from __future__ import annotations

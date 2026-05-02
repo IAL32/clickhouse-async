@@ -1,4 +1,4 @@
-"""Tests for ``Connection.send_query`` + ``iter_packets`` (06c)."""
+"""Tests for ``Connection.send_query`` + ``iter_packets``."""
 
 from __future__ import annotations
 
@@ -180,10 +180,10 @@ async def test_iter_packets_raises_server_error_and_returns_to_ready() -> None:
     assert conn.state == State.READY
 
 
-# Coverage for unrecognised packet ids living in the parametrised test
-# `test_distributed_read_packets_break_the_connection` over in 06d's
-# tests — that one walks every distributed-read packet id and asserts
-# the same state-and-error contract.
+# Coverage for unrecognised packet ids lives in the parametrised
+# `test_distributed_read_packets_break_the_connection` — that test
+# walks every distributed-read packet id and asserts the same
+# state-and-error contract.
 
 
 # ---- state guards -------------------------------------------------------

@@ -1,6 +1,6 @@
 """Hello-handshake tests for ``Connection.open()``.
 
-Substep 06b: the handshake takes ``CONNECTING → READY`` on success, or
+The handshake takes ``CONNECTING → READY`` on success, or
 ``CONNECTING → BROKEN`` on a server-side rejection (server replies
 ``Exception``) or any handshake-time IO/protocol failure.
 """

@@ -23,7 +23,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from clickhouse_async.types.base import ColumnCodec
-from clickhouse_async.types.composite import Nullable
+from clickhouse_async.types.composite import Array, Map, Nullable, Tuple
 from clickhouse_async.types.datetime import (
     Date,
     Date32,
@@ -91,8 +91,7 @@ _NULLARY: dict[str, Callable[[], ColumnCodec]] = {
 # or raises ValueError for the wrong shape.
 _Param = "ColumnCodec | int | str"
 _PARAMETRIC: dict[str, Callable[[list[ColumnCodec | int | str]], ColumnCodec]] = {
-    "Nullable": lambda p: Nullable(_one_type(p, "Nullable")),
-    "FixedString": lambda p: FixedString(_one_int(p, "FixedString")),
+    "Array": lambda p: Array(_one_type(p, "Array")),
     "DateTime": lambda p: DateTime(timezone=_one_str(p, "DateTime")),
     "DateTime64": lambda p: _make_datetime64(p),
     "Decimal": lambda p: _make_decimal(p),
@@ -100,6 +99,10 @@ _PARAMETRIC: dict[str, Callable[[list[ColumnCodec | int | str]], ColumnCodec]] =
     "Decimal64": lambda p: Decimal64(_one_int(p, "Decimal64")),
     "Decimal128": lambda p: Decimal128(_one_int(p, "Decimal128")),
     "Decimal256": lambda p: Decimal256(_one_int(p, "Decimal256")),
+    "FixedString": lambda p: FixedString(_one_int(p, "FixedString")),
+    "Map": lambda p: _make_map(p),
+    "Nullable": lambda p: Nullable(_one_type(p, "Nullable")),
+    "Tuple": lambda p: _make_tuple(p),
 }
 
 
@@ -148,6 +151,27 @@ def _make_datetime64(params: list[ColumnCodec | int | str]) -> DateTime64:
             f"DateTime64 takes at most two parameters; got {params!r}"
         )
     return DateTime64(precision=precision, timezone=tz)
+
+
+def _make_tuple(params: list[ColumnCodec | int | str]) -> Tuple:
+    if not params or any(not isinstance(p, ColumnCodec) for p in params):
+        raise ValueError(
+            f"Tuple takes one or more type parameters; got {params!r}"
+        )
+    components: list[ColumnCodec] = [p for p in params if isinstance(p, ColumnCodec)]
+    return Tuple(*components)
+
+
+def _make_map(params: list[ColumnCodec | int | str]) -> Map:
+    if (
+        len(params) != 2
+        or not isinstance(params[0], ColumnCodec)
+        or not isinstance(params[1], ColumnCodec)
+    ):
+        raise ValueError(
+            f"Map takes (key_type, value_type); got {params!r}"
+        )
+    return Map(params[0], params[1])
 
 
 def _make_decimal(params: list[ColumnCodec | int | str]) -> ColumnCodec:

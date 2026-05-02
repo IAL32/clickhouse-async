@@ -40,9 +40,12 @@ An async Python client for ClickHouse over the **native TCP protocol**
   `# type: ignore` without a comment explaining why.
 
 ## Test rules
-- Split test bodies with BDD comments: `# BEGIN`, `# WHEN`, `# THEN`,
-  in that order. `# WHEN` holds a single action — if two, it's two
-  tests. Skip phases that don't apply.
+- Split test bodies with BDD comments. Each marker carries an inline
+  description: `# BEGIN: <setup>`, `# WHEN: <action>`, `# THEN:
+  <assertion>`. Order is fixed; bare markers (no colon, no context) are
+  not allowed. `# WHEN` holds a single action — if two, it's two tests.
+  Skip phases that don't apply. For `pytest.raises`, write `# WHEN:` and
+  `# THEN:` as two adjacent comments above the `with` block.
 - **Integration tests clean up before they run, not after.** Each test
   drops and recreates the tables/databases it owns at entry. Teardown
   is a nice-to-have, not the contract — a previously crashed test must

@@ -36,66 +36,65 @@ def _reader(data: bytes) -> AsyncBinaryReader:
     ],
 )
 async def test_varuint_round_trip(value: int) -> None:
-    # BEGIN
+    # BEGIN: an empty writer and a varuint value at a varuint-byte boundary
     writer = BinaryWriter()
 
-    # WHEN
+    # WHEN: encoding the value and decoding the resulting bytes
     writer.write_varuint(value)
     decoded = await _reader(writer.getvalue()).read_varuint()
 
-    # THEN
+    # THEN: the round-trip preserves the value exactly
     assert decoded == value
 
 
 async def test_varuint_known_encoding() -> None:
-    # BEGIN
-    # LEB128: 300 → 0xAC 0x02 (canonical fixture)
+    # BEGIN: an empty writer
     writer = BinaryWriter()
 
-    # WHEN
+    # WHEN: encoding 300, the canonical LEB128 fixture value
     writer.write_varuint(300)
 
-    # THEN
+    # THEN: the bytes match the documented encoding 0xAC 0x02
     assert writer.getvalue() == b"\xac\x02"
 
 
 async def test_varuint_zero_is_one_byte() -> None:
-    # BEGIN
+    # BEGIN: an empty writer
     writer = BinaryWriter()
 
-    # WHEN
+    # WHEN: encoding zero
     writer.write_varuint(0)
 
-    # THEN
+    # THEN: it serialises to a single null byte
     assert writer.getvalue() == b"\x00"
 
 
 def test_varuint_negative_raises_value_error() -> None:
-    # BEGIN
+    # BEGIN: an empty writer
     writer = BinaryWriter()
 
-    # WHEN / THEN
+    # WHEN: attempting to write -1 (varuint is unsigned by definition)
+    # THEN: a ValueError surfaces from the writer
     with pytest.raises(ValueError, match="cannot be negative"):
         writer.write_varuint(-1)
 
 
 async def test_varuint_too_long_raises_protocol_error() -> None:
-    # BEGIN
-    # 11 continuation bytes — one over the u64-safe limit
-    bad = bytes([0xFF] * 11)
-    reader = _reader(bad)
+    # BEGIN: a stream of 11 continuation bytes — one beyond the u64-safe limit
+    reader = _reader(bytes([0xFF] * 11))
 
-    # WHEN / THEN
+    # WHEN: reading a varuint that never terminates
+    # THEN: ProtocolError flags the oversized encoding
     with pytest.raises(ProtocolError, match="varuint exceeds"):
         await reader.read_varuint()
 
 
 async def test_varuint_truncated_raises_protocol_error() -> None:
-    # BEGIN
-    # A continuation byte (high bit set) with no follower
+    # BEGIN: a stream with a continuation byte and no follower
     reader = _reader(b"\xff")
 
-    # WHEN / THEN
+    # WHEN: reading a varuint that hits EOF mid-encoding
+    # THEN: ProtocolError flags the short read
     with pytest.raises(ProtocolError, match="short read"):
         await reader.read_varuint()
 
@@ -123,27 +122,27 @@ async def test_varuint_truncated_raises_protocol_error() -> None:
     ],
 )
 async def test_int_round_trip(width: int, signed: bool, value: int) -> None:
-    # BEGIN
+    # BEGIN: an empty writer and a fixed-width integer at a type boundary
     writer = BinaryWriter()
 
-    # WHEN
+    # WHEN: writing the value and reading it back
     writer.write_int(value, width, signed=signed)
     encoded = writer.getvalue()
     decoded = await _reader(encoded).read_int(width, signed=signed)
 
-    # THEN
+    # THEN: the value round-trips and the encoding occupies exactly `width` bytes
     assert decoded == value
     assert len(encoded) == width
 
 
 async def test_int_is_little_endian() -> None:
-    # BEGIN
+    # BEGIN: an empty writer
     writer = BinaryWriter()
 
-    # WHEN
+    # WHEN: encoding 0x01020304 as a 4-byte unsigned int
     writer.write_int(0x01020304, 4, signed=False)
 
-    # THEN
+    # THEN: bytes appear low-byte-first, confirming little-endian byte order
     assert writer.getvalue() == b"\x04\x03\x02\x01"
 
 
@@ -163,23 +162,23 @@ async def test_int_is_little_endian() -> None:
     ],
 )
 async def test_string_round_trip(value: str) -> None:
-    # BEGIN
+    # BEGIN: an empty writer and a string covering ASCII/multibyte/large cases
     writer = BinaryWriter()
 
-    # WHEN
+    # WHEN: writing the string (varuint-prefixed UTF-8) and reading it back
     writer.write_string(value)
     decoded = await _reader(writer.getvalue()).read_string()
 
-    # THEN
+    # THEN: the string survives the round-trip verbatim
     assert decoded == value
 
 
 async def test_string_invalid_utf8_raises_protocol_error() -> None:
-    # BEGIN
-    # Length 2, then bytes that are not valid UTF-8
+    # BEGIN: a stream whose length prefix promises 2 bytes that are not valid UTF-8
     reader = _reader(b"\x02\xff\xfe")
 
-    # WHEN / THEN
+    # WHEN: reading a string from that stream
+    # THEN: ProtocolError flags the corrupted UTF-8 payload
     with pytest.raises(ProtocolError, match="UTF-8"):
         await reader.read_string()
 
@@ -198,14 +197,14 @@ async def test_string_invalid_utf8_raises_protocol_error() -> None:
     ],
 )
 async def test_bytes_round_trip(value: bytes) -> None:
-    # BEGIN
+    # BEGIN: an empty writer and a bytes blob (incl. empty and full byte range)
     writer = BinaryWriter()
 
-    # WHEN
+    # WHEN: writing the blob (varuint-prefixed) and reading it back
     writer.write_bytes(value)
     decoded = await _reader(writer.getvalue()).read_bytes()
 
-    # THEN
+    # THEN: every byte survives the round-trip
     assert decoded == value
 
 
@@ -213,26 +212,26 @@ async def test_bytes_round_trip(value: bytes) -> None:
 
 
 async def test_position_tracks_bytes_consumed() -> None:
-    # BEGIN
+    # BEGIN: a fresh reader over a 4-byte stream
     reader = _reader(b"\x01\x02\x03\x04")
 
-    # WHEN
+    # WHEN: consuming two bytes from the reader
     await reader.read_byte()
     await reader.read_byte()
 
-    # THEN
+    # THEN: position reflects exactly two bytes consumed
     assert reader.position == 2
 
 
 async def test_short_read_error_includes_offset() -> None:
-    # BEGIN
+    # BEGIN: a fresh reader over a 2-byte stream
     reader = _reader(b"\x01\x02")
 
-    # WHEN
+    # WHEN: consuming the whole stream so the next read goes past EOF
     await reader.read_byte()
     await reader.read_byte()
 
-    # THEN
+    # THEN: the resulting ProtocolError names the offset where we ran out
     with pytest.raises(ProtocolError, match="offset 2"):
         await reader.read_byte()
 
@@ -241,19 +240,19 @@ async def test_short_read_error_includes_offset() -> None:
 
 
 async def test_compound_round_trip() -> None:
-    # BEGIN
+    # BEGIN: a writer holding a heterogeneous sequence (mimicking a small packet)
     writer = BinaryWriter()
     writer.write_varuint(7)
     writer.write_string("packet")
     writer.write_int(42, 4, signed=True)
     writer.write_bytes(b"\x00\xff")
 
-    # WHEN
+    # WHEN: decoding each field in declared order from the resulting buffer
     reader = _reader(writer.getvalue())
     a = await reader.read_varuint()
     b = await reader.read_string()
     c = await reader.read_int(4, signed=True)
     d = await reader.read_bytes()
 
-    # THEN
+    # THEN: every field round-trips and the buffer is fully consumed
     assert (a, b, c, d) == (7, "packet", 42, b"\x00\xff")

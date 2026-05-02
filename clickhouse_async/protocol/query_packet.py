@@ -1,0 +1,199 @@
+"""Query packet writer and the ``ClientInfo`` block it embeds.
+
+Wire layout (from upstream ``Client/Connection.cpp::sendQuery`` and
+mirrored in ``.plans/06-connection.md``):
+
+1. varuint ``ClientPacket.QUERY``
+2. string ``query_id``
+3. (revision ≥ ``DBMS_MIN_REVISION_WITH_CLIENT_INFO``) ``ClientInfo`` block
+4. settings — ``[name, flags-varuint, value]*`` then empty-name terminator
+5. (revision ≥ ``DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET``) interserver
+   secret string — empty for ``InitialQuery`` (which we always are in v0)
+6. varuint query stage = ``Complete`` (2)
+7. varuint compression flag (0 or 1)
+8. string SQL
+9. (revision ≥ ``DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS``) parameters —
+   same shape as settings, with terminator
+10. trailing empty Data packet — ``Client.Data`` + empty external-table
+    name + empty block
+
+For 06c, ``write_query_packet`` is called with empty settings and no
+parameters; 06d wires the per-query settings API, 06f the parameters,
+06h flips the compression flag.
+"""
+
+from __future__ import annotations
+
+import getpass
+import socket
+from collections.abc import Mapping
+from enum import IntEnum
+
+from clickhouse_async.protocol.block import Block, BlockInfo, write_block
+from clickhouse_async.protocol.handshake import (
+    CLIENT_NAME,
+    CLIENT_VERSION_MAJOR,
+    CLIENT_VERSION_MINOR,
+)
+from clickhouse_async.protocol.io import BinaryWriter
+from clickhouse_async.protocol.packets import (
+    DBMS_MIN_PROTOCOL_VERSION_WITH_DISTRIBUTED_DEPTH,
+    DBMS_MIN_PROTOCOL_VERSION_WITH_INITIAL_QUERY_START_TIME,
+    DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS,
+    DBMS_MIN_REVISION_WITH_CLIENT_INFO,
+    DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET,
+    DBMS_MIN_REVISION_WITH_OPENTELEMETRY,
+    DBMS_MIN_REVISION_WITH_PARALLEL_REPLICAS,
+    DBMS_MIN_REVISION_WITH_QUOTA_KEY_IN_CLIENT_INFO,
+    DBMS_MIN_REVISION_WITH_VERSION_PATCH,
+    OUR_REVISION,
+    ClientPacket,
+)
+
+
+class QueryStage(IntEnum):
+    """Stages a query is processed up to. v0 always sends ``COMPLETE``."""
+
+    FETCH_COLUMNS = 0
+    WITH_MERGEABLE_STATE = 1
+    COMPLETE = 2
+    WITH_MERGEABLE_STATE_AFTER_AGGREGATION = 3
+    WITH_MERGEABLE_STATE_AFTER_AGGREGATION_AND_LIMIT = 4
+
+
+class _Interface(IntEnum):
+    TCP = 1
+
+
+class _QueryKind(IntEnum):
+    NO_QUERY = 0
+    INITIAL_QUERY = 1
+    SECONDARY_QUERY = 2
+
+
+# Setting flags (per upstream BaseSettings::write).
+_SETTING_FLAG_IMPORTANT = 0x01
+
+
+def _safe_os_user() -> str:
+    """Best-effort current OS user. ClickHouse just records "" if absent."""
+    try:
+        return getpass.getuser()
+    except (OSError, KeyError):
+        return ""
+
+
+def _safe_hostname() -> str:
+    try:
+        return socket.gethostname()
+    except OSError:
+        return ""
+
+
+def _write_client_info(
+    writer: BinaryWriter,
+    *,
+    revision: int,
+    query_id: str,
+    user: str,
+) -> None:
+    """Append the ``ClientInfo`` block (caller has already gated on
+    ``revision >= DBMS_MIN_REVISION_WITH_CLIENT_INFO``)."""
+
+    writer.write_byte(_QueryKind.INITIAL_QUERY)
+    # initial_user / initial_query_id / initial_address
+    writer.write_string(user)
+    writer.write_string(query_id)
+    writer.write_string("")  # initial_address — we don't know our public IP
+
+    if revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_INITIAL_QUERY_START_TIME:
+        # Int64 microseconds since the Unix epoch — 0 means unset
+        writer.write_int(0, 8, signed=True)
+
+    writer.write_byte(_Interface.TCP)
+
+    # TCP-specific block
+    writer.write_string(_safe_os_user())
+    writer.write_string(_safe_hostname())
+    writer.write_string(CLIENT_NAME)
+    writer.write_varuint(CLIENT_VERSION_MAJOR)
+    writer.write_varuint(CLIENT_VERSION_MINOR)
+    writer.write_varuint(OUR_REVISION)
+
+    if revision >= DBMS_MIN_REVISION_WITH_QUOTA_KEY_IN_CLIENT_INFO:
+        writer.write_string("")  # quota_key
+
+    if revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_DISTRIBUTED_DEPTH:
+        writer.write_varuint(0)  # distributed_depth
+
+    if revision >= DBMS_MIN_REVISION_WITH_VERSION_PATCH:
+        writer.write_varuint(0)  # client_version_patch
+
+    if revision >= DBMS_MIN_REVISION_WITH_OPENTELEMETRY:
+        writer.write_byte(0)  # has_otel = 0
+
+    if revision >= DBMS_MIN_REVISION_WITH_PARALLEL_REPLICAS:
+        writer.write_varuint(0)  # collaborate_with_initiator
+        writer.write_varuint(0)  # obsolete_count_participating_replicas
+        writer.write_varuint(0)  # number_of_current_replica
+
+
+def write_query_packet(
+    writer: BinaryWriter,
+    *,
+    sql: str,
+    query_id: str,
+    user: str,
+    revision: int,
+    settings: Mapping[str, str] | None = None,
+    parameters: Mapping[str, str] | None = None,
+    compression: bool = False,
+) -> None:
+    """Append a complete Query packet plus the trailing empty data block.
+
+    Settings and parameters values are strings on the wire — type
+    coercion happens at the call site. ``compression`` only flips the
+    flag; the actual compressed framing of the trailing/data blocks
+    lands in 06h.
+    """
+
+    writer.write_varuint(ClientPacket.QUERY)
+    writer.write_string(query_id)
+
+    if revision >= DBMS_MIN_REVISION_WITH_CLIENT_INFO:
+        _write_client_info(
+            writer, revision=revision, query_id=query_id, user=user
+        )
+
+    if settings:
+        for name, value in settings.items():
+            writer.write_string(name)
+            writer.write_varuint(_SETTING_FLAG_IMPORTANT)
+            writer.write_string(value)
+    writer.write_string("")  # terminator
+
+    if revision >= DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET:
+        # Empty hash for INITIAL_QUERY — which is the only kind v0 issues.
+        writer.write_string("")
+
+    writer.write_varuint(QueryStage.COMPLETE)
+    writer.write_varuint(1 if compression else 0)
+    writer.write_string(sql)
+
+    if revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS:
+        if parameters:
+            for name, value in parameters.items():
+                writer.write_string(name)
+                writer.write_varuint(_SETTING_FLAG_IMPORTANT)
+                writer.write_string(value)
+        writer.write_string("")  # terminator
+
+    # Trailing empty Data packet — signals "no inline data" for SELECTs and
+    # is followed by the actual data blocks for INSERTs (which 06e wires).
+    writer.write_varuint(ClientPacket.DATA)
+    writer.write_string("")  # external table name (empty = main table)
+    write_block(
+        writer,
+        Block(info=BlockInfo(), columns=[], n_rows=0, data=[]),
+        revision=revision,
+    )

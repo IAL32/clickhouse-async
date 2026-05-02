@@ -3,8 +3,9 @@
 A ``Connection`` owns one TCP socket and one protocol state machine. It
 is the layer the high-level ``Client`` is thin over. Substep 06a landed
 the lifecycle skeleton; 06b adds the Hello handshake that promotes
-``CONNECTING → READY``. Query/insert, packet loop, cancellation, and
-compression land in 06c through 06h on top.
+``CONNECTING → READY``; 06c adds ``send_query`` and ``iter_packets`` for
+the minimal SELECT round-trip. INSERT (06e), parameters (06f),
+cancellation (06g), and compression (06h) sit on top.
 
 Single-task model: the connection never spawns a background reader
 task. Every read happens on the calling task, so cancellation lives
@@ -18,11 +19,12 @@ from __future__ import annotations
 import asyncio
 import logging
 import ssl as _ssl_module
-from collections.abc import Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from enum import IntEnum
 from typing import Protocol
 
-from clickhouse_async.errors import ProtocolError
+from clickhouse_async.errors import ConcurrentQueryError, ProtocolError
+from clickhouse_async.protocol.block import Block, read_block
 from clickhouse_async.protocol.exception_packet import read_exception_body
 from clickhouse_async.protocol.handshake import (
     ServerInfo,
@@ -31,6 +33,7 @@ from clickhouse_async.protocol.handshake import (
 )
 from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 from clickhouse_async.protocol.packets import OUR_REVISION, ServerPacket
+from clickhouse_async.protocol.query_packet import write_query_packet
 
 _logger = logging.getLogger(__name__)
 
@@ -99,6 +102,7 @@ class Connection:
         self._writer: _WriterLike | None = None
         self._server_info: ServerInfo | None = None
         self._negotiated_revision: int = 0
+        self._user: str = ""
         # (from_state, to_state, reason) per transition — load-bearing for
         # tests and a useful debugging breadcrumb in production logs.
         self._transitions: list[tuple[State, State, str]] = []
@@ -167,6 +171,7 @@ class Connection:
             raise RuntimeError(
                 f"open() requires IDLE state, got {self._state.name}"
             )
+        self._user = user
         self._transition(State.CONNECTING, "open()")
         try:
             reader, writer = await self._transport_factory(
@@ -217,6 +222,93 @@ class Connection:
                 f"(expected HELLO={ServerPacket.HELLO.value} or "
                 f"EXCEPTION={ServerPacket.EXCEPTION.value})"
             )
+
+    # ---- queries ---------------------------------------------------------
+
+    async def send_query(
+        self,
+        sql: str,
+        *,
+        query_id: str = "",
+        settings: Mapping[str, str] | None = None,
+    ) -> None:
+        """Send a Query packet for ``sql``. Transitions ``READY → IN_FLIGHT``.
+
+        For 06c, ``settings`` is forwarded as-is and ``parameters`` /
+        compression aren't exposed yet — those come in 06d/06f/06h.
+        Concurrent calls on the same connection raise
+        ``ConcurrentQueryError`` rather than queueing or fanning out.
+        """
+        if self._state == State.IN_FLIGHT:
+            raise ConcurrentQueryError(
+                "another query is already in flight on this connection"
+            )
+        if self._state != State.READY:
+            raise RuntimeError(
+                f"send_query() requires READY state, got {self._state.name}"
+            )
+        assert self._writer is not None  # READY implies handshake completed
+
+        out = BinaryWriter()
+        write_query_packet(
+            out,
+            sql=sql,
+            query_id=query_id,
+            user=self._user,
+            revision=self._negotiated_revision,
+            settings=settings,
+        )
+        self._writer.write(out.getvalue())
+        await self._writer.drain()
+        self._transition(
+            State.IN_FLIGHT,
+            f"send_query(query_id={query_id!r}, len(sql)={len(sql)})",
+        )
+
+    async def iter_packets(self) -> AsyncIterator[Block]:
+        """Yield each result block until ``EndOfStream`` or ``Exception``.
+
+        06c handles the minimum dispatch — ``DATA`` (yielded), ``EXCEPTION``
+        (raises ``ServerError``, returns to READY), ``END_OF_STREAM``
+        (terminates, returns to READY). Anything else mid-query is a
+        ``ProtocolError`` and marks the connection BROKEN. The fuller
+        packet roster (Progress / ProfileInfo / Log / …) lands in 06d.
+        """
+        if self._state != State.IN_FLIGHT:
+            raise RuntimeError(
+                f"iter_packets() requires IN_FLIGHT state, got {self._state.name}"
+            )
+        assert self._reader is not None
+        while True:
+            packet_id = await self._reader.read_varuint()
+            if packet_id == ServerPacket.DATA:
+                # External-table name on every Data packet (empty for the
+                # main result table).
+                _ = await self._reader.read_string()
+                block = await read_block(
+                    self._reader, revision=self._negotiated_revision
+                )
+                yield block
+            elif packet_id == ServerPacket.END_OF_STREAM:
+                self._transition(State.READY, "EndOfStream")
+                return
+            elif packet_id == ServerPacket.EXCEPTION:
+                err = await read_exception_body(self._reader)
+                self._transition(
+                    State.READY, f"server exception: {err.name}"
+                )
+                raise err
+            else:
+                self._transition(
+                    State.BROKEN, f"unexpected packet id {packet_id}"
+                )
+                raise ProtocolError(
+                    f"unexpected packet id {packet_id} during query "
+                    f"(06c handles DATA={ServerPacket.DATA.value}, "
+                    f"END_OF_STREAM={ServerPacket.END_OF_STREAM.value}, "
+                    f"EXCEPTION={ServerPacket.EXCEPTION.value}; "
+                    f"more packet types arrive in 06d)"
+                )
 
     async def _cleanup_writer(self) -> None:
         writer = self._writer

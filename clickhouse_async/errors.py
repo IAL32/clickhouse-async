@@ -11,6 +11,15 @@ class ProtocolError(ClickHouseError):
     """Wire data violated the ClickHouse protocol."""
 
 
+class ConcurrentQueryError(ClickHouseError):
+    """A second query was issued on a connection while another is in flight.
+
+    The native protocol doesn't multiplex; one in-flight query per
+    connection is the contract. Callers wanting concurrency should use a
+    ``Pool``.
+    """
+
+
 class ServerError(ClickHouseError):
     """An error reported by the server over the protocol's Exception packet.
 

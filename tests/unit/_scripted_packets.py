@@ -8,6 +8,7 @@ shared across every substep that needs scripted server behaviour.
 
 from __future__ import annotations
 
+from clickhouse_async.protocol.block import Block, write_block
 from clickhouse_async.protocol.io import BinaryWriter
 from clickhouse_async.protocol.packets import (
     DBMS_MIN_REVISION_WITH_SERVER_DISPLAY_NAME,
@@ -122,8 +123,33 @@ def _append_exception_body(
         w.write_raw(nested)
 
 
+def encode_server_data(
+    block: Block, *, revision: int = OUR_REVISION, table_name: str = ""
+) -> bytes:
+    """Build the bytes a server would emit for ``ServerPacket.DATA`` —
+    packet id, external-table name (empty for the main result), and the
+    block at the given revision."""
+
+    w = BinaryWriter()
+    w.write_varuint(ServerPacket.DATA)
+    w.write_string(table_name)
+    write_block(w, block, revision=revision)
+    return w.getvalue()
+
+
+def encode_server_end_of_stream() -> bytes:
+    """Build the bytes a server would emit for
+    ``ServerPacket.END_OF_STREAM``."""
+
+    w = BinaryWriter()
+    w.write_varuint(ServerPacket.END_OF_STREAM)
+    return w.getvalue()
+
+
 __all__ = [
     "encode_exception_body_only",
+    "encode_server_data",
+    "encode_server_end_of_stream",
     "encode_server_exception",
     "encode_server_hello",
 ]

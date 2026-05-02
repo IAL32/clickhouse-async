@@ -1,10 +1,10 @@
 """The native-protocol Connection.
 
 A ``Connection`` owns one TCP socket and one protocol state machine. It
-is the layer the high-level ``Client`` is thin over. Substep 06a in
-``.plans/06-connection.md`` lands the lifecycle and the state machine
-only — handshake, query/insert, packet loop, cancellation, and
-compression land in 06b through 06h on top of this skeleton.
+is the layer the high-level ``Client`` is thin over. Substep 06a landed
+the lifecycle skeleton; 06b adds the Hello handshake that promotes
+``CONNECTING → READY``. Query/insert, packet loop, cancellation, and
+compression land in 06c through 06h on top.
 
 Single-task model: the connection never spawns a background reader
 task. Every read happens on the calling task, so cancellation lives
@@ -22,7 +22,15 @@ from collections.abc import Awaitable, Callable
 from enum import IntEnum
 from typing import Protocol
 
-from clickhouse_async.protocol.io import AsyncBinaryReader
+from clickhouse_async.errors import ProtocolError
+from clickhouse_async.protocol.exception_packet import read_exception_body
+from clickhouse_async.protocol.handshake import (
+    ServerInfo,
+    read_server_hello,
+    write_client_hello,
+)
+from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+from clickhouse_async.protocol.packets import OUR_REVISION, ServerPacket
 
 _logger = logging.getLogger(__name__)
 
@@ -89,6 +97,8 @@ class Connection:
         self._state: State = State.IDLE
         self._reader: AsyncBinaryReader | None = None
         self._writer: _WriterLike | None = None
+        self._server_info: ServerInfo | None = None
+        self._negotiated_revision: int = 0
         # (from_state, to_state, reason) per transition — load-bearing for
         # tests and a useful debugging breadcrumb in production logs.
         self._transitions: list[tuple[State, State, str]] = []
@@ -113,13 +123,45 @@ class Connection:
         gone through. Tests use this to assert the right reasons fired."""
         return list(self._transitions)
 
+    @property
+    def server_info(self) -> ServerInfo:
+        """Server identity captured during the Hello handshake.
+
+        Raises if the connection hasn't completed the handshake yet —
+        otherwise we'd hand callers a half-populated value.
+        """
+        if self._server_info is None:
+            raise RuntimeError(
+                f"server_info is not available in state {self._state.name}"
+            )
+        return self._server_info
+
+    @property
+    def negotiated_revision(self) -> int:
+        """``min(OUR_REVISION, server_revision)`` — the revision used to
+        gate every wire-format decision past the handshake."""
+        return self._negotiated_revision
+
     # ---- lifecycle -------------------------------------------------------
 
-    async def open(self) -> None:
-        """Establish the TCP transport.
+    async def open(
+        self,
+        *,
+        user: str = "default",
+        password: str = "",
+        database: str = "default",
+    ) -> None:
+        """Open the transport and run the Hello handshake.
 
-        06a stops at ``CONNECTING`` — the Hello exchange that promotes
-        to ``READY`` is added in 06b.
+        On success the connection ends in ``READY`` with ``server_info``
+        populated and ``negotiated_revision`` set to
+        ``min(OUR_REVISION, server.revision)``.
+
+        On a server-side rejection (server replies ``Exception`` to our
+        Hello) the underlying ``ServerError`` propagates and the
+        connection is BROKEN. On any other handshake failure (incl.
+        cancellation, IO error, malformed packet) the connection is
+        also BROKEN and the writer is closed.
         """
         if self._state != State.IDLE:
             raise RuntimeError(
@@ -135,6 +177,58 @@ class Connection:
             raise
         self._reader = AsyncBinaryReader(reader)
         self._writer = writer
+        try:
+            await self._do_handshake(
+                user=user, password=password, database=database
+            )
+        except BaseException as exc:
+            self._transition(State.BROKEN, f"handshake failed: {exc!r}")
+            await self._cleanup_writer()
+            raise
+
+    async def _do_handshake(
+        self, *, user: str, password: str, database: str
+    ) -> None:
+        assert self._reader is not None and self._writer is not None
+        # Send client Hello as one buffered write — the protocol expects
+        # the whole packet to arrive together.
+        out = BinaryWriter()
+        write_client_hello(out, user=user, password=password, database=database)
+        self._writer.write(out.getvalue())
+        await self._writer.drain()
+
+        # Read the server's response. The packet id determines whether
+        # the server accepted us (HELLO) or rejected us (EXCEPTION).
+        packet_id = await self._reader.read_varuint()
+        if packet_id == ServerPacket.HELLO:
+            info = await read_server_hello(self._reader)
+            self._server_info = info
+            self._negotiated_revision = min(OUR_REVISION, info.revision)
+            self._transition(
+                State.READY,
+                f"handshake complete (server={info.name!r} "
+                f"revision={info.revision}, negotiated={self._negotiated_revision})",
+            )
+        elif packet_id == ServerPacket.EXCEPTION:
+            raise await read_exception_body(self._reader)
+        else:
+            raise ProtocolError(
+                f"unexpected packet id {packet_id} during handshake "
+                f"(expected HELLO={ServerPacket.HELLO.value} or "
+                f"EXCEPTION={ServerPacket.EXCEPTION.value})"
+            )
+
+    async def _cleanup_writer(self) -> None:
+        writer = self._writer
+        self._writer = None
+        self._reader = None
+        if writer is None or writer.is_closing():
+            return
+        writer.close()
+        try:
+            await writer.wait_closed()
+        except (OSError, asyncio.CancelledError):
+            pass
 
     async def close(self) -> None:
         """Close the transport and transition to ``CLOSED``.

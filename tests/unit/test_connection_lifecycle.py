@@ -1,12 +1,13 @@
 """Lifecycle and state-machine tests for ``Connection``.
 
-Substep 06a covers everything up to the transport being open
-(``CONNECTING``). Handshake / query / cancel / etc. arrive in 06b+.
+Substep 06a covers the state machine and transport open/close. After
+06b lands, ``open()`` also runs the Hello handshake, so tests that
+reach an open connection feed a scripted Hello reply via
+``encode_server_hello``.
 """
 
 from __future__ import annotations
 
-import asyncio
 import ssl
 from typing import Never
 
@@ -15,6 +16,7 @@ import pytest
 from clickhouse_async.connection import Connection, State
 
 from ._mock_transport import ScriptedTransport
+from ._scripted_packets import encode_server_hello
 
 # ---- starts in IDLE -----------------------------------------------------
 
@@ -29,33 +31,37 @@ async def test_freshly_constructed_connection_is_idle() -> None:
     assert transport.opens == 0
 
 
-# ---- open() — IDLE → CONNECTING ----------------------------------------
+# ---- open() — IDLE → READY (after handshake) ----------------------------
 
 
-async def test_open_promotes_idle_to_connecting() -> None:
-    # BEGIN: an IDLE connection over a scripted transport
+async def test_open_completes_handshake_and_reaches_ready() -> None:
+    # BEGIN: an IDLE connection over a scripted transport with a Hello
+    #        reply queued
     transport = ScriptedTransport()
+    transport.feed(encode_server_hello())
     conn = Connection("h", 9000, transport_factory=transport)
 
     # WHEN: opening the transport
     await conn.open()
 
-    # THEN: the connection is in CONNECTING (06a stops here; 06b adds the
-    #       handshake that promotes to READY) and the factory ran exactly once
-    assert conn.state == State.CONNECTING
+    # THEN: the connection ends in READY, the factory ran exactly once,
+    #       and the transition log records both phases
+    assert conn.state == State.READY
     assert transport.opens == 1
-    assert conn.transitions == [(State.IDLE, State.CONNECTING, "open()")]
+    transitions_to = [t[1] for t in conn.transitions]
+    assert transitions_to == [State.CONNECTING, State.READY]
 
 
 async def test_open_from_non_idle_state_raises() -> None:
-    # BEGIN: a connection already in CONNECTING from a prior open()
+    # BEGIN: a connection already in READY from a successful handshake
     transport = ScriptedTransport()
+    transport.feed(encode_server_hello())
     conn = Connection("h", 9000, transport_factory=transport)
     await conn.open()
 
     # WHEN: calling open() a second time
     # THEN: a RuntimeError surfaces, naming the current state
-    with pytest.raises(RuntimeError, match="CONNECTING"):
+    with pytest.raises(RuntimeError, match="READY"):
         await conn.open()
 
 
@@ -83,9 +89,10 @@ async def test_transport_factory_failure_marks_connection_broken() -> None:
 # ---- close() ------------------------------------------------------------
 
 
-async def test_close_from_connecting_transitions_to_closed_and_closes_writer() -> None:
-    # BEGIN: an open connection in CONNECTING
+async def test_close_from_ready_transitions_to_closed_and_closes_writer() -> None:
+    # BEGIN: an open connection in READY (handshake complete)
     transport = ScriptedTransport()
+    transport.feed(encode_server_hello())
     conn = Connection("h", 9000, transport_factory=transport)
     await conn.open()
 
@@ -100,6 +107,7 @@ async def test_close_from_connecting_transitions_to_closed_and_closes_writer() -
 async def test_close_is_idempotent() -> None:
     # BEGIN: a connection that has already been closed once
     transport = ScriptedTransport()
+    transport.feed(encode_server_hello())
     conn = Connection("h", 9000, transport_factory=transport)
     await conn.open()
     await conn.close()
@@ -149,22 +157,21 @@ async def test_close_from_broken_does_not_resurrect_writer() -> None:
 # ---- mock transport sanity check ---------------------------------------
 
 
-async def test_mock_transport_round_trip() -> None:
-    # BEGIN: a connection in CONNECTING with bytes queued from the "server"
+async def test_mock_transport_carries_handshake_traffic_both_directions() -> None:
+    # BEGIN: a connection ready to handshake against a scripted server
     transport = ScriptedTransport()
+    transport.feed(encode_server_hello())
     conn = Connection("h", 9000, transport_factory=transport)
-    await conn.open()
-    transport.feed(b"hello")
-    transport.feed_eof()
 
-    # WHEN: reading bytes through the connection's binary reader, and
-    #       (separately) writing bytes via the captured writer
-    reader = conn._reader  # type: ignore[attr-defined]
-    writer = conn._writer  # type: ignore[attr-defined]
-    assert reader is not None and writer is not None
-    received = await asyncio.wait_for(reader.read_exact(5), 1.0)
-    writer.write(b"world")
+    # WHEN: running the handshake
+    await conn.open(user="u", password="p", database="db")
 
-    # THEN: the bytes flow both directions through the scripted transport
-    assert received == b"hello"
-    assert transport.written() == b"world"
+    # THEN: the scripted server consumed the queued Hello reply and the
+    #       transport captured what we wrote (the client Hello packet);
+    #       a non-trivial number of bytes flowed in each direction
+    assert conn.state == State.READY
+    assert len(transport.written()) > 0
+    # First written byte is the ClientPacket.HELLO varuint id (0x00).
+    assert transport.written()[0] == 0
+
+

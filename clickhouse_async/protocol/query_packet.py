@@ -71,8 +71,13 @@ class _QueryKind(IntEnum):
     SECONDARY_QUERY = 2
 
 
-# Setting flags (per upstream BaseSettings::write).
+# BaseSettings flag bits (per upstream Core/BaseSettings.h::Flags). Settings
+# we send are flagged IMPORTANT so the server doesn't silently drop
+# names it doesn't recognise; query parameters live in the same wire
+# format but use CUSTOM since they're user-defined names rather than
+# built-in settings.
 _SETTING_FLAG_IMPORTANT = 0x01
+_PARAM_FLAG_CUSTOM = 0x02
 
 
 def _safe_os_user() -> str:
@@ -184,7 +189,7 @@ def write_query_packet(
         if parameters:
             for name, value in parameters.items():
                 writer.write_string(name)
-                writer.write_varuint(_SETTING_FLAG_IMPORTANT)
+                writer.write_varuint(_PARAM_FLAG_CUSTOM)
                 writer.write_string(value)
         writer.write_string("")  # terminator
 

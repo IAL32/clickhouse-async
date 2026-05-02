@@ -20,6 +20,18 @@ class ConcurrentQueryError(ClickHouseError):
     """
 
 
+class UnsupportedFeatureError(ClickHouseError):
+    """A feature was requested but the negotiated protocol revision
+    doesn't support it.
+
+    Raised, for example, when the user passes ``params`` to ``send_query``
+    against a server below
+    ``DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS``. We refuse rather than
+    silently fall back to client-side string interpolation — that would
+    undermine the safety claim of server-bound parameters.
+    """
+
+
 class ServerError(ClickHouseError):
     """An error reported by the server over the protocol's Exception packet.
 

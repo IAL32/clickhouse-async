@@ -37,7 +37,11 @@ from dataclasses import dataclass
 from enum import IntEnum
 from typing import Literal, Protocol
 
-from clickhouse_async.errors import ConcurrentQueryError, ProtocolError
+from clickhouse_async.errors import (
+    ConcurrentQueryError,
+    ProtocolError,
+    UnsupportedFeatureError,
+)
 from clickhouse_async.protocol.block import Block, BlockInfo, write_block
 from clickhouse_async.protocol.exception_packet import read_exception_body
 from clickhouse_async.protocol.handshake import (
@@ -47,10 +51,12 @@ from clickhouse_async.protocol.handshake import (
 )
 from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 from clickhouse_async.protocol.packets import (
+    DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS,
     OUR_REVISION,
     ClientPacket,
     ServerPacket,
 )
+from clickhouse_async.protocol.parameters import format_param
 from clickhouse_async.protocol.query_packet import write_query_packet
 from clickhouse_async.protocol.server_packets import (
     ProfileInfo,
@@ -283,11 +289,19 @@ class Connection:
         *,
         query_id: str = "",
         settings: Mapping[str, str] | None = None,
+        params: Mapping[str, object] | None = None,
     ) -> None:
         """Send a Query packet for ``sql``. Transitions ``READY → IN_FLIGHT``.
 
-        For 06c, ``settings`` is forwarded as-is and ``parameters`` /
-        compression aren't exposed yet — those come in 06d/06f/06h.
+        ``params`` are server-side query parameters: each value is
+        formatted via ``format_param`` and emitted in the parameters
+        block of the Query packet. The placeholder *type* lives in the
+        SQL itself (``WHERE day = {d:Date}``); the wire only carries
+        textual values. The negotiated revision must be at least
+        ``DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS`` (54459) — older
+        servers raise ``UnsupportedFeatureError`` rather than silently
+        falling back to client-side string interpolation.
+
         Concurrent calls on the same connection raise
         ``ConcurrentQueryError`` rather than queueing or fanning out.
         """
@@ -301,6 +315,23 @@ class Connection:
             )
         assert self._writer is not None  # READY implies handshake completed
 
+        formatted_params: dict[str, str] | None = None
+        if params:
+            if (
+                self._negotiated_revision
+                < DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS
+            ):
+                raise UnsupportedFeatureError(
+                    f"server-side query parameters require revision "
+                    f"{DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS}; the "
+                    f"negotiated revision with this server is "
+                    f"{self._negotiated_revision}. Upgrade the server "
+                    f"or remove `params=...` from the call."
+                )
+            formatted_params = {
+                name: format_param(value) for name, value in params.items()
+            }
+
         out = BinaryWriter()
         write_query_packet(
             out,
@@ -309,6 +340,7 @@ class Connection:
             user=self._user,
             revision=self._negotiated_revision,
             settings=settings,
+            parameters=formatted_params,
         )
         self._writer.write(out.getvalue())
         await self._writer.drain()

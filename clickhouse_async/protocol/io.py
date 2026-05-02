@@ -94,6 +94,11 @@ class BinaryWriter:
     def getvalue(self) -> bytes:
         return bytes(self._buf)
 
+    def write_raw(self, data: bytes) -> None:
+        """Append raw bytes with no framing — used by column codecs flushing
+        bulk-packed buffers (struct.pack, null masks, etc.)."""
+        self._buf.extend(data)
+
     def write_byte(self, b: int) -> None:
         self._buf.append(b)
 

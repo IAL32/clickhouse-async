@@ -1,8 +1,9 @@
-"""Codec for variable-length UTF-8 ``String`` columns.
+"""Codecs for ``String`` and ``FixedString(N)``.
 
-Each row is a varuint length followed by that many UTF-8 bytes.
-``FixedString(N)`` is added in step 04b alongside the rest of the
-primitive types.
+``String`` is varuint-prefixed UTF-8 per row; ``FixedString(N)`` is
+exactly N raw bytes per row, NUL-padded on writes when the input is
+shorter and surfaced as ``bytes`` on reads (FixedString columns are
+often binary, not text — returning bytes preserves that).
 """
 
 from __future__ import annotations
@@ -29,3 +30,40 @@ class String:
     ) -> None:
         for v in values:
             writer.write_string(v)
+
+
+class FixedString:
+    null_value: bytes
+
+    def __init__(self, length: int) -> None:
+        if length <= 0:
+            raise ValueError(
+                f"FixedString length must be positive, got {length}"
+            )
+        self.length = length
+        self.name = f"FixedString({length})"
+        self.null_value = b"\x00" * length
+
+    async def read(
+        self, reader: AsyncBinaryReader, n_rows: int
+    ) -> list[bytes]:
+        if n_rows == 0:
+            return []
+        n = self.length
+        data = await reader.read_exact(n * n_rows)
+        return [bytes(data[i * n : (i + 1) * n]) for i in range(n_rows)]
+
+    def write(
+        self, writer: BinaryWriter, values: Sequence[bytes]
+    ) -> None:
+        n = self.length
+        out = bytearray()
+        for v in values:
+            if len(v) > n:
+                raise ValueError(
+                    f"FixedString({n}) value of length {len(v)} exceeds capacity"
+                )
+            out.extend(v)
+            if len(v) < n:
+                out.extend(b"\x00" * (n - len(v)))
+        writer.write_raw(bytes(out))

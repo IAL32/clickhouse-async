@@ -23,7 +23,15 @@ Thank you for considering contributing to clickhouse-async! This document provid
 
 ## Commit Message Format
 
-This project uses [Conventional Commits](https://www.conventionalcommits.org/) for commit messages, which are enforced by pre-commit hooks using Commitizen. This format is used for automatic versioning and changelog generation.
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) for commit messages, which are enforced by [`prek`](https://prek.j178.dev/) hooks using Commitizen. This format is used for automatic versioning and changelog generation.
+
+`prek` is a drop-in replacement for `pre-commit` (same `.pre-commit-config.yaml`); we use it for the speed-up. It is declared in the project's dev dependencies, so `uv sync` installs it. After cloning, install the hooks once with:
+
+```bash
+uv run prek install
+```
+
+Do not install or invoke `pre-commit` directly — stick to `prek`.
 
 The commit message should be structured as follows:
 

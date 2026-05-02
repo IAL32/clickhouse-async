@@ -6,8 +6,8 @@
 - ``Tuple(T1, T2, …)`` — each component's full column body in order
                     (n_rows of T1, then n_rows of T2, …).
 - ``Map(K, V)``   — same wire format as ``Array(Tuple(K, V))``.
-
-``LowCardinality(T)`` and ``Enum8/16`` land in step 04e.
+- ``LowCardinality(T)`` — dictionary-encoded column. See the codec's
+                    docstring for the wire layout.
 """
 
 from __future__ import annotations
@@ -15,6 +15,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any
 
+from clickhouse_async.errors import ProtocolError
 from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 from clickhouse_async.types.base import ColumnCodec
 
@@ -180,3 +181,128 @@ class Map:
     ) -> None:
         rows = [list(d.items()) for d in values]
         self._inner.write(writer, rows)
+
+
+class LowCardinality:
+    """``LowCardinality(T)`` — dictionary-encoded column.
+
+    Wire layout (per upstream ``SerializationLowCardinality``):
+
+    1. ``UInt64`` version key (always ``0`` for v0).
+    2. ``UInt64`` serialization-type bitfield. Low byte is the index
+       width tag (``0``=UInt8, ``1``=UInt16, ``2``=UInt32, ``3``=UInt64);
+       bits ``0x600`` are flags ``HasAdditionalKeysBit | NeedUpdateDictionary``
+       which we always set.
+    3. ``UInt64`` dictionary size.
+    4. Dictionary body — ``dict_size`` rows via the inner codec.
+    5. ``UInt64`` indices count (must equal ``n_rows``).
+    6. Indices body — ``n_rows`` little-endian unsigned ints at the
+       declared width.
+
+    **v0 limitation:** ``LowCardinality(Nullable(T))`` is rejected at
+    construction. ClickHouse reserves dictionary index 0 for the null
+    placeholder when the inner is ``Nullable``, with all data indices
+    shifted by +1; we don't implement that yet. Use
+    ``Nullable(LowCardinality(T))`` instead, or wait for a follow-up.
+    """
+
+    null_value: Any
+
+    _VERSION = 0
+    # HasAdditionalKeysBit (0x200) | NeedUpdateDictionary (0x400)
+    _SERIALIZATION_BASE = 0x0000_0000_0000_0600
+
+    def __init__(self, inner: ColumnCodec) -> None:
+        if isinstance(inner, Nullable):
+            raise ValueError(
+                "LowCardinality(Nullable(...)) is not supported in v0; "
+                "use Nullable(LowCardinality(...)) instead"
+            )
+        self.inner = inner
+        self.name = f"LowCardinality({inner.name})"
+        self.null_value = inner.null_value
+
+    @staticmethod
+    def _index_tag_for_size(dict_size: int) -> tuple[int, int]:
+        """Return ``(tag, byte_width)`` for the smallest unsigned int that
+        can index ``dict_size`` entries."""
+        if dict_size <= 2**8:
+            return 0, 1
+        if dict_size <= 2**16:
+            return 1, 2
+        if dict_size <= 2**32:
+            return 2, 4
+        return 3, 8
+
+    @staticmethod
+    def _byte_width_for_tag(tag: int) -> int:
+        return {0: 1, 1: 2, 2: 4, 3: 8}[tag]
+
+    async def read(
+        self, reader: AsyncBinaryReader, n_rows: int
+    ) -> list[Any]:
+        if n_rows == 0:
+            return []
+        version = await reader.read_int(8, signed=False)
+        if version != self._VERSION:
+            raise ProtocolError(
+                f"unsupported LowCardinality version: {version}"
+            )
+        sertype = await reader.read_int(8, signed=False)
+        index_tag = sertype & 0xFF
+        if index_tag not in (0, 1, 2, 3):
+            raise ProtocolError(
+                f"invalid LowCardinality index tag: {index_tag}"
+            )
+        index_size = self._byte_width_for_tag(index_tag)
+
+        dict_size = await reader.read_int(8, signed=False)
+        dictionary = await self.inner.read(reader, dict_size)
+
+        idx_count = await reader.read_int(8, signed=False)
+        if idx_count != n_rows:
+            raise ProtocolError(
+                f"LowCardinality indices count {idx_count} != n_rows {n_rows}"
+            )
+        idx_data = await reader.read_exact(index_size * n_rows)
+        return [
+            dictionary[
+                int.from_bytes(
+                    idx_data[i * index_size : (i + 1) * index_size],
+                    "little",
+                    signed=False,
+                )
+            ]
+            for i in range(n_rows)
+        ]
+
+    def write(
+        self, writer: BinaryWriter, values: Sequence[Any]
+    ) -> None:
+        n = len(values)
+        if n == 0:
+            return
+        # Build the dictionary preserving first-seen order, plus per-row indices.
+        seen: dict[Any, int] = {}
+        dictionary: list[Any] = []
+        indices: list[int] = []
+        for v in values:
+            idx = seen.get(v)
+            if idx is None:
+                idx = len(dictionary)
+                seen[v] = idx
+                dictionary.append(v)
+            indices.append(idx)
+
+        index_tag, index_size = self._index_tag_for_size(len(dictionary))
+        sertype = self._SERIALIZATION_BASE | index_tag
+
+        writer.write_int(self._VERSION, 8, signed=False)
+        writer.write_int(sertype, 8, signed=False)
+        writer.write_int(len(dictionary), 8, signed=False)
+        self.inner.write(writer, dictionary)
+        writer.write_int(n, 8, signed=False)
+        idx_buf = bytearray()
+        for i in indices:
+            idx_buf.extend(i.to_bytes(index_size, "little", signed=False))
+        writer.write_raw(bytes(idx_buf))

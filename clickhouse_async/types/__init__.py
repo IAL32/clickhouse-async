@@ -14,8 +14,8 @@ The parser handles:
   (``DateTime('UTC')``).
 - Mixed param lists (``DateTime64(3, 'UTC')``).
 - Whitespace around tokens.
-
-Enum's ``'a' = 1, 'b' = 2`` form lands in step 04e along with the codec.
+- ``Enum8`` / ``Enum16`` bodies (``'label' = value, …``) — handled by a
+  special-case branch since ``=`` isn't a general param separator.
 """
 
 from __future__ import annotations
@@ -23,7 +23,13 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from clickhouse_async.types.base import ColumnCodec
-from clickhouse_async.types.composite import Array, Map, Nullable, Tuple
+from clickhouse_async.types.composite import (
+    Array,
+    LowCardinality,
+    Map,
+    Nullable,
+    Tuple,
+)
 from clickhouse_async.types.datetime import (
     Date,
     Date32,
@@ -37,6 +43,7 @@ from clickhouse_async.types.decimal import (
     Decimal256,
     make_decimal,
 )
+from clickhouse_async.types.enums import Enum8, Enum16
 from clickhouse_async.types.net import UUID, IPv4, IPv6
 from clickhouse_async.types.primitive import (
     Bool,
@@ -100,6 +107,7 @@ _PARAMETRIC: dict[str, Callable[[list[ColumnCodec | int | str]], ColumnCodec]] =
     "Decimal128": lambda p: Decimal128(_one_int(p, "Decimal128")),
     "Decimal256": lambda p: Decimal256(_one_int(p, "Decimal256")),
     "FixedString": lambda p: FixedString(_one_int(p, "FixedString")),
+    "LowCardinality": lambda p: LowCardinality(_one_type(p, "LowCardinality")),
     "Map": lambda p: _make_map(p),
     "Nullable": lambda p: Nullable(_one_type(p, "Nullable")),
     "Tuple": lambda p: _make_tuple(p),
@@ -220,6 +228,12 @@ class _Parser:
         self._skip_ws()
         if self._peek() == "(":
             self._consume("(")
+            # Enum bodies have their own grammar — `'label' = value, …` —
+            # not expressible in the generic param parser.
+            if name in ("Enum8", "Enum16"):
+                mapping = self._parse_enum_body()
+                self._consume(")")
+                return Enum8(mapping) if name == "Enum8" else Enum16(mapping)
             params = self._parse_params()
             self._consume(")")
             factory_p = _PARAMETRIC.get(name)
@@ -230,6 +244,26 @@ class _Parser:
         if factory_n is None:
             raise ValueError(f"unknown type: {name!r}")
         return factory_n()
+
+    def _parse_enum_body(self) -> dict[str, int]:
+        mapping: dict[str, int] = {}
+        self._skip_ws()
+        while self._peek() not in (")", ""):
+            label = self._read_quoted_string()
+            self._skip_ws()
+            self._consume("=")
+            self._skip_ws()
+            value = self._read_integer()
+            if label in mapping:
+                raise ValueError(
+                    f"duplicate Enum label {label!r} in {self.spec!r}"
+                )
+            mapping[label] = value
+            self._skip_ws()
+            if self._peek() == ",":
+                self._consume(",")
+                self._skip_ws()
+        return mapping
 
     def _parse_params(self) -> list[ColumnCodec | int | str]:
         params: list[ColumnCodec | int | str] = []

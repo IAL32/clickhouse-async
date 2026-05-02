@@ -1,0 +1,202 @@
+"""Round-trip and byte-layout tests for ``Enum8``, ``Enum16``,
+``LowCardinality(T)``."""
+
+from __future__ import annotations
+
+import asyncio
+from collections.abc import Sequence
+from typing import Any
+
+import pytest
+
+from clickhouse_async.errors import ProtocolError
+from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+from clickhouse_async.types import ColumnCodec, parse_type
+from clickhouse_async.types.composite import LowCardinality
+from clickhouse_async.types.enums import Enum8, Enum16
+
+
+def _reader(data: bytes) -> AsyncBinaryReader:
+    stream = asyncio.StreamReader()
+    stream.feed_data(data)
+    stream.feed_eof()
+    return AsyncBinaryReader(stream)
+
+
+async def _round_trip(codec: ColumnCodec, values: Sequence[Any]) -> list[Any]:
+    writer = BinaryWriter()
+    codec.write(writer, values)
+    return await codec.read(_reader(writer.getvalue()), len(values))
+
+
+# ---- Enum8 / Enum16 -----------------------------------------------------
+
+
+async def test_enum8_round_trip_via_parser() -> None:
+    # BEGIN: an Enum8 spec parsed from the canonical block-header form
+    codec = parse_type("Enum8('red' = 1, 'green' = 2, 'blue' = -3)")
+    values = ["red", "blue", "green", "red"]
+
+    # WHEN: round-tripping
+    decoded = await _round_trip(codec, values)
+
+    # THEN: every label survives, the codec is Enum8
+    assert isinstance(codec, Enum8)
+    assert decoded == values
+
+
+async def test_enum16_round_trip_via_parser() -> None:
+    # BEGIN: an Enum16 spec with a value range that doesn't fit in Int8
+    codec = parse_type("Enum16('a' = -1000, 'b' = 0, 'c' = 32000)")
+    values = ["c", "a", "b"]
+
+    # WHEN: round-tripping
+    decoded = await _round_trip(codec, values)
+
+    # THEN: large signed values survive
+    assert isinstance(codec, Enum16)
+    assert decoded == values
+
+
+async def test_enum8_byte_layout_is_signed_int8_per_row() -> None:
+    # BEGIN: an Enum8 with a known mapping
+    codec = parse_type("Enum8('a' = 1, 'b' = -3)")
+
+    # WHEN: encoding rows
+    writer = BinaryWriter()
+    codec.write(writer, ["a", "b", "a"])
+
+    # THEN: each row is the signed Int8 value of its label
+    assert writer.getvalue() == bytes([1, 0xFD, 1])  # -3 as Int8 → 0xFD
+
+
+def test_enum_rejects_unknown_label_on_write() -> None:
+    # BEGIN: an Enum8 codec
+    codec = Enum8({"a": 1, "b": 2})
+
+    # WHEN: writing a label not in the mapping
+    # THEN: a ValueError surfaces with the offending label
+    writer = BinaryWriter()
+    with pytest.raises(ValueError, match="unknown"):
+        codec.write(writer, ["c"])
+
+
+async def test_enum_rejects_unknown_value_on_read() -> None:
+    # BEGIN: an Enum8 codec and a stream containing an unmapped Int8 value
+    codec = Enum8({"a": 1, "b": 2})
+
+    # WHEN: reading bytes that don't correspond to any mapped value
+    # THEN: a ProtocolError surfaces, naming the offending row
+    with pytest.raises(ProtocolError, match="unknown"):
+        await codec.read(_reader(bytes([99])), 1)
+
+
+def test_enum_rejects_duplicate_values() -> None:
+    # BEGIN: a mapping with two labels sharing a value
+    # WHEN: constructing
+    # THEN: a ValueError surfaces
+    with pytest.raises(ValueError, match="duplicate values"):
+        Enum8({"a": 1, "b": 1})
+
+
+def test_enum_parser_recognises_label_value_pairs() -> None:
+    # BEGIN: a parsed enum codec
+    codec = parse_type("Enum8('hi there' = 5, 'with, comma' = 6)")
+
+    # WHEN: inspecting its mapping
+    # THEN: labels with embedded spaces and commas survive parsing
+    assert isinstance(codec, Enum8)
+    assert codec.mapping == {"hi there": 5, "with, comma": 6}
+
+
+# ---- LowCardinality ----------------------------------------------------
+
+
+async def test_low_cardinality_round_trip_dedupes() -> None:
+    # BEGIN: a LowCardinality(String) codec and rows with heavy repetition
+    codec = parse_type("LowCardinality(String)")
+    values = ["red", "blue", "red", "green", "red", "blue"]
+
+    # WHEN: round-tripping
+    decoded = await _round_trip(codec, values)
+
+    # THEN: every row comes back identical, dedupe is internal
+    assert isinstance(codec, LowCardinality)
+    assert decoded == values
+
+
+async def test_low_cardinality_picks_smallest_index_width() -> None:
+    # BEGIN: a small dictionary (3 unique values) with many rows
+    codec = parse_type("LowCardinality(Int32)")
+    values = [1, 2, 3] * 100
+
+    # WHEN: encoding
+    writer = BinaryWriter()
+    codec.write(writer, values)
+    encoded = writer.getvalue()
+
+    # THEN: serialisation_type's low byte is 0 (UInt8 indices), since the
+    #       dictionary fits in 256 entries; the indices region occupies
+    #       len(values) bytes
+    sertype = int.from_bytes(encoded[8:16], "little", signed=False)
+    assert sertype & 0xFF == 0
+
+
+async def test_low_cardinality_round_trip_int_values() -> None:
+    # BEGIN: a LowCardinality(UInt32) codec
+    codec = parse_type("LowCardinality(UInt32)")
+    values = [10, 20, 10, 30, 20, 30, 10]
+
+    # WHEN: round-tripping
+    decoded = await _round_trip(codec, values)
+
+    # THEN: hashable scalars round-trip through the dictionary
+    assert decoded == values
+
+
+def test_low_cardinality_rejects_nullable_inner_in_v0() -> None:
+    # BEGIN / WHEN / THEN: constructing LowCardinality(Nullable(...)) raises
+    #     since the v0 codec doesn't implement the dictionary-with-null layout
+    with pytest.raises(ValueError, match="Nullable"):
+        parse_type("LowCardinality(Nullable(String))")
+
+
+@pytest.mark.parametrize(
+    "spec",
+    [
+        "Enum8('a' = 1)",
+        "Enum16('a' = -1, 'b' = 1)",
+        "LowCardinality(String)",
+        "LowCardinality(Int32)",
+    ],
+)
+async def test_empty_batch_round_trip(spec: str) -> None:
+    # BEGIN: a parsed codec
+    codec = parse_type(spec)
+
+    # WHEN: round-tripping zero rows
+    decoded = await _round_trip(codec, [])
+
+    # THEN: nothing is read or written, and an empty list comes back
+    assert decoded == []
+
+
+# ---- name round-tripping -------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "spec",
+    [
+        "Enum8('a' = 1, 'b' = 2)",
+        "Enum16('alpha' = 100, 'beta' = -200)",
+        "LowCardinality(String)",
+        "LowCardinality(Int64)",
+    ],
+)
+def test_codec_name_round_trips_through_parser(spec: str) -> None:
+    # BEGIN: a canonical type spec
+    # WHEN: parsing it
+    codec = parse_type(spec)
+
+    # THEN: the codec's `name` reproduces the spec verbatim
+    assert codec.name == spec

@@ -5,20 +5,10 @@ description = "Async Python client for ClickHouse"
 authors = [{ name = "Author", email = "author@example.com" }]
 requires-python = "~=3.11"
 readme = "README.md"
-dependencies = ["asyncio>=3.4.3,<4"]
+dependencies = []
 
 [dependency-groups]
 dev = [
-    "pytest>=8.3.5,<9",
-    "pytest-asyncio>=0.26.0,<0.27",
-    "ruff>=0.11.6,<0.12",
-    "mypy>=1.15.0,<2",
-    "commitizen>=4.6.0,<5",
-    "types-setuptools>=78.1.0.20250329,<79",
-    "pytest-random-order>=1.1.1,<2",
-    "testcontainers>=4.10.0,<5",
-    "requests>=2.32.3,<3",
-    "types-requests>=2.32.0.20250328,<3",
 ]
 
 [tool.hatch.build.targets.sdist]
@@ -42,9 +32,6 @@ exclude = [".git", ".ruff_cache", "__pycache__", "dist", "build"]
 line-length = 88
 # Assume Python 3.11
 target-version = "py311"
-
-[tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["E402"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["clickhouse_async"]

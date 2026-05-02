@@ -395,6 +395,41 @@ class Connection:
         self._writer.write(out.getvalue())
         await self._writer.drain()
 
+    async def ping(self) -> None:
+        """Send a ``Ping`` packet and read the matching ``Pong``.
+
+        Used by the pool's health-check path on acquire and by user
+        code that wants to verify the connection is alive without
+        running a query. Requires ``READY``; remains ``READY`` on
+        success. A non-Pong response, IO error, or unexpected packet
+        marks the connection ``BROKEN`` and raises.
+        """
+        if self._state != State.READY:
+            raise RuntimeError(
+                f"ping() requires READY state, got {self._state.name}"
+            )
+        assert self._reader is not None and self._writer is not None
+
+        out = BinaryWriter()
+        out.write_varuint(ClientPacket.PING)
+        try:
+            self._writer.write(out.getvalue())
+            await self._writer.drain()
+        except BaseException as exc:
+            self._transition(State.BROKEN, f"ping send failed: {exc!r}")
+            await self._cleanup_writer()
+            raise
+
+        packet_id = await self._reader.read_varuint()
+        if packet_id != ServerPacket.PONG:
+            self._transition(
+                State.BROKEN, f"unexpected packet id {packet_id} after Ping"
+            )
+            raise ProtocolError(
+                f"expected PONG ({int(ServerPacket.PONG)}) after Ping, "
+                f"got packet id {packet_id}"
+            )
+
     async def cancel(self, *, drain_timeout: float = 5.0) -> None:
         """Cancel the current query.
 

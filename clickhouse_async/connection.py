@@ -1,14 +1,24 @@
 """The native-protocol Connection.
 
 A ``Connection`` owns one TCP socket and one protocol state machine. It
-is the layer the high-level ``Client`` is thin over. Substep 06a landed
-the lifecycle skeleton; 06b adds the Hello handshake; 06c adds
-``send_query`` plus the minimal packet loop; 06d extends the loop to
-handle every steady-state server packet (Progress, ProfileInfo, Log,
-TableColumns, TimezoneUpdate, ProfileEvents, Totals, Extremes) plus the
-optional callback hooks that surface progress/profile info to higher
-layers. INSERT (06e), parameters (06f), cancellation (06g), and
-compression (06h) sit on top.
+is the layer the high-level ``Client`` is thin over. Substeps so far:
+06a (lifecycle), 06b (Hello), 06c (Query + minimal packet loop), 06d
+(full steady-state dispatch + callback hooks), 06e (``send_data`` for
+the INSERT path). Parameters (06f), cancellation (06g), and compression
+(06h) sit on top.
+
+INSERT sequence (orchestrated by the Client in 07):
+
+1. ``await conn.send_query("INSERT INTO t VALUES", ...)``
+2. ``async for streamed in conn.iter_packets(): ...`` — the server
+   replies with a header-only Data block (``n_rows == 0``) describing
+   the table schema. ``break`` out of the loop after consuming it.
+3. For each batch: ``await conn.send_data(block)`` where ``block``'s
+   columns match the header.
+4. ``await conn.send_data(None)`` to write the empty terminator block.
+5. Re-enter the iterator to drain any remaining server packets
+   (``Progress``, ``ProfileInfo``, eventually ``EndOfStream``); the
+   connection returns to READY.
 
 Single-task model: the connection never spawns a background reader
 task. Every read happens on the calling task, so cancellation lives
@@ -28,7 +38,7 @@ from enum import IntEnum
 from typing import Literal, Protocol
 
 from clickhouse_async.errors import ConcurrentQueryError, ProtocolError
-from clickhouse_async.protocol.block import Block
+from clickhouse_async.protocol.block import Block, BlockInfo, write_block
 from clickhouse_async.protocol.exception_packet import read_exception_body
 from clickhouse_async.protocol.handshake import (
     ServerInfo,
@@ -36,7 +46,11 @@ from clickhouse_async.protocol.handshake import (
     write_client_hello,
 )
 from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
-from clickhouse_async.protocol.packets import OUR_REVISION, ServerPacket
+from clickhouse_async.protocol.packets import (
+    OUR_REVISION,
+    ClientPacket,
+    ServerPacket,
+)
 from clickhouse_async.protocol.query_packet import write_query_packet
 from clickhouse_async.protocol.server_packets import (
     ProfileInfo,
@@ -302,6 +316,37 @@ class Connection:
             State.IN_FLIGHT,
             f"send_query(query_id={query_id!r}, len(sql)={len(sql)})",
         )
+
+    async def send_data(self, block: Block | None) -> None:
+        """Send a Data packet during an INSERT.
+
+        Pass ``None`` for the empty-block terminator that signals
+        end-of-data. State stays IN_FLIGHT — the call returns to READY
+        only when the user resumes ``iter_packets`` and the server
+        emits ``EndOfStream``.
+
+        v0 does not validate the block's columns against the header
+        the server emitted; misaligned schemas surface as a
+        ``ServerError`` from the next ``iter_packets`` read. Header
+        validation lives at the Client layer (07) where the
+        header→block flow is owned.
+        """
+        if self._state != State.IN_FLIGHT:
+            raise RuntimeError(
+                f"send_data() requires IN_FLIGHT state, got {self._state.name}"
+            )
+        assert self._writer is not None
+
+        out = BinaryWriter()
+        out.write_varuint(ClientPacket.DATA)
+        out.write_string("")  # external table name (empty = main table)
+        write_block(
+            out,
+            block if block is not None else Block(info=BlockInfo()),
+            revision=self._negotiated_revision,
+        )
+        self._writer.write(out.getvalue())
+        await self._writer.drain()
 
     async def iter_packets(self) -> AsyncIterator[StreamedBlock]:
         """Yield each block-bearing packet until ``EndOfStream`` or

@@ -57,6 +57,13 @@ codec/module that carries the limitation so a grep finds the on-ramp.
   user-authored CREATE TABLE syntax can. If we ever parse user input
   through this, extend `_read_quoted_string`.
   *Code:* `types/__init__.py::_Parser._read_quoted_string`.
+- **`Connection.send_data` does not validate the block's columns
+  against the server's INSERT header.** Misaligned columns surface as
+  a `ServerError` from the next `iter_packets` read instead of a
+  fast, named-column-vs-named-column diagnostic. Header validation
+  belongs at the Client layer (07) where the header→block flow is
+  owned; recorded here so the gap is visible until 07 lands.
+  *Code:* `connection.py::Connection.send_data`.
 
 ---
 

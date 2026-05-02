@@ -40,6 +40,8 @@ from typing import Literal, Protocol
 from clickhouse_async.errors import (
     ConcurrentQueryError,
     ProtocolError,
+    QueryCancellationError,
+    ServerError,
     UnsupportedFeatureError,
 )
 from clickhouse_async.protocol.block import Block, BlockInfo, write_block
@@ -153,6 +155,9 @@ class Connection:
         self._server_info: ServerInfo | None = None
         self._negotiated_revision: int = 0
         self._user: str = ""
+        # Set while a cancel() is mid-flight so iter_packets's recursive
+        # invocation from inside cancel doesn't itself try to cancel.
+        self._cancel_in_flight: bool = False
         # Callback hooks for the non-yielded server packets. Assignable
         # by callers; default no-ops.
         self.on_progress: Callable[[ProgressInfo], None] | None = None
@@ -379,6 +384,94 @@ class Connection:
         )
         self._writer.write(out.getvalue())
         await self._writer.drain()
+
+    async def cancel(self, *, drain_timeout: float = 5.0) -> None:
+        """Cancel the current query.
+
+        Always raises ``QueryCancellationError`` describing the outcome
+        — never returns silently. The reason on the raised error tells
+        the caller which path the cancel took:
+
+        - ``READY``: no-op return (the only path that doesn't raise).
+          Cancel is meaningful only mid-query.
+        - ``IN_FLIGHT``: send a ``Cancel`` packet, drain whatever the
+          server emits afterwards (Progress / EndOfStream / Exception)
+          bounded by ``drain_timeout``. Clean drain → ``READY`` plus
+          ``reason="drained"``. Timeout → close the writer, transition
+          to ``BROKEN``, raise ``reason="timeout"``.
+        - Another ``cancel()`` is in flight: raise
+          ``reason="already_cancelled"`` without disturbing the first.
+        - ``BROKEN`` / ``CLOSED``: raise ``reason="not_in_flight"`` —
+          there's nothing to cancel.
+
+        Cancellation safety: every ``await`` inside leaves the
+        connection in a state callers can reason about — either still
+        mid-cancel (we'll raise on completion) or ``BROKEN`` (the
+        writer is closed). No half-broken state.
+        """
+        if self._state == State.READY:
+            return
+        if self._cancel_in_flight:
+            raise QueryCancellationError(
+                reason="already_cancelled",
+                message="another cancel is already in flight on this connection",
+            )
+        if self._state != State.IN_FLIGHT:
+            raise QueryCancellationError(
+                reason="not_in_flight",
+                message=(
+                    f"cancel() requires IN_FLIGHT (or READY for no-op), "
+                    f"got {self._state.name}"
+                ),
+            )
+        assert self._writer is not None
+
+        self._cancel_in_flight = True
+        try:
+            # Send the Cancel packet — just the varuint id, no body.
+            try:
+                out = BinaryWriter()
+                out.write_varuint(ClientPacket.CANCEL)
+                self._writer.write(out.getvalue())
+                await self._writer.drain()
+            except BaseException as exc:
+                self._transition(
+                    State.BROKEN, f"cancel send failed: {exc!r}"
+                )
+                await self._cleanup_writer()
+                raise
+
+            # Drain the rest of the query, bounded by drain_timeout.
+            # Any ServerError mid-drain is the server's cancel-ack
+            # (typically code QUERY_WAS_CANCELLED) — swallow it; the
+            # connection has already moved to READY in iter_packets.
+            try:
+                async with asyncio.timeout(drain_timeout):
+                    try:
+                        async for _ in self.iter_packets():
+                            pass
+                    except ServerError:
+                        pass
+            except TimeoutError:
+                self._transition(
+                    State.BROKEN, f"cancel drain timed out after {drain_timeout}s"
+                )
+                await self._cleanup_writer()
+                raise QueryCancellationError(
+                    reason="timeout",
+                    message=(
+                        f"server did not finish the cancelled query within "
+                        f"{drain_timeout}s; connection is now BROKEN"
+                    ),
+                ) from None
+
+            # Clean drain — connection is READY (set by iter_packets).
+            raise QueryCancellationError(
+                reason="drained",
+                message="query cancelled cleanly; connection is READY",
+            )
+        finally:
+            self._cancel_in_flight = False
 
     async def iter_packets(self) -> AsyncIterator[StreamedBlock]:
         """Yield each block-bearing packet until ``EndOfStream`` or

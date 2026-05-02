@@ -64,6 +64,16 @@ codec/module that carries the limitation so a grep finds the on-ramp.
   belongs at the Client layer (07) where the header→block flow is
   owned; recorded here so the gap is visible until 07 lands.
   *Code:* `connection.py::Connection.send_data`.
+- **No automatic cancel-on-break for `iter_packets`.** Breaking out of
+  `async for s in conn.iter_packets()` does not eagerly send a
+  `Cancel` — Python defers async-generator finalisation to GC time, so
+  a subsequent operation on the same connection might fire before any
+  cleanup. Users must call `conn.cancel()` explicitly (or use
+  `contextlib.aclosing`) when they exit a stream early. The Client
+  layer (07) will own this orchestration; until then, the connection's
+  state can be inspected via `conn.state` to confirm READY before
+  reusing.
+  *Code:* `connection.py::Connection.iter_packets`.
 
 ---
 

@@ -20,6 +20,30 @@ class ConcurrentQueryError(ClickHouseError):
     """
 
 
+class QueryCancellationError(ClickHouseError):
+    """Outcome of a ``Connection.cancel()`` call.
+
+    ``reason`` distinguishes the path the cancel took:
+
+    - ``"drained"``: cancel succeeded; the connection returned to
+      ``READY``. The previous query is over and the connection is
+      reusable.
+    - ``"timeout"``: the post-Cancel drain exceeded ``drain_timeout``;
+      the socket was closed and the connection is ``BROKEN``.
+    - ``"already_cancelled"``: another cancel is in flight on this
+      connection (the second call is rejected; the first is still
+      working).
+    - ``"not_in_flight"``: cancel was called from a state other than
+      ``IN_FLIGHT`` (and not from ``READY``, where it's a no-op).
+    """
+
+    reason: str
+
+    def __init__(self, *, reason: str, message: str = "") -> None:
+        super().__init__(message or reason)
+        self.reason = reason
+
+
 class UnsupportedFeatureError(ClickHouseError):
     """A feature was requested but the negotiated protocol revision
     doesn't support it.

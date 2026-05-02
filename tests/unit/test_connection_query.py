@@ -7,7 +7,7 @@ import asyncio
 import pytest
 
 from clickhouse_async.connection import Connection, State
-from clickhouse_async.errors import ConcurrentQueryError, ProtocolError, ServerError
+from clickhouse_async.errors import ConcurrentQueryError, ServerError
 from clickhouse_async.protocol.block import (
     Block,
     BlockInfo,
@@ -18,7 +18,6 @@ from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 from clickhouse_async.protocol.packets import (
     OUR_REVISION,
     ClientPacket,
-    ServerPacket,
 )
 from clickhouse_async.protocol.query_packet import QueryStage
 
@@ -141,14 +140,14 @@ async def test_iter_packets_yields_data_then_terminates_on_eos() -> None:
 
     # WHEN: sending the query and draining the iterator
     await conn.send_query("SELECT 42")
-    blocks: list[Block] = [b async for b in conn.iter_packets()]
+    streamed = [s async for s in conn.iter_packets()]
 
-    # THEN: two blocks come back (the header and the data), and the
-    #       connection returns to READY
-    assert len(blocks) == 2
-    assert blocks[0].n_rows == 0
-    assert blocks[1].n_rows == 1
-    assert blocks[1].data == [[42]]
+    # THEN: two blocks come back, both tagged "data" (no Totals/Extremes
+    #       in this scenario), and the connection returns to READY
+    assert [s.kind for s in streamed] == ["data", "data"]
+    assert streamed[0].block.n_rows == 0
+    assert streamed[1].block.n_rows == 1
+    assert streamed[1].block.data == [[42]]
     assert conn.state == State.READY
 
 
@@ -181,23 +180,10 @@ async def test_iter_packets_raises_server_error_and_returns_to_ready() -> None:
     assert conn.state == State.READY
 
 
-async def test_iter_packets_marks_connection_broken_on_unexpected_packet() -> None:
-    # BEGIN: a server emitting a packet 06c doesn't handle yet (Progress = 3)
-    transport = ScriptedTransport()
-    conn = await _connect(transport)
-    w = BinaryWriter()
-    w.write_varuint(ServerPacket.PROGRESS)
-    transport.feed(w.getvalue())
-
-    # WHEN: sending a query and iterating
-    await conn.send_query("SELECT 1")
-    with pytest.raises(ProtocolError, match="unexpected packet id"):
-        async for _ in conn.iter_packets():
-            pass
-
-    # THEN: the connection is BROKEN (not just READY) — we can't trust
-    #       the wire after losing sync
-    assert conn.state == State.BROKEN
+# Coverage for unrecognised packet ids living in the parametrised test
+# `test_distributed_read_packets_break_the_connection` over in 06d's
+# tests — that one walks every distributed-read packet id and asserts
+# the same state-and-error contract.
 
 
 # ---- state guards -------------------------------------------------------

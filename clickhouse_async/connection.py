@@ -2,10 +2,13 @@
 
 A ``Connection`` owns one TCP socket and one protocol state machine. It
 is the layer the high-level ``Client`` is thin over. Substep 06a landed
-the lifecycle skeleton; 06b adds the Hello handshake that promotes
-``CONNECTING → READY``; 06c adds ``send_query`` and ``iter_packets`` for
-the minimal SELECT round-trip. INSERT (06e), parameters (06f),
-cancellation (06g), and compression (06h) sit on top.
+the lifecycle skeleton; 06b adds the Hello handshake; 06c adds
+``send_query`` plus the minimal packet loop; 06d extends the loop to
+handle every steady-state server packet (Progress, ProfileInfo, Log,
+TableColumns, TimezoneUpdate, ProfileEvents, Totals, Extremes) plus the
+optional callback hooks that surface progress/profile info to higher
+layers. INSERT (06e), parameters (06f), cancellation (06g), and
+compression (06h) sit on top.
 
 Single-task model: the connection never spawns a background reader
 task. Every read happens on the calling task, so cancellation lives
@@ -20,11 +23,12 @@ import asyncio
 import logging
 import ssl as _ssl_module
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
+from dataclasses import dataclass
 from enum import IntEnum
-from typing import Protocol
+from typing import Literal, Protocol
 
 from clickhouse_async.errors import ConcurrentQueryError, ProtocolError
-from clickhouse_async.protocol.block import Block, read_block
+from clickhouse_async.protocol.block import Block
 from clickhouse_async.protocol.exception_packet import read_exception_body
 from clickhouse_async.protocol.handshake import (
     ServerInfo,
@@ -34,6 +38,15 @@ from clickhouse_async.protocol.handshake import (
 from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 from clickhouse_async.protocol.packets import OUR_REVISION, ServerPacket
 from clickhouse_async.protocol.query_packet import write_query_packet
+from clickhouse_async.protocol.server_packets import (
+    ProfileInfo,
+    ProgressInfo,
+    read_block_packet_body,
+    read_profile_info,
+    read_progress,
+    read_table_columns,
+    read_timezone_update,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -45,6 +58,23 @@ class State(IntEnum):
     IN_FLIGHT = 3
     BROKEN = 4
     CLOSED = 5
+
+
+BlockKind = Literal["data", "totals", "extremes"]
+
+
+@dataclass
+class StreamedBlock:
+    """A block yielded by ``iter_packets`` together with its kind tag.
+
+    ClickHouse can interleave the regular result rows (``DATA``) with
+    aggregate ``TOTALS`` and ``EXTREMES`` blocks before ``EndOfStream``;
+    the kind tag lets callers route them appropriately without parsing
+    packet ids themselves.
+    """
+
+    kind: BlockKind
+    block: Block
 
 
 class _WriterLike(Protocol):
@@ -103,6 +133,14 @@ class Connection:
         self._server_info: ServerInfo | None = None
         self._negotiated_revision: int = 0
         self._user: str = ""
+        # Callback hooks for the non-yielded server packets. Assignable
+        # by callers; default no-ops.
+        self.on_progress: Callable[[ProgressInfo], None] | None = None
+        self.on_profile_info: Callable[[ProfileInfo], None] | None = None
+        self.on_profile_events: Callable[[Block], None] | None = None
+        self.on_log: Callable[[Block], None] | None = None
+        self.on_table_columns: Callable[[str, str], None] | None = None
+        self.on_timezone_update: Callable[[str], None] | None = None
         # (from_state, to_state, reason) per transition — load-bearing for
         # tests and a useful debugging breadcrumb in production logs.
         self._transitions: list[tuple[State, State, str]] = []
@@ -265,30 +303,51 @@ class Connection:
             f"send_query(query_id={query_id!r}, len(sql)={len(sql)})",
         )
 
-    async def iter_packets(self) -> AsyncIterator[Block]:
-        """Yield each result block until ``EndOfStream`` or ``Exception``.
+    async def iter_packets(self) -> AsyncIterator[StreamedBlock]:
+        """Yield each block-bearing packet until ``EndOfStream`` or
+        ``Exception``.
 
-        06c handles the minimum dispatch — ``DATA`` (yielded), ``EXCEPTION``
-        (raises ``ServerError``, returns to READY), ``END_OF_STREAM``
-        (terminates, returns to READY). Anything else mid-query is a
-        ``ProtocolError`` and marks the connection BROKEN. The fuller
-        packet roster (Progress / ProfileInfo / Log / …) lands in 06d.
+        Block-bearing packets — ``DATA`` / ``TOTALS`` / ``EXTREMES`` —
+        are yielded as ``StreamedBlock`` so callers can route them by
+        kind without parsing packet ids.
+
+        Non-yielding packets fire the matching callback (``on_progress``,
+        ``on_profile_info``, ``on_profile_events``, ``on_log``,
+        ``on_table_columns``, ``on_timezone_update``) and the loop
+        continues. Setting a callback to ``None`` (the default) drops
+        the data on the floor — every packet's body is still consumed
+        so the wire stays in sync.
+
+        ``EXCEPTION`` mid-query raises ``ServerError`` and returns the
+        connection to READY (a query-level error isn't a transport
+        failure). ``END_OF_STREAM`` terminates cleanly. Distributed-read
+        packets (``PART_UUIDS``, ``READ_TASK_REQUEST``,
+        ``MERGE_TREE_*``) and any unrecognised id mark the connection
+        BROKEN — initial-query connections shouldn't see those.
         """
         if self._state != State.IN_FLIGHT:
             raise RuntimeError(
                 f"iter_packets() requires IN_FLIGHT state, got {self._state.name}"
             )
         assert self._reader is not None
+        revision = self._negotiated_revision
         while True:
             packet_id = await self._reader.read_varuint()
             if packet_id == ServerPacket.DATA:
-                # External-table name on every Data packet (empty for the
-                # main result table).
-                _ = await self._reader.read_string()
-                block = await read_block(
-                    self._reader, revision=self._negotiated_revision
+                _, block = await read_block_packet_body(
+                    self._reader, revision=revision
                 )
-                yield block
+                yield StreamedBlock(kind="data", block=block)
+            elif packet_id == ServerPacket.TOTALS:
+                _, block = await read_block_packet_body(
+                    self._reader, revision=revision
+                )
+                yield StreamedBlock(kind="totals", block=block)
+            elif packet_id == ServerPacket.EXTREMES:
+                _, block = await read_block_packet_body(
+                    self._reader, revision=revision
+                )
+                yield StreamedBlock(kind="extremes", block=block)
             elif packet_id == ServerPacket.END_OF_STREAM:
                 self._transition(State.READY, "EndOfStream")
                 return
@@ -298,16 +357,47 @@ class Connection:
                     State.READY, f"server exception: {err.name}"
                 )
                 raise err
+            elif packet_id == ServerPacket.PROGRESS:
+                progress = await read_progress(self._reader, revision=revision)
+                if self.on_progress is not None:
+                    self.on_progress(progress)
+            elif packet_id == ServerPacket.PROFILE_INFO:
+                pinfo = await read_profile_info(
+                    self._reader, revision=revision
+                )
+                if self.on_profile_info is not None:
+                    self.on_profile_info(pinfo)
+            elif packet_id == ServerPacket.PROFILE_EVENTS:
+                _, block = await read_block_packet_body(
+                    self._reader, revision=revision
+                )
+                if self.on_profile_events is not None:
+                    self.on_profile_events(block)
+            elif packet_id == ServerPacket.LOG:
+                _, block = await read_block_packet_body(
+                    self._reader, revision=revision
+                )
+                if self.on_log is not None:
+                    self.on_log(block)
+            elif packet_id == ServerPacket.TABLE_COLUMNS:
+                default_table_name, columns = await read_table_columns(
+                    self._reader
+                )
+                if self.on_table_columns is not None:
+                    self.on_table_columns(default_table_name, columns)
+            elif packet_id == ServerPacket.TIMEZONE_UPDATE:
+                tz = await read_timezone_update(self._reader)
+                if self.on_timezone_update is not None:
+                    self.on_timezone_update(tz)
             else:
                 self._transition(
                     State.BROKEN, f"unexpected packet id {packet_id}"
                 )
                 raise ProtocolError(
                     f"unexpected packet id {packet_id} during query "
-                    f"(06c handles DATA={ServerPacket.DATA.value}, "
-                    f"END_OF_STREAM={ServerPacket.END_OF_STREAM.value}, "
-                    f"EXCEPTION={ServerPacket.EXCEPTION.value}; "
-                    f"more packet types arrive in 06d)"
+                    f"(distributed-read packets PART_UUIDS / "
+                    f"READ_TASK_REQUEST / MERGE_TREE_* are not expected on "
+                    f"initial-query connections)"
                 )
 
     async def _cleanup_writer(self) -> None:

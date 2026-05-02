@@ -37,6 +37,7 @@ from clickhouse_async.types.decimal import (
     Decimal256,
     make_decimal,
 )
+from clickhouse_async.types.net import UUID, IPv4, IPv6
 from clickhouse_async.types.primitive import (
     Bool,
     Float32,
@@ -68,6 +69,8 @@ _NULLARY: dict[str, Callable[[], ColumnCodec]] = {
     "DateTime": DateTime,
     "Float32": Float32,
     "Float64": Float64,
+    "IPv4": IPv4,
+    "IPv6": IPv6,
     "Int8": Int8,
     "Int16": Int16,
     "Int32": Int32,
@@ -81,6 +84,7 @@ _NULLARY: dict[str, Callable[[], ColumnCodec]] = {
     "UInt64": UInt64,
     "UInt128": UInt128,
     "UInt256": UInt256,
+    "UUID": UUID,
 }
 
 # Each factory takes the heterogeneous params list and either returns a codec

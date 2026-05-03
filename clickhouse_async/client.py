@@ -48,15 +48,26 @@ class QueryResult:
 
     ``columns`` carries the server's column metadata (taken from the
     header block); ``rows`` is a row-major list of tuples assembled by
-    transposing each ``DATA`` block. ``progress`` and ``profile_info``
-    capture the last respective server packet, or default-constructed
-    instances if none arrived. ``elapsed`` is the wall-clock duration
-    from ``send_query`` to ``EndOfStream``.
+    transposing each ``DATA`` block. ``progress`` is the *last*
+    Progress packet received (each carries increments since the
+    previous one), and ``profile_info`` is the single ProfileInfo
+    packet emitted near end-of-stream. ``elapsed`` is the wall-clock
+    duration from ``send_query`` to ``EndOfStream``.
+
+    ``written_rows`` is the **server-confirmed** count: the sum of
+    every ``Progress.written_rows`` increment the server sent during
+    the query. For SELECTs this stays at 0; for INSERTs it tracks
+    what the server actually wrote (which may differ from
+    ``client_sent_rows`` when a CHECK / DEDUP / partial-write filter
+    drops rows server-side). ``client_sent_rows`` carries the
+    matching client-side count: for ``insert()`` it's how many rows
+    we shipped over the wire, for ``execute()`` it stays at 0.
     """
 
     columns: list[ColumnSpec] = field(default_factory=list)
     rows: list[tuple[object, ...]] = field(default_factory=list)
     written_rows: int = 0
+    client_sent_rows: int = 0
     elapsed: float = 0.0
     progress: ProgressInfo = field(
         default_factory=lambda: ProgressInfo(
@@ -183,13 +194,18 @@ class Client:
         rows: list[tuple[object, ...]] = []
         captured_progress: ProgressInfo | None = None
         captured_profile: ProfileInfo | None = None
+        # Progress packets carry *increments* since the previous one;
+        # accumulate the per-call totals instead of overwriting so
+        # ``QueryResult.written_rows`` reflects the server's view.
+        total_written_rows = 0
 
         prior_progress = self._conn.on_progress
         prior_profile = self._conn.on_profile_info
 
         def _on_progress(p: ProgressInfo) -> None:
-            nonlocal captured_progress
+            nonlocal captured_progress, total_written_rows
             captured_progress = p
+            total_written_rows += p.written_rows
             if prior_progress is not None:
                 prior_progress(p)
 
@@ -235,7 +251,7 @@ class Client:
         return QueryResult(
             columns=columns,
             rows=rows,
-            written_rows=final_progress.written_rows,
+            written_rows=total_written_rows,
             elapsed=elapsed,
             progress=final_progress,
             profile_info=captured_profile,
@@ -341,10 +357,24 @@ class Client:
         ``column_names``. The codec for each column is taken from the
         server's INSERT header block — we don't infer types client-side.
 
-        Returns the total number of rows we shipped to the server. A
-        column-name mismatch between ``column_names`` and the server's
-        header raises ``ValueError`` after cancelling the query
-        cleanly; the connection remains reusable.
+        Validation runs against the server's header before any DATA
+        bytes leave the wire:
+
+        - ``column_names`` is compared to the server's column list
+          (case-sensitive, ordered). Mismatch → ``ValueError``,
+          query cancelled cleanly, no rows sent.
+        - Each row's length is checked against the header column
+          count as the row arrives. Mismatch → ``ValueError`` naming
+          the offending row index. Earlier batches that already
+          flushed are committed server-side; the query is cancelled
+          before the failing row goes out so callers don't end up
+          with a half-block of partial data.
+
+        Returns the **server-confirmed** ``written_rows`` — the sum
+        of every ``Progress.written_rows`` increment the server
+        emitted during the drain phase. Normally equals
+        ``client_sent_rows``; can diverge under CHECK constraints,
+        DEDUP, or partial-batch failures.
         """
         await self._conn.send_query(sql, query_id=query_id, settings=settings)
 
@@ -375,31 +405,61 @@ class Client:
                 f"server expects {server_names!r}"
             )
 
-        total_rows = 0
+        # Hook in the same accumulator ``execute`` uses so the server's
+        # ``written_rows`` increments roll up across the drain phase.
+        prior_progress = self._conn.on_progress
+        total_written_rows = 0
+
+        def _on_progress(p: ProgressInfo) -> None:
+            nonlocal total_written_rows
+            total_written_rows += p.written_rows
+            if prior_progress is not None:
+                prior_progress(p)
+
+        self._conn.on_progress = _on_progress
+
+        client_sent_rows = 0
         batch: list[Sequence[object]] = []
+        n_columns = len(header.columns)
 
         async def _flush(batch: list[Sequence[object]]) -> int:
             block = _build_insert_block(header.columns, batch)  # type: ignore[union-attr]
             await self._conn.send_data(block)
             return len(batch)
 
-        async for row in _normalise_row_source(rows):
-            batch.append(row)
-            if len(batch) >= insert_block_size:
-                total_rows += await _flush(batch)
-                batch = []
-        if batch:
-            total_rows += await _flush(batch)
+        try:
+            async for row_index, row in _enumerate_async(_normalise_row_source(rows)):
+                if len(row) != n_columns:
+                    with contextlib.suppress(QueryCancellationError):
+                        await self._conn.cancel()
+                    raise ValueError(
+                        f"INSERT row {row_index} has {len(row)} columns; "
+                        f"expected {n_columns} (column names: {server_names!r})"
+                    )
+                batch.append(row)
+                if len(batch) >= insert_block_size:
+                    client_sent_rows += await _flush(batch)
+                    batch = []
+            if batch:
+                client_sent_rows += await _flush(batch)
 
-        # Empty terminator block tells the server the INSERT payload is
-        # complete; the server then emits Progress / EndOfStream.
-        await self._conn.send_data(None)
+            # Empty terminator block tells the server the INSERT payload is
+            # complete; the server then emits Progress / EndOfStream.
+            await self._conn.send_data(None)
 
-        # Drain remaining packets (Progress / EndOfStream / etc.).
-        async for _ in iterator:
-            pass
+            # Drain remaining packets (Progress / EndOfStream / etc.).
+            async for _ in iterator:
+                pass
+        finally:
+            self._conn.on_progress = prior_progress
 
-        return total_rows
+        # Surface the server's view. We fall back to the client-side
+        # count when the server emitted no ``Progress.written_rows``
+        # increments — older servers / specific engines (e.g. Memory
+        # with no replication target) sometimes skip them. The two
+        # are typically equal; CHECK constraints / DEDUP / partial
+        # writes are where they diverge.
+        return total_written_rows or client_sent_rows
 
     async def iter_rows(
         self,
@@ -511,6 +571,18 @@ def _normalise_row_source(
     if isinstance(rows, AsyncIterable):
         return _async_rows(cast("AsyncIterable[Sequence[object]]", rows))
     return _sync_rows(cast("Iterable[Sequence[object]]", rows))
+
+
+async def _enumerate_async(
+    source: AsyncIterable[Sequence[object]],
+) -> AsyncGenerator[tuple[int, Sequence[object]], None]:
+    """Async ``enumerate`` over an async row source. Used by
+    ``Client.insert`` so per-row validation errors can name the
+    offending row index."""
+    index = 0
+    async for row in source:
+        yield index, row
+        index += 1
 
 
 def _build_insert_block(

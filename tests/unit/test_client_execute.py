@@ -147,6 +147,31 @@ async def test_execute_captures_final_progress_and_profile_info() -> None:
     assert result.profile_info.blocks == 2
 
 
+async def test_execute_accumulates_written_rows_across_progress_packets() -> None:
+    # BEGIN: a SELECT response with three Progress packets carrying
+    #        non-zero written_rows increments (3, 7, 5). ClickHouse
+    #        emits Progress as deltas — the client must accumulate
+    #        for ``QueryResult.written_rows`` to mean "server-confirmed
+    #        total", not "last increment".
+    transport = ScriptedTransport()
+    transport.feed(encode_server_hello())
+    spec, _ = make_column("n", "Int32", [])
+    header = Block(info=BlockInfo(), columns=[spec], n_rows=0, data=[[]])
+    transport.feed(encode_server_data(header))
+    transport.feed(encode_server_progress(written_rows=3))
+    transport.feed(encode_server_progress(written_rows=7))
+    transport.feed(encode_server_progress(written_rows=5))
+    transport.feed(encode_server_end_of_stream())
+
+    async with connect(
+        "clickhouse://default:@host/db", transport_factory=transport
+    ) as client:
+        result = await client.execute("INSERT INTO t SELECT * FROM source")
+
+    # THEN: the result reports the sum (15), not the last increment (5)
+    assert result.written_rows == 15
+
+
 async def test_execute_records_elapsed_wall_clock_time() -> None:
     # BEGIN: a quick SELECT response
     transport = ScriptedTransport()

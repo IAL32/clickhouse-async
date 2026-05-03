@@ -12,6 +12,8 @@ import asyncio
 from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING
 
+import pytest
+
 import clickhouse_async as ch
 from clickhouse_async.types.datetime import HighPrecisionTimestamp
 
@@ -308,6 +310,70 @@ async def test_datetime_session_timezone_seeded_from_handshake(
     t = rows[0][0]
     assert isinstance(t, datetime)
     assert t.utcoffset() == timedelta(0)
+
+
+async def test_insert_column_name_mismatch_raises_before_any_data_sent(
+    pool: ch.Pool,
+    fresh_table: Callable[[str, str], Awaitable[None]],
+) -> None:
+    # BEGIN: a table that already has rows; an INSERT whose SQL is
+    #        valid (no explicit column list, so the server emits the
+    #        full header) but whose ``column_names=`` disagrees with
+    #        the header should raise locally — before any DATA bytes
+    #        leave the wire — and leave the existing rows untouched.
+    table = "test_insert_column_name_mismatch"
+    await fresh_table(table, "(id UInt64, name String) ENGINE = Memory")
+    # Seed one row so we can verify nothing else lands.
+    async with pool.acquire() as client:
+        await client.insert(
+            f"INSERT INTO {table} VALUES",
+            rows=[(1, "alpha")],
+            column_names=["id", "name"],
+        )
+
+    # WHEN: ``column_names`` swaps the order on us
+    with pytest.raises(ValueError, match="column names mismatch"):
+        async with pool.acquire() as client:
+            await client.insert(
+                f"INSERT INTO {table} VALUES",
+                rows=[(2, "beta"), (3, "gamma")],
+                column_names=["name", "id"],  # reversed vs. table order
+            )
+
+    # THEN: no rows were sent — the table still has only the seed row.
+    rows = await pool.fetch_all(f"SELECT id, name FROM {table} ORDER BY id")
+    assert rows == [(1, "alpha")]
+
+
+async def test_insert_returns_server_confirmed_written_rows_via_real_server(
+    pool: ch.Pool,
+    fresh_table: Callable[[str, str], Awaitable[None]],
+) -> None:
+    # BEGIN: the canonical 3-row insert against a real server. The
+    #        return value should be the server's count, which for a
+    #        plain Memory engine matches the client-side count.
+    table = "test_insert_written_rows"
+    await fresh_table(table, "(id UInt64, name String) ENGINE = Memory")
+    rows_in: list[tuple[object, ...]] = [
+        (1, "alpha"),
+        (2, "beta"),
+        (3, "gamma"),
+    ]
+
+    # WHEN: inserting via the pool
+    async with pool.acquire() as client:
+        n = await client.insert(
+            f"INSERT INTO {table} VALUES",
+            rows=rows_in,
+            column_names=["id", "name"],
+        )
+
+    # THEN: server-confirmed count agrees with the input length —
+    #       the v0 contract still holds for the simple case
+    assert n == 3
+    # And the rows are queryable (sanity)
+    out = await pool.fetch_all(f"SELECT id, name FROM {table} ORDER BY id")
+    assert out == rows_in
 
 
 async def test_named_tuple_column_round_trips_via_server(

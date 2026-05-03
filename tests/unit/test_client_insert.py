@@ -15,6 +15,7 @@ from ._scripted_packets import (
     encode_server_data,
     encode_server_end_of_stream,
     encode_server_hello,
+    encode_server_progress,
 )
 
 if TYPE_CHECKING:
@@ -174,6 +175,68 @@ async def test_insert_row_with_wrong_arity_raises() -> None:
                 rows=[(1,)],  # only 1 element; header expects 2
                 column_names=["id", "name"],
             )
+
+
+# ---- empty rows --------------------------------------------------------
+
+
+async def test_insert_returns_server_confirmed_written_rows() -> None:
+    # BEGIN: an INSERT response that emits Progress packets totalling 2
+    #        written_rows even though the client sends 5 rows. (The
+    #        divergence stands in for the CHECK-constraint /
+    #        DEDUP / partial-write cases the docstring calls out.)
+    transport = ScriptedTransport()
+    transport.feed(encode_server_hello())
+    # Header block first.
+    specs = [make_column(name, type_, [])[0] for name, type_ in [("id", "Int32")]]
+    header = Block(info=BlockInfo(), columns=specs, n_rows=0, data=[[]])
+    transport.feed(encode_server_data(header))
+    # Then the post-INSERT drain: Progress packets summing to 2 + EOS.
+    transport.feed(encode_server_progress(written_rows=1))
+    transport.feed(encode_server_progress(written_rows=1))
+    transport.feed(encode_server_end_of_stream())
+
+    rows = [(i,) for i in range(5)]
+
+    # WHEN: insert sends 5 rows but the server only confirms 2
+    async with connect(
+        "clickhouse://default:@host/db", transport_factory=transport
+    ) as client:
+        n = await client.insert(
+            "INSERT INTO t (id) VALUES",
+            rows=rows,
+            column_names=["id"],
+        )
+
+    # THEN: the return value is the server-confirmed total (2), not
+    #       the client-side count (5). The two diverging is the whole
+    #       point — schema mismatches that the server filters out
+    #       silently are now visible to the caller.
+    assert n == 2
+
+
+async def test_insert_falls_back_to_client_count_when_server_silent() -> None:
+    # BEGIN: an INSERT response with no Progress packets — the server
+    #        skipped them (some engines do, e.g. Memory in older
+    #        builds). The fallback should keep the v0 promise that
+    #        a 3-row insert returns 3.
+    transport = ScriptedTransport()
+    transport.feed(encode_server_hello())
+    _insert_response(transport)
+
+    # WHEN: a 3-row insert with no Progress on the wire
+    async with connect(
+        "clickhouse://default:@host/db", transport_factory=transport
+    ) as client:
+        n = await client.insert(
+            "INSERT INTO t VALUES",
+            rows=[(1, "a"), (2, "b"), (3, "c")],
+            column_names=["id", "name"],
+        )
+
+    # THEN: the client-side count surfaces because the server's count
+    #       was zero (no Progress packets to accumulate).
+    assert n == 3
 
 
 # ---- empty rows --------------------------------------------------------

@@ -3,10 +3,13 @@
 A pure-Python, fully `asyncio`-native client for ClickHouse over the **native TCP
 protocol** (default port `9000` / `9440` for TLS).
 
-This document describes the v0 design: the client, the connection pool, and the
-layers underneath that make them work. It is deliberately scoped — the goal is
-to ship a small, correct, idiomatic async client first, and grow features
-behind a stable surface.
+This document describes the design through v0.1 (shipped) and v0.2 (in
+progress): the client, the connection pool, the layers underneath, and the
+trajectory the type-system buildout is following. It is deliberately scoped —
+the goal is to ship a small, correct, idiomatic async client first, and grow
+features behind a stable surface. Anything tagged "v0" below describes the
+constraints that informed the original build; anything tagged "v0.x" is the
+current state.
 
 ---
 
@@ -230,11 +233,16 @@ async with ch.create_pool(
 ### Semantics
 - **Bounded.** `max_size` is a hard cap; `acquire()` waits up to
   `acquire_timeout` for a slot, then raises `PoolTimeoutError`.
-- **Min-size warm.** `min_size` connections are created lazily on first use
-  but kept alive afterwards. We do **not** open them eagerly at `create_pool`
-  time — that turns a misconfigured DSN into an import-time failure.
-- **Idle reaper.** A background task evicts connections whose idle time
-  exceeds `max_idle_time` while keeping the pool above `min_size`.
+- **Min-size warm.** The reaper opens connections up to `min_size`
+  on the next pass after first use — never eagerly at `create_pool`
+  time, since that would turn a misconfigured DSN into an
+  import-time failure. Opt out via `enable_reaper=False` (see below).
+- **Idle reaper.** A background task lazily started on first
+  `acquire()` evicts connections whose idle time exceeds
+  `max_idle_time` while keeping the pool above `min_size`. Cancelled
+  and awaited in `pool.close()`. Set `enable_reaper=False` to
+  disable; that path also forbids `min_size > 0` since the reaper
+  is what enforces it.
 - **Lifetime cap.** `max_lifetime` forces recycle of long-lived connections,
   which dodges server-side `max_session_timeout` surprises and helps DNS
   changes propagate.
@@ -242,8 +250,20 @@ async with ch.create_pool(
   cheap `Ping` if it has been idle longer than `health_check_after`. Failed
   pings drop the connection and we transparently open a fresh one — but
   only on `acquire`, never mid-query.
-- **Fairness.** A FIFO waiter queue. Asyncio's default `Queue` gives this
-  for free.
+- **Fairness.** A FIFO waiter queue, implemented as a `deque` plus
+  `asyncio.Condition`. The Condition gives the reaper a way to scan
+  free entries by `last_returned_at` without consuming them, which
+  `asyncio.Queue` couldn't.
+- **Multi-host failover.** DSNs may list comma-separated host
+  candidates; `Connection.open` walks them in order, and `Pool`
+  rotates the start position per acquire (`_HostRotation`) with a
+  per-host failure cooldown (`host_failover_cooldown`, default 5 s).
+  Read-replica vs primary routing and health-aware load balancing
+  (least-conns, RTT) are still roadmap.
+- **Cross-connection cancel.** `Pool.kill_query(query_id)` opens a
+  fresh side-channel connection through the rotation and issues
+  `KILL QUERY WHERE query_id = …`. Returns the server-confirmed
+  killed-row count; defaults to `SYNC`.
 - **Connection identity.** The pool returns `Client` instances; the user
   never sees a raw `Connection`. On release we reset transient session state
   (current database, query settings) so the next borrower gets a clean slate.
@@ -255,11 +275,6 @@ async with ch.create_pool(
   that is invisible and safe.
 - **No multiplexing.** One connection, one query at a time. If you need 32
   parallel queries, use a pool of 32.
-- **Multi-host DSN with failover.** A DSN can list comma-separated
-  candidates; `Connection.open` walks them in order, and `Pool` rotates
-  the start position across acquires with a per-host failure cooldown.
-  Read-replica vs primary routing and health-aware load balancing
-  (least-conns, RTT) are still roadmap.
 
 ---
 
@@ -300,21 +315,30 @@ A `Block` is a columnar batch: `{column_name: (type, values)}` plus a row
 count. Each `ColumnCodec` knows how to read and write its values to a binary
 buffer given a row count.
 
-### Types in v0
+### Types shipped (through v0.1)
 - **Numeric:** `Int8/16/32/64/128/256`, `UInt8/16/32/64/128/256`,
   `Float32/64`, `Bool`.
 - **Decimal:** `Decimal32/64/128/256` with scale.
 - **String:** `String`, `FixedString(N)`.
 - **Time:** `Date`, `Date32`, `DateTime` (with optional timezone),
-  `DateTime64(precision, tz)`.
+  `DateTime64(precision[, tz])`. The connection's session timezone is
+  plumbed in as a fallback for bare `DateTime` / `DateTime64`, so naive
+  reads land in the server's session zone instead of silently UTC.
+  `DateTime64(p > 6)` returns `HighPrecisionTimestamp(ticks, scale)`
+  by default so nanosecond ticks survive Python's microsecond
+  ceiling; pass `high_precision=False` to opt back into the lossy
+  `datetime` shape.
 - **Net/UUID:** `UUID`, `IPv4`, `IPv6`.
-- **Composite:** `Array(T)`, `Tuple(T...)`, `Map(K, V)`, `Nullable(T)`,
-  `LowCardinality(T)`, `Enum8/16`.
+- **Composite:** `Array(T)`, `Tuple(T...)` (named **and** unnamed),
+  `Map(K, V)`, `Nullable(T)`, `LowCardinality(T)` and
+  `LowCardinality(Nullable(T))`, `Enum8/16`.
 
-### Deferred
-- `AggregateFunction(...)` state columns, `Nested`, `Geo`, `JSON` (the new
-  variant), `Variant`, `Dynamic`. These need careful round-tripping and
-  deserve their own pass after v0 ships.
+### Deferred (v0.2 type-system completeness)
+- `AggregateFunction(...)` state columns, `Nested(name T, …)`, the four
+  geo aliases (`Point` / `Ring` / `Polygon` / `MultiPolygon`),
+  `Variant(T1, …)` and `Dynamic(max_types=N)`, the new ClickHouse 24.x
+  `JSON` type. Each needs careful round-tripping; the v0.2 plans break
+  them out into individual landings.
 
 ### Python representation
 - Sane defaults: `int`, `float`, `Decimal`, `str`, `bytes`, `datetime`,
@@ -435,29 +459,69 @@ tests/
 
 ---
 
-## 13. Roadmap after v0
+## 13. Roadmap
 
-In rough priority order, gated on v0 being stable:
+### Landed in v0.1
 
-1. `AggregateFunction(...)` state columns and the new `JSON` type.
-2. Optional `pyarrow` / `polars` zero-copy adapters as separate extras.
-3. A C/Cython hot path for the int/float/string codecs if profiling shows
-   the pure-Python encoders are the bottleneck on large inserts.
-5. Server-side query cancellation by `query_id` (cancelling from a different
-   connection than the one running the query).
-6. Optional opentelemetry span emission around `execute` / `acquire`.
+1. **Multi-host DSN with failover.** Comma-separated candidate list;
+   `Connection.open` walks them in order; `Pool` rotates the start
+   position with a per-host failure cooldown.
+2. **Pool idle reaper + `min_size` warm.** Background task closes
+   idle connections past `max_idle_time` while keeping the pool above
+   `min_size`; opt out via `enable_reaper=False`.
+3. **Cross-connection query cancel.** `Pool.kill_query(query_id)` and
+   `Client.kill_query(query_id)` open a fresh side-channel connection
+   to issue `KILL QUERY WHERE query_id = …`.
+4. **`LowCardinality(Nullable(T))` and `Tuple(name T, …)`.** The two
+   real-world type shapes v0 rejected; both round-trip end-to-end.
+
+### v0.2 (in progress)
+
+1. **Type-system completeness.** `AggregateFunction(...)`, `Nested`,
+   geo aliases, `Variant` / `Dynamic`, and the new `JSON` type.
+2. **`DateTime64(7..9)` + session timezone.** Landed (plan 01):
+   nanosecond precision via `HighPrecisionTimestamp`; bare
+   `DateTime` honours the session zone the server reports.
+3. **INSERT block-header validation + server-confirmed
+   `written_rows`.** Match what the server emits up front so a
+   schema typo fails fast with a named-column diagnostic.
+4. **Test coverage floor.** `pytest-cov` + `branch=true`; CI gates on
+   ≥ 90 % line / ≥ 80 % branch.
+
+### v0.3+
+
+1. Optional `pyarrow` / `polars` zero-copy adapters as separate
+   extras packages (`clickhouse-async-arrow` / `-polars`). Builds on
+   a column-major retrieval surface (`Client.fetch_columns` /
+   `iter_column_blocks`) that avoids the per-row tuple transpose.
+2. Compression default on once a benchmark suite proves the
+   trade-off on multi-block payloads.
+3. A C/Cython hot path for the int/float/string codecs if profiling
+   shows pure-Python encoders are the bottleneck on large inserts.
+4. Read-only / write-only pool variants — multi-host opens this up
+   (primary-only writes, replica-fanout reads).
+
+### v1
+
+1. Optional OpenTelemetry instrumentation around `execute` /
+   `acquire` / packet send/receive, gated behind an extra so the
+   bare install stays import-clean. Pinned to v1 so span shapes
+   don't churn while the API is still settling.
 
 ---
 
 ## 14. Open questions
 
-- **Parameter binding fallback.** The server's parameter feature requires a
-  recent revision; do we silently fall back to client-side substitution for
-  older servers, or refuse? Leaning toward refuse + clear error — silent
-  fallback to string substitution would undermine the safety claim above.
-- **Block-as-DataFrame.** Should `Block` expose a `.to_arrow()` / `.to_polars()`
-  in core, or live in an extras package? Core stays light → extras package.
-- **Default compression.** LZ4 is essentially free CPU-wise and saves a lot
-  of bytes on large result sets. Tempting to enable by default, but it hides
-  protocol-level bugs during early development. Default off for v0; revisit
-  after we have a benchmark suite.
+- **Parameter binding fallback.** *Resolved (v0):* on too-old servers
+  we refuse with `UnsupportedFeatureError` rather than silently
+  emitting client-side substitution. Silent fallback would undermine
+  the safety claim of server-bound parameters.
+- **Block-as-DataFrame.** *Resolved (v0.3+):* `.to_arrow()` /
+  `.to_polars()` live in extras packages
+  (`clickhouse-async-arrow` / `-polars`) wrapping a forthcoming
+  column-major retrieval surface (`Client.fetch_columns` /
+  `iter_column_blocks`), not core. Core stays lean.
+- **Default compression.** *Still open.* LZ4 is essentially free
+  CPU-wise and saves a lot of bytes on large result sets. Default
+  stays off until a benchmark suite proves the trade-off on
+  multi-block payloads; revisit in v0.3.

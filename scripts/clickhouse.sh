@@ -97,29 +97,39 @@ up() {
         -e CLICKHOUSE_PASSWORD=clickhouse \
         -e CLICKHOUSE_DB=clickhouse \
         -e CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1 \
-        -v "${ROOT}/scripts/clickhouse-config/listen-all.xml:/etc/clickhouse-server/config.d/listen-all.xml:ro" \
         -p "${NATIVE_PORT}:9000" \
         -p "${HTTP_PORT}:8123" \
         "clickhouse/clickhouse-server:${version}" >/dev/null
 
-    # Wait for the *real* server to log "Ready for connections". The
-    # Docker entrypoint runs a short-lived init phase first (creates
-    # users / databases via a temporary server bound to 127.0.0.1:9000)
-    # and then exits before the real server starts. A naive
-    # ``clickhouse-client SELECT 1`` probe can succeed against the init
-    # server and return ready before the real one has even bound its
-    # ports — tests then race the gap and see ConnectionResetError.
-    # The "Ready for connections" log line only appears once per real
-    # server lifecycle, after every listener is up.
+    # Wait for the *real* server to log "Ready for connections".
     #
-    # ClickHouse logs to a file (clickhouse-server.log), not stdout,
-    # so ``docker logs`` only shows entrypoint output. Grep the file
-    # directly via ``docker exec``.
+    # The Docker entrypoint runs a short-lived init phase before exec'ing
+    # the real server: it spins up a temporary clickhouse-server in the
+    # background to run user/database setup via clickhouse-client, then
+    # kills it. Both the temp and real servers log to the same file
+    # (``/var/log/clickhouse-server/clickhouse-server.log``) and each
+    # emits its own ``"Ready for connections"``. A naive
+    # ``grep -q "Ready for connections"`` would match the temp server's
+    # line and return ready ~3 s before the real server is up — tests
+    # then race the gap and see ConnectionResetError.
+    #
+    # When ``CLICKHOUSE_USER`` is set to something other than ``default``
+    # (which is our case — the canonical project DSN uses
+    # ``clickhouse:clickhouse``), the entrypoint always runs the temp
+    # server, so we wait for the *second* occurrence.
+    local needed=2
+    if [[ "${CLICKHOUSE_NEED_INIT:-1}" -eq 0 ]]; then
+        needed=1
+    fi
     printf 'Waiting for server'
     local server_ready=0
     for _ in $(seq 1 60); do
-        if docker exec "$CONTAINER_NAME" sh -c \
-                'grep -q "Ready for connections" /var/log/clickhouse-server/clickhouse-server.log 2>/dev/null'; then
+        local count
+        count=$(docker exec "$CONTAINER_NAME" sh -c \
+            'grep -c "Ready for connections" /var/log/clickhouse-server/clickhouse-server.log 2>/dev/null || echo 0')
+        # Strip CR / whitespace docker exec sometimes adds.
+        count="${count//[$'\t\r\n ']/}"
+        if [[ "$count" =~ ^[0-9]+$ && "$count" -ge "$needed" ]]; then
             server_ready=1
             break
         fi

@@ -25,21 +25,16 @@ from __future__ import annotations
 
 import os
 import subprocess
+import time
 from pathlib import Path
 
 from testcontainers.core.container import DockerContainer
-from testcontainers.core.waiting_utils import wait_for_logs
 
 # `parents[2]` walks: clickhouse.py → containers/ → tests/ → repo root.
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _VERSION_FILE = _REPO_ROOT / ".clickhouse-version"
 DEFAULT_VERSION = _VERSION_FILE.read_text().strip()
 CLICKHOUSE_IMAGE = f"clickhouse/clickhouse-server:{DEFAULT_VERSION}"
-# Config snippet mounted into /etc/clickhouse-server/config.d/ to make
-# the server bind to 0.0.0.0 instead of the default loopback. Without
-# this override the listener stays on 127.0.0.1 inside the container
-# and Docker's port mapping forwards traffic that nobody answers.
-_LISTEN_OVERRIDE = _REPO_ROOT / "scripts" / "clickhouse-config" / "listen-all.xml"
 
 NATIVE_PORT = 9000
 HTTP_PORT = 8123
@@ -61,20 +56,49 @@ class ClickHouseContainer(DockerContainer):
         # CH refuses to start with the default soft nofile on macOS / some
         # Linux distros.
         self.with_kwargs(ulimits=[{"name": "nofile", "soft": 262144, "hard": 262144}])
-        # Drop the loopback-only default listen_host so the server
-        # accepts traffic forwarded by Docker's port mapping.
-        self.with_volume_mapping(
-            str(_LISTEN_OVERRIDE),
-            "/etc/clickhouse-server/config.d/listen-all.xml",
-            "ro",
-        )
 
     def start(self) -> ClickHouseContainer:
         super().start()
-        # CH writes "Ready for connections" once the TCP listeners are up;
-        # 60 s is generous for the cold-start image pull on a slow disk.
-        wait_for_logs(self, "Ready for connections", timeout=60)
+        self._wait_for_real_server_ready()
         return self
+
+    def _wait_for_real_server_ready(self, timeout: float = 60.0) -> None:
+        """Block until the *real* clickhouse-server is accepting
+        connections.
+
+        The Docker entrypoint runs a brief temp clickhouse-server to
+        do user/database setup, kills it, then exec's the real server.
+        Both emit ``"Ready for connections"`` to the same log file, so
+        a naive single-match wait would return on the temp server's
+        line ~3 s before the real one is up. Wait until the line has
+        been emitted at least *twice*.
+        """
+        deadline = time.monotonic() + timeout
+        container_id = self.get_wrapped_container().id
+        cmd = [
+            "docker",
+            "exec",
+            container_id,
+            "sh",
+            "-c",
+            'grep -c "Ready for connections" '
+            "/var/log/clickhouse-server/clickhouse-server.log "
+            "2>/dev/null || echo 0",
+        ]
+        while time.monotonic() < deadline:
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, check=False
+            )
+            count_str = result.stdout.strip().splitlines()[-1] if result.stdout else "0"
+            try:
+                if int(count_str) >= 2:
+                    return
+            except ValueError:
+                pass
+            time.sleep(0.5)
+        raise TimeoutError(
+            f"ClickHouse real server did not become ready within {timeout}s"
+        )
 
     @property
     def dsn(self) -> str:

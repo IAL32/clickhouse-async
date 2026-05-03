@@ -7,19 +7,60 @@ Thank you for considering contributing to clickhouse-async! This document provid
 1. Fork the repository
 2. Clone your fork: `git clone https://github.com/your-username/clickhouse-async.git`
 3. Change into the project directory: `cd clickhouse-async`
-4. Install dependencies with uv: `uv install`
-5. Activate the virtual environment: `uv shell`
+4. Install dependencies with uv: `uv sync` (add `--extra compression` for the LZ4 / ZSTD / cityhash extras)
+5. Run commands via `uv run <cmd>` — `uv` is project-runner-based, no separate shell activation needed.
 
 ## Development Workflow
 
 1. Create a new branch for your feature or bugfix: `git checkout -b feature-name`
 2. Make your changes
-3. Run the tests to ensure everything is working: `pytest`
-4. Format your code: `ruff format .` and lint with `ruff check .`
-5. Check type annotations with mypy: `mypy clickhouse_async tests`
+3. Run the tests to ensure everything is working: `uv run pytest`
+4. Format your code: `uv run ruff format` and lint with `uv run ruff check`
+5. Check type annotations with `uv run ty check` — **note**: the project uses [`ty`](https://github.com/astral-sh/ty), not mypy; do not add a parallel mypy config.
 6. Commit your changes using the Conventional Commits format (see below)
 7. Push your branch: `git push origin feature-name`
 8. Open a pull request
+
+### Iterating on CI changes locally with `act`
+
+GitHub CI takes ~25–60 s per round-trip. To iterate on workflow changes
+without burning CI minutes, the project ships a wrapper around
+[`act`](https://nektosact.com/) that runs the GitHub Actions workflows
+inside a local Docker container with the same surface as the real
+runner.
+
+```bash
+brew install act                      # one-time, macOS
+
+./scripts/act.sh full                 # run unit + integration job
+                                      # (Python 3.12 by default)
+./scripts/act.sh full 3.13            # pin a different Python
+./scripts/act.sh full all             # full matrix — see caveat below
+./scripts/act.sh unit                 # bare-install unit job only
+./scripts/act.sh lint                 # lint + types job only
+./scripts/act.sh prek                 # prek workflow
+```
+
+Configuration lives in `.actrc` at the repo root (gitignored). Two
+flags are load-bearing:
+
+- `--container-architecture linux/amd64`: the upstream act runner
+  images aren't published for arm64.
+- `--container-options=--network=host`: real GitHub CI runs the
+  workflow on a bare Linux host, so a published Docker port lands on
+  the same loopback the test process reaches via `127.0.0.1`. With
+  `act`'s default bridge networking the runner sees a *different*
+  loopback and tests get ECONNREFUSED. `--network=host` puts the
+  runner on the host's network namespace and matches real CI.
+
+**Matrix caveat**: `act push -j full` (without a `--matrix python:...`
+filter) runs every Python version in parallel, all sharing the host's
+Docker daemon. The parallel jobs race over the
+`clickhouse-async-dev` container name and the first to finish kills
+the container the others are still using. Real CI doesn't have this
+problem because each matrix job has its own runner. For local
+iteration, prefer `./scripts/act.sh full <python>` for a single
+matrix entry.
 
 ## Commit Message Format
 
@@ -74,7 +115,7 @@ uv run cz commit
 
 ## Code Style
 
-This project uses Ruff for code formatting and linting, which enforces PEP 8 style guidelines and other best practices. We also use mypy for static type checking with strict settings. The configuration for both tools is defined in `pyproject.toml`. Please ensure your code passes both Ruff and mypy checks before submitting a pull request.
+This project uses Ruff for code formatting and linting, which enforces PEP 8 style guidelines and other best practices. We use [`ty`](https://github.com/astral-sh/ty) for static type checking — **not** mypy; do not add mypy or a parallel `mypy.ini` / `[tool.mypy]` config. The configuration for both tools lives in `pyproject.toml`. Please ensure your code passes both `ruff check` / `ruff format` and `ty check` before submitting a pull request.
 
 ## Running Tests
 

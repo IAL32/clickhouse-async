@@ -176,3 +176,7 @@ cython_debug/
 # Local planning notes
 .plans/
 .claude/*.lock
+
+# `act` (local GitHub Actions runner) — local-only config + cache
+.actrc
+.act/

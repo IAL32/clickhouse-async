@@ -376,6 +376,45 @@ async def test_insert_returns_server_confirmed_written_rows_via_real_server(
     assert out == rows_in
 
 
+async def test_nested_column_round_trips_via_server(pool: ch.Pool) -> None:
+    # BEGIN: a Memory-engine table with a ``Nested`` column created
+    #        under ``flatten_nested = 0`` so the column stays a
+    #        single ``Nested(uid UInt32, tag String)`` instead of
+    #        being flattened to dotted sub-Arrays. With the default
+    #        ``flatten_nested = 1`` the type spec is decomposed at
+    #        CREATE TABLE time and the server never emits the
+    #        ``Nested(...)`` form back, so we couldn't exercise the
+    #        sugar.
+    table = "test_nested_column"
+    async with pool.acquire() as client:
+        await client.execute(f"DROP TABLE IF EXISTS {table}")
+        await client.execute(
+            f"CREATE TABLE {table} "
+            f"(id UInt64, events Nested(uid UInt32, tag String)) "
+            f"ENGINE = Memory",
+            settings={"flatten_nested": "0"},
+        )
+
+    rows_in: list[tuple[object, ...]] = [
+        (1, [(10, "click"), (11, "view")]),
+        (2, []),
+        (3, [(30, "purchase")]),
+    ]
+
+    # WHEN: inserting via the pool, then reading back
+    async with pool.acquire() as client:
+        n = await client.insert(
+            f"INSERT INTO {table} VALUES",
+            rows=rows_in,
+            column_names=["id", "events"],
+        )
+    assert n == 3
+    rows_out = await pool.fetch_all(f"SELECT id, events FROM {table} ORDER BY id")
+
+    # THEN: every row's nested array of tuples round-trips
+    assert rows_out == rows_in
+
+
 async def test_named_tuple_column_round_trips_via_server(
     pool: ch.Pool,
     fresh_table: Callable[[str, str], Awaitable[None]],

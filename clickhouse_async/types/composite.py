@@ -175,6 +175,52 @@ class Tuple:
             component.write(writer, [row[c] for row in values])
 
 
+class Nested:
+    """``Nested(name1 T1, name2 T2, …)`` — sugar for ``Array(Tuple(name1
+    T1, name2 T2, …))``.
+
+    Wire format is identical to ``Array(Tuple(...))`` so this class is
+    a thin wrapper that delegates ``read`` / ``write`` /
+    ``null_value`` to an inner ``Array(Tuple(*components, names=...))``
+    and overrides ``name`` to render the ``Nested(...)`` spelling. The
+    parser produces this class for the ``Nested(...)`` form and a plain
+    ``Array(Tuple(...))`` for the desugared form — both decode the same
+    bytes; only the type-spec rendering differs.
+
+    Names are mandatory in the ``Nested`` spelling — ClickHouse
+    rejects ``Nested(T1, T2)`` server-side. The parser surfaces the
+    same constraint via ``_make_named_tuple``'s "all named" rule.
+    """
+
+    null_value: list[tuple[Any, ...]]
+
+    def __init__(self, *components: ColumnCodec, names: tuple[str, ...]) -> None:
+        if not components:
+            raise ValueError("Nested requires at least one component")
+        if len(names) != len(components):
+            raise ValueError(
+                f"Nested names length ({len(names)}) must match components "
+                f"length ({len(components)})"
+            )
+        self.components = components
+        self.names = names
+        self._inner: Array = Array(Tuple(*components, names=names))
+        self.name = "Nested({})".format(
+            ", ".join(f"{n} {c.name}" for n, c in zip(names, components, strict=True))
+        )
+        self.null_value = []
+
+    async def read(
+        self, reader: AsyncBinaryReader, n_rows: int
+    ) -> list[list[tuple[Any, ...]]]:
+        return await self._inner.read(reader, n_rows)
+
+    def write(
+        self, writer: BinaryWriter, values: Sequence[Sequence[Sequence[Any]]]
+    ) -> None:
+        self._inner.write(writer, values)
+
+
 class Map:
     """``Map(K, V)`` — same wire format as ``Array(Tuple(K, V))``.
 

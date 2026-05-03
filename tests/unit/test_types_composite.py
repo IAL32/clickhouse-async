@@ -9,7 +9,7 @@ import pytest
 
 from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 from clickhouse_async.types import ColumnCodec, parse_type
-from clickhouse_async.types.composite import Array, Map, Tuple
+from clickhouse_async.types.composite import Array, Map, Nested, Tuple
 from clickhouse_async.types.primitive import Int32
 from clickhouse_async.types.string import String
 
@@ -229,6 +229,81 @@ def test_named_tuple_constructor_validates_names_length() -> None:
     # BEGIN / WHEN / THEN: a names tuple of the wrong length is rejected
     with pytest.raises(ValueError, match="names length"):
         Tuple(Int32(), String(), names=("only_one",))
+
+
+# ---- Nested(name T, ...) ------------------------------------------------
+
+
+def test_nested_parses_and_renders_nested_form() -> None:
+    # BEGIN / WHEN: parsing the Nested(...) sugar
+    codec = parse_type("Nested(uid UInt32, label String)")
+
+    # THEN: a Nested codec comes back with the original spelling on
+    #       ``codec.name`` (not the desugared ``Array(Tuple(...))``)
+    assert isinstance(codec, Nested)
+    assert codec.name == "Nested(uid UInt32, label String)"
+    assert codec.names == ("uid", "label")
+
+
+def test_nested_rejects_unnamed_components() -> None:
+    # BEGIN / WHEN / THEN: ClickHouse requires names in Nested; the
+    #     parser surfaces that constraint instead of emitting an
+    #     unnamed Tuple
+    with pytest.raises(ValueError, match="all be named"):
+        parse_type("Nested(UInt32, String)")
+
+
+def test_nested_rejects_mixed_named_unnamed_components() -> None:
+    # BEGIN / WHEN / THEN: same all-or-nothing rule as Tuple, restated
+    #     for Nested with the Nested-specific message
+    with pytest.raises(ValueError, match="all be named"):
+        parse_type("Nested(uid UInt32, String)")
+
+
+def test_nested_rejects_empty_components() -> None:
+    # BEGIN / WHEN / THEN: zero components is meaningless for both
+    #     spellings
+    with pytest.raises(ValueError, match="at least one component"):
+        parse_type("Nested()")
+
+
+async def test_nested_round_trips_values_through_codec() -> None:
+    # BEGIN: a Nested codec and rows holding lists of (uid, label)
+    #        tuples — the wire format is identical to
+    #        ``Array(Tuple(...))`` so this exercises the delegation
+    codec = parse_type("Nested(uid UInt32, label String)")
+    values: list[list[tuple[int, str]]] = [
+        [(1, "alpha"), (2, "beta")],
+        [],
+        [(3, "gamma")],
+    ]
+
+    # WHEN: round-tripping through the codec
+    writer = BinaryWriter()
+    codec.write(writer, values)
+    written = writer.getvalue()
+
+    stream = asyncio.StreamReader()
+    stream.feed_data(written)
+    stream.feed_eof()
+    decoded = await codec.read(AsyncBinaryReader(stream), len(values))
+
+    # THEN: every row's array of tuples comes back identically
+    assert decoded == values
+
+
+def test_desugared_array_tuple_named_still_decodes() -> None:
+    # BEGIN: the desugared form server-emits in some edge paths
+    codec = parse_type("Array(Tuple(uid UInt32, label String))")
+
+    # THEN: it parses to ``Array(Tuple(..., names=...))`` with the
+    #       desugared rendering — the parser doesn't re-spell either
+    #       way; whichever form arrived is what ``codec.name`` gives back
+    assert isinstance(codec, Array)
+    inner = codec.inner
+    assert isinstance(inner, Tuple)
+    assert inner.named is True
+    assert codec.name == "Array(Tuple(uid UInt32, label String))"
 
 
 # ---- Map(K, V) ----------------------------------------------------------

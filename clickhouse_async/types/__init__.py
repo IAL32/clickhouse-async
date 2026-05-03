@@ -27,6 +27,7 @@ from clickhouse_async.types.composite import (
     Array,
     LowCardinality,
     Map,
+    Nested,
     Nullable,
     Tuple,
 )
@@ -179,6 +180,21 @@ def _make_named_tuple(names: list[str | None], components: list[ColumnCodec]) ->
     return Tuple(*components, names=name_tuple)
 
 
+def _make_nested(names: list[str | None], components: list[ColumnCodec]) -> Nested:
+    """Build a ``Nested`` from a parallel ``(name, codec)`` list. Names
+    are mandatory — upstream rejects unnamed ``Nested`` server-side."""
+    if not components:
+        raise ValueError("Nested requires at least one component")
+    if any(n is None for n in names):
+        bad = [f"{n!r}" if n is not None else "<unnamed>" for n in names]
+        raise ValueError(
+            "Nested components must all be named (upstream rejects "
+            f"unnamed forms server-side); got: {', '.join(bad)}"
+        )
+    name_tuple: tuple[str, ...] = tuple(n for n in names if n is not None)
+    return Nested(*components, names=name_tuple)
+
+
 def _make_map(params: list[ColumnCodec | int | str]) -> Map:
     if (
         len(params) != _MAP_PARAM_COUNT
@@ -261,6 +277,15 @@ class _Parser:
                 names, components = self._parse_tuple_params()
                 self._consume(")")
                 return _make_named_tuple(names, components)
+            # ``Nested(name1 T1, name2 T2, …)`` is sugar for
+            # ``Array(Tuple(...))`` with the names rendered as part of
+            # the type-spec form. The grammar matches Tuple's named
+            # branch; ``_make_nested`` enforces the "all named" rule
+            # since upstream rejects unnamed Nested.
+            if name == "Nested":
+                names, components = self._parse_tuple_params()
+                self._consume(")")
+                return _make_nested(names, components)
             params = self._parse_params()
             self._consume(")")
             # ``DateTime`` / ``DateTime64`` need ``session_timezone``

@@ -64,19 +64,6 @@ codec/module that carries the limitation so a grep finds the on-ramp.
   belongs at the Client layer (07) where the header→block flow is
   owned; recorded here so the gap is visible until 07 lands.
   *Code:* `connection.py::Connection.send_data`.
-- **No background idle reaper on `Pool`.** v0 implements per-acquire
-  health checks (`health_check_after`) and per-release lifetime caps
-  (`max_lifetime`), so stale connections are recycled when they're
-  next touched. But there's no asynchronous background task that
-  evicts long-idle connections proactively while keeping the pool
-  above `min_size`. For workloads with bursty acquire patterns and
-  long quiet periods, idle connections sit in the queue until the
-  next acquire-or-release evicts them. The `min_size`-warm aspect
-  also relies on something opening connections proactively, which
-  v0's lazy fill doesn't do; the parameter is accepted at
-  `create_pool` for forward compatibility but isn't enforced.
-  *Code:* `pool.py::Pool` — see ``DESIGN.md §5`` for the original
-  contract.
 - **No automatic cancel-on-break for raw `Connection.iter_packets`.**
   Breaking out of `async for s in conn.iter_packets()` does not
   eagerly send a `Cancel` — Python defers async-generator finalisation

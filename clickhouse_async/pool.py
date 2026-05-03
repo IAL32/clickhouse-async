@@ -26,8 +26,10 @@ from __future__ import annotations
 
 import asyncio
 import dataclasses
+import logging
 import ssl as _ssl_module
 import time
+from collections import deque
 from collections.abc import Mapping
 from dataclasses import dataclass
 from types import TracebackType
@@ -41,6 +43,8 @@ from clickhouse_async.errors import (
     PoolClosedError,
     PoolTimeoutError,
 )
+
+_logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -64,6 +68,8 @@ class Pool:
         max_size: int = 10,
         acquire_timeout: float = 30.0,
         max_lifetime: float = 600.0,
+        max_idle_time: float = 300.0,
+        idle_check_interval: float = 30.0,
         health_check_after: float = 30.0,
         host_failover_cooldown: float = 5.0,
         ssl_context: _ssl_module.SSLContext | None = None,
@@ -78,6 +84,12 @@ class Pool:
             )
         if max_lifetime <= 0:
             raise ValueError(f"max_lifetime must be positive, got {max_lifetime}")
+        if max_idle_time <= 0:
+            raise ValueError(f"max_idle_time must be positive, got {max_idle_time}")
+        if idle_check_interval <= 0:
+            raise ValueError(
+                f"idle_check_interval must be positive, got {idle_check_interval}"
+            )
         if health_check_after < 0:
             raise ValueError(
                 f"health_check_after must be ≥ 0, got {health_check_after}"
@@ -91,18 +103,27 @@ class Pool:
         self._max_size = max_size
         self._acquire_timeout = acquire_timeout
         self._max_lifetime = max_lifetime
+        self._max_idle_time = max_idle_time
+        self._idle_check_interval = idle_check_interval
         self._health_check_after = health_check_after
         self._ssl_context = ssl_context
         self._transport_factory = transport_factory
         self._rotation = _HostRotation(self._dsn.hosts, cooldown=host_failover_cooldown)
 
-        # Free queue's FIFO semantics give us per-waiter fairness for free.
-        self._free: asyncio.Queue[_PoolEntry] = asyncio.Queue(maxsize=max_size)
-        # Open + opening connections. Bumped under _lock before opening,
-        # decremented if the open fails or on release-after-close.
+        # FIFO deque + Condition: the reaper needs to scan entries by
+        # last_returned_at without consuming them, which Queue can't do.
+        # Condition gives us the wakeup signalling Queue did for free —
+        # release notifies, acquire wait_for()s, the per-waiter ordering
+        # falls out of asyncio's FIFO future scheduling.
+        self._free: deque[_PoolEntry] = deque()
+        self._cond: asyncio.Condition = asyncio.Condition()
+        # Open + opening connections. Bumped under the cond's lock before
+        # opening, decremented if the open fails or on release-after-close.
         self._size: int = 0
-        self._lock = asyncio.Lock()
         self._closed: bool = False
+        # Lazily started on first acquire so an idle Pool doesn't burn
+        # a task. Cancelled and awaited in close().
+        self._reaper_task: asyncio.Task[None] | None = None
 
     # ---- introspection --------------------------------------------------
 
@@ -114,7 +135,7 @@ class Pool:
     @property
     def free_size(self) -> int:
         """Number of idle connections currently in the free queue."""
-        return self._free.qsize()
+        return len(self._free)
 
     @property
     def is_closed(self) -> bool:
@@ -148,65 +169,59 @@ class Pool:
         if self._closed:
             raise PoolClosedError("pool is closed")
 
+        self._start_reaper()
         deadline = time.monotonic() + self._acquire_timeout
 
         while True:
             if self._closed:
                 raise PoolClosedError("pool is closed")
 
-            # Hot path: an idle entry is available right now.
+            # Decide what to do under the cond's lock: claim a free
+            # entry, reserve a slot for opening, or wait for a release.
+            action: str
             entry: _PoolEntry | None = None
-            try:
-                entry = self._free.get_nowait()
-            except asyncio.QueueEmpty:
-                entry = None
+            async with self._cond:
+                if self._free:
+                    entry = self._free.popleft()
+                    action = "verify"
+                elif self._size < self._max_size:
+                    self._size += 1
+                    action = "open"
+                else:
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise PoolTimeoutError(
+                            f"acquire timed out after {self._acquire_timeout}s "
+                            f"(max_size={self._max_size}, in_use="
+                            f"{self._size - self.free_size})"
+                        )
+                    try:
+                        await asyncio.wait_for(self._cond.wait(), timeout=remaining)
+                    except TimeoutError:
+                        raise PoolTimeoutError(
+                            f"acquire timed out after {self._acquire_timeout}s "
+                            f"(max_size={self._max_size}, in_use="
+                            f"{self._size - self.free_size})"
+                        ) from None
+                    continue
 
-            if entry is not None:
+            # Long-running operations happen *outside* the lock so other
+            # tasks can interleave on the pool while this one verifies
+            # / opens.
+            if action == "verify":
+                assert entry is not None
                 healthy = await self._verify_or_discard(entry)
                 if healthy is not None:
                     return healthy
-                # Health check failed; loop to acquire afresh.
                 continue
-
-            # Reserve a slot if we're below max_size; open lazily off
-            # the lock so concurrent open()s don't serialise.
-            opened: bool
-            async with self._lock:
-                if self._size < self._max_size:
-                    self._size += 1
-                    opened = True
-                else:
-                    opened = False
-
-            if opened:
-                try:
-                    return await self._open_client()
-                except BaseException:
-                    async with self._lock:
-                        self._size -= 1
-                    raise
-
-            # All slots in use — wait for a release.
-            remaining = deadline - time.monotonic()
-            if remaining <= 0:
-                raise PoolTimeoutError(
-                    f"acquire timed out after {self._acquire_timeout}s "
-                    f"(max_size={self._max_size}, in_use="
-                    f"{self._size - self.free_size})"
-                )
+            # action == "open"
             try:
-                async with asyncio.timeout(remaining):
-                    waited = await self._free.get()
-            except TimeoutError:
-                raise PoolTimeoutError(
-                    f"acquire timed out after {self._acquire_timeout}s "
-                    f"(max_size={self._max_size}, in_use="
-                    f"{self._size - self.free_size})"
-                ) from None
-            healthy = await self._verify_or_discard(waited)
-            if healthy is not None:
-                return healthy
-            # The just-released entry failed health check; loop.
+                return await self._open_client()
+            except BaseException:
+                async with self._cond:
+                    self._size -= 1
+                    self._cond.notify_all()
+                raise
 
     async def _verify_or_discard(self, entry: _PoolEntry) -> Client | None:
         """Return the underlying client if the entry passes the health
@@ -240,8 +255,10 @@ class Pool:
 
     async def _discard(self, client: Client) -> None:
         await client.close()
-        async with self._lock:
+        async with self._cond:
             self._size -= 1
+            # A waiter blocked on capacity can now reserve our slot.
+            self._cond.notify_all()
 
     async def _release(self, client: Client) -> None:
         now = time.monotonic()
@@ -263,16 +280,17 @@ class Pool:
             await self._discard(client)
             return
 
-        # Healthy — back into the free queue. put_nowait can't actually
-        # block: the queue's maxsize matches max_size, and our _size
-        # invariant means the queue can never overflow.
-        self._free.put_nowait(
-            _PoolEntry(
-                client=client,
-                opened_at=opened_at,
-                last_returned_at=now,
+        # Healthy — back into the free deque under the lock so a waiter
+        # sees the deque's update and the cond notification atomically.
+        async with self._cond:
+            self._free.append(
+                _PoolEntry(
+                    client=client,
+                    opened_at=opened_at,
+                    last_returned_at=now,
+                )
             )
-        )
+            self._cond.notify()
 
     def _opened_at_for(self, client: Client) -> float:
         """Read the per-client ``_pool_opened_at`` annotation that
@@ -309,17 +327,150 @@ class Pool:
         setattr(client, "_pool_opened_at", time.monotonic())  # noqa: B010
         return client
 
+    # ---- reaper ---------------------------------------------------------
+
+    def _start_reaper(self) -> None:
+        """Spawn the idle reaper task on first ``acquire()``. Idempotent.
+
+        Runs only when the pool has actually been used so an idle
+        ``create_pool`` doesn't burn an event-loop task. ``close()``
+        cancels and awaits the task before returning.
+        """
+        if self._reaper_task is not None or self._closed:
+            return
+        self._reaper_task = asyncio.create_task(
+            self._reaper_loop(), name="clickhouse-async pool reaper"
+        )
+
+    async def _reaper_loop(self) -> None:
+        """Periodic reaper: closes connections idle past ``max_idle_time``
+        while keeping the population at or above ``min_size``.
+
+        Errors during a pass are logged, never raised — the reaper is
+        best-effort and shouldn't take the pool down for a transient
+        server issue.
+        """
+        try:
+            while True:
+                try:
+                    await asyncio.sleep(self._idle_check_interval)
+                except asyncio.CancelledError:
+                    return
+                if self._closed:
+                    return
+                try:
+                    await self._reaper_pass()
+                except asyncio.CancelledError:
+                    return
+                except Exception:
+                    _logger.exception("pool reaper pass raised")
+        finally:
+            # Defensive: if we exit the loop for any reason, leave a
+            # breadcrumb so a developer staring at a dead pool has
+            # something to grep for.
+            _logger.debug("pool reaper task finished")
+
+    async def _reaper_pass(self) -> None:
+        """One sweep: drop stale free entries above ``min_size``, then
+        warm to ``min_size`` if the pool has fewer connections."""
+        if self._closed:
+            return
+        now = time.monotonic()
+
+        # Phase 1: drop stale entries while size > min_size. We rebuild
+        # the deque with survivors; closing happens off the lock.
+        to_close: list[Client] = []
+        async with self._cond:
+            survivors: deque[_PoolEntry] = deque()
+            for entry in self._free:
+                if (
+                    self._size > self._min_size
+                    and (now - entry.last_returned_at) > self._max_idle_time
+                ):
+                    to_close.append(entry.client)
+                    self._size -= 1
+                else:
+                    survivors.append(entry)
+            self._free = survivors
+            if to_close:
+                self._cond.notify_all()
+
+        for client in to_close:
+            try:
+                await client.close()
+            except Exception:
+                _logger.exception("pool reaper: close failed for stale entry")
+
+        # Phase 2: warm the pool back up to min_size. One open per
+        # iteration; bail on the first failure so a flapping server
+        # doesn't burn the reaper in a tight loop.
+        while True:
+            if self._closed:
+                return
+            async with self._cond:
+                if self._size >= self._min_size:
+                    return
+                self._size += 1
+            try:
+                client = await self._open_client()
+            except Exception:
+                _logger.warning(
+                    "pool reaper: warm open failed; will retry on next pass",
+                    exc_info=True,
+                )
+                async with self._cond:
+                    self._size -= 1
+                    self._cond.notify_all()
+                return
+            warm_now = time.monotonic()
+            async with self._cond:
+                if self._closed:
+                    # Pool closed while we were opening — drop the new
+                    # client cleanly.
+                    self._size -= 1
+                    self._cond.notify_all()
+                    await client.close()
+                    return
+                self._free.append(
+                    _PoolEntry(
+                        client=client,
+                        opened_at=warm_now,
+                        last_returned_at=warm_now,
+                    )
+                )
+                self._cond.notify()
+
     # ---- shutdown -------------------------------------------------------
 
     async def close(self) -> None:
-        """Close the pool. Marks closed (no new acquires); closes every
-        idle client. In-use clients are closed when released."""
+        """Close the pool. Marks closed (no new acquires); cancels the
+        reaper; closes every idle client. In-use clients are closed
+        when released."""
         self._closed = True
-        while not self._free.empty():
-            entry = self._free.get_nowait()
-            await entry.client.close()
-            async with self._lock:
+
+        # Wake any acquire() waiters so they observe the closed flag.
+        async with self._cond:
+            self._cond.notify_all()
+
+        if self._reaper_task is not None:
+            self._reaper_task.cancel()
+            try:
+                await asyncio.wait_for(self._reaper_task, timeout=2.0)
+            except (TimeoutError, asyncio.CancelledError):
+                pass
+            self._reaper_task = None
+
+        # Drain idle entries.
+        while True:
+            async with self._cond:
+                if not self._free:
+                    break
+                entry = self._free.popleft()
                 self._size -= 1
+            try:
+                await entry.client.close()
+            except Exception:
+                _logger.exception("pool close: client.close() raised")
 
     # ---- pass-through one-shots ----------------------------------------
 
@@ -403,6 +554,8 @@ def create_pool(
     max_size: int = 10,
     acquire_timeout: float = 30.0,
     max_lifetime: float = 600.0,
+    max_idle_time: float = 300.0,
+    idle_check_interval: float = 30.0,
     health_check_after: float = 30.0,
     host_failover_cooldown: float = 5.0,
     ssl_context: _ssl_module.SSLContext | None = None,
@@ -413,6 +566,11 @@ def create_pool(
     - ``max_lifetime``: connections older than this (seconds) are
       recycled on release. Defends against server-side session
       timeouts and DNS rotation.
+    - ``max_idle_time``: idle connections sitting in the free deque
+      longer than this are closed by the background reaper, provided
+      ``size > min_size``. Defaults to 5 minutes.
+    - ``idle_check_interval``: how often (seconds) the reaper sweeps
+      the free deque. Default 30 s.
     - ``health_check_after``: idle connections older than this are
       pinged on the way out of the pool; failed pings → discard +
       open fresh.
@@ -430,6 +588,8 @@ def create_pool(
         max_size=max_size,
         acquire_timeout=acquire_timeout,
         max_lifetime=max_lifetime,
+        max_idle_time=max_idle_time,
+        idle_check_interval=idle_check_interval,
         health_check_after=health_check_after,
         host_failover_cooldown=host_failover_cooldown,
         ssl_context=ssl_context,

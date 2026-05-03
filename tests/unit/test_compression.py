@@ -24,7 +24,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from clickhouse_async.connection import Connection, State
-from clickhouse_async.errors import MissingExtraError
+from clickhouse_async.errors import MissingExtraError, ProtocolError
 from clickhouse_async.protocol import compression as compression_module
 from clickhouse_async.protocol.block import (
     Block,
@@ -247,8 +247,6 @@ async def test_corrupted_frame_raises_protocol_error_with_hex_diagnostic() -> No
     # WHEN: reading the frame
     # THEN: CityHash mismatch surfaces as a ProtocolError naming both
     #       the expected and actual hashes in hex
-    from clickhouse_async.errors import ProtocolError
-
     with pytest.raises(ProtocolError, match="CityHash128 mismatch"):
         await CompressedBlockReader(rdr).read_payload()
 

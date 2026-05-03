@@ -7,13 +7,15 @@ wrapper over ``Connection``; these tests exercise the wiring.
 
 from __future__ import annotations
 
+import asyncio
+
 import pytest
 
 import clickhouse_async as ch
 from clickhouse_async import Client, connect
 from clickhouse_async.connection import State
 from clickhouse_async.errors import ProtocolError
-from clickhouse_async.protocol.io import BinaryWriter
+from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 from clickhouse_async.protocol.packets import ClientPacket, ServerPacket
 
 from ._mock_transport import ScriptedTransport
@@ -74,10 +76,6 @@ async def test_async_with_passes_dsn_credentials_to_handshake() -> None:
     # THEN: the captured Hello bytes carry the DSN's user / password /
     #       database — the Client's __aenter__ wired the DSN through
     rdr_data = transport.written()
-    import asyncio
-
-    from clickhouse_async.protocol.io import AsyncBinaryReader
-
     s = asyncio.StreamReader()
     s.feed_data(rdr_data)
     s.feed_eof()

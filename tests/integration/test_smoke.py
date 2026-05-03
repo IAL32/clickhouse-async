@@ -250,6 +250,42 @@ async def test_low_cardinality_nullable_string_round_trips_via_server(
     assert rows_out == rows_in
 
 
+async def test_named_tuple_column_round_trips_via_server(
+    pool: ch.Pool,
+    fresh_table: Callable[[str, str], Awaitable[None]],
+) -> None:
+    # BEGIN: a Memory-engine table with a named-tuple column. The
+    #        server emits the named-form type spec back in the block
+    #        header on SELECT, so this exercises both the parser and
+    #        the codec round-trip end-to-end.
+    table = "test_named_tuple_column"
+    await fresh_table(
+        table,
+        "(id UInt64, meta Tuple(uid UInt32, label String)) ENGINE = Memory",
+    )
+    rows_in: list[tuple[object, ...]] = [
+        (1, (10, "alpha")),
+        (2, (20, "beta")),
+        (3, (30, "gamma")),
+    ]
+
+    # WHEN: inserting via the pool, then reading back
+    async with pool.acquire() as client:
+        n = await client.insert(
+            f"INSERT INTO {table} VALUES",
+            rows=rows_in,
+            column_names=["id", "meta"],
+        )
+    assert n == 3
+    rows_out = await pool.fetch_all(f"SELECT id, meta FROM {table} ORDER BY id")
+
+    # THEN: every row round-trips — the named-tuple values come back
+    #       as plain Python tuples (the names live in the codec, not
+    #       in the row representation, until a future Client surfaces
+    #       NamedTuple rows).
+    assert rows_out == rows_in
+
+
 async def test_multi_host_dsn_falls_through_dead_first_host(dsn: str) -> None:
     # BEGIN: a multi-host DSN whose first candidate is unreachable
     #        (a port nothing's listening on) and second candidate is

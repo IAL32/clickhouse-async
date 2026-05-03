@@ -25,11 +25,6 @@ codec/module that carries the limitation so a grep finds the on-ramp.
   boundary. We accept and write at the codec's native scale; the
   truncation happens when constructing the `datetime`.
   *Code:* `datetime.py::DateTime64.read/write`.
-- **`Tuple` named-field syntax not parsed.** ClickHouse server can emit
-  `Tuple(name String, age Int32)`. We only handle the unnamed form
-  `Tuple(String, Int32)`. Tables with named tuples will fail to parse
-  the column type spec.
-  *Code:* `__init__.py::_make_tuple`.
 - **No `AggregateFunction`, `JSON`, `Variant`, `Dynamic`, `Nested`,
   geo types.** Listed as out-of-scope in `DESIGN.md §7` (deferred). A
   query returning any of these will fail at the type-spec parser
@@ -97,8 +92,6 @@ already on `DESIGN.md §13` are repeated here so this file is the single
 - **`JSON` type** (the new ClickHouse 24.x JSON, not the deprecated
   String-backed Object).
 - **`Variant`, `Dynamic`, `Nested`, geo types.**
-- **Tuple named fields.** `Tuple(name T, ...)` parsing — tracked in
-  §1 as a limitation; the implementation belongs here.
 - **Custom `column_factories` hook.** Per-type override for Python
   representation (e.g. polars/pyarrow/numpy adapters) — the protocol
   is described in `DESIGN.md §7`. Default factories ship in core; the

@@ -154,10 +154,35 @@ def _make_datetime64(params: list[ColumnCodec | int | str]) -> DateTime64:
 
 
 def _make_tuple(params: list[ColumnCodec | int | str]) -> Tuple:
+    """Build an unnamed ``Tuple`` from a generic params list. Named
+    Tuples have their own grammar — see ``_parse_tuple_params``."""
     if not params or any(not isinstance(p, ColumnCodec) for p in params):
         raise ValueError(f"Tuple takes one or more type parameters; got {params!r}")
     components: list[ColumnCodec] = [p for p in params if isinstance(p, ColumnCodec)]
     return Tuple(*components)
+
+
+def _make_named_tuple(names: list[str | None], components: list[ColumnCodec]) -> Tuple:
+    """Build a ``Tuple`` from a parallel list of ``(name, codec)``.
+
+    Mixing named and unnamed components in the same Tuple is
+    rejected — matches upstream's "all named or all unnamed" rule.
+    """
+    if not components:
+        raise ValueError("Tuple requires at least one component")
+    has_named = any(n is not None for n in names)
+    has_unnamed = any(n is None for n in names)
+    if has_named and has_unnamed:
+        named_part = [f"{n!r}" if n is not None else "<unnamed>" for n in names]
+        raise ValueError(
+            "Tuple components must be all named or all unnamed; got mix: "
+            + ", ".join(named_part)
+        )
+    if not has_named:
+        return Tuple(*components)
+    # All names are non-None; narrow for the type checker.
+    name_tuple: tuple[str, ...] = tuple(n for n in names if n is not None)
+    return Tuple(*components, names=name_tuple)
 
 
 def _make_map(params: list[ColumnCodec | int | str]) -> Map:
@@ -220,6 +245,14 @@ class _Parser:
                 mapping = self._parse_enum_body()
                 self._consume(")")
                 return Enum8(mapping) if name == "Enum8" else Enum16(mapping)
+            # Tuple has an optional named-field syntax that the generic
+            # comma-separated param grammar can't see. ``Tuple(id Int32,
+            # name String)`` is two components named ``id`` and ``name``;
+            # ``Tuple(Int32, String)`` is the same two unnamed.
+            if name == "Tuple":
+                names, components = self._parse_tuple_params()
+                self._consume(")")
+                return _make_named_tuple(names, components)
             params = self._parse_params()
             self._consume(")")
             factory_p = _PARAMETRIC.get(name)
@@ -230,6 +263,52 @@ class _Parser:
         if factory_n is None:
             raise ValueError(f"unknown type: {name!r}")
         return factory_n()
+
+    def _parse_tuple_params(
+        self,
+    ) -> tuple[list[str | None], list[ColumnCodec]]:
+        """Parse the params of a ``Tuple(...)`` form, supporting both
+        named and unnamed components.
+
+        Each component can be ``Type`` or ``name Type``. The
+        disambiguation: peek past the leading identifier; if the next
+        non-whitespace character is ``(``, ``,`` or ``)``, that
+        identifier was the type itself (no field name). Otherwise the
+        identifier is a field name and the remainder is the type
+        spec.
+        """
+        names: list[str | None] = []
+        components: list[ColumnCodec] = []
+        self._skip_ws()
+        while self._peek() not in (")", ""):
+            field_name, codec = self._parse_tuple_component()
+            names.append(field_name)
+            components.append(codec)
+            self._skip_ws()
+            if self._peek() == ",":
+                self._consume(",")
+                self._skip_ws()
+        return names, components
+
+    def _parse_tuple_component(self) -> tuple[str | None, ColumnCodec]:
+        """Parse one Tuple component. Returns ``(field_name, codec)``
+        with ``field_name`` ``None`` when the component is unnamed."""
+        self._skip_ws()
+        save_pos = self.pos
+        first_ident = self._read_identifier()
+        self._skip_ws()
+        nxt = self._peek()
+        # ``(`` — first identifier was the type name (parametric).
+        # ``,`` / ``)`` — first identifier was the type name (nullary,
+        #     end of field). Either way, rewind and re-parse via the
+        #     standard ``_parse_one`` so registry lookup happens.
+        if nxt in ("(", ",", ")", ""):
+            self.pos = save_pos
+            return None, self._parse_one()
+        # Otherwise the first identifier is a field name; the remainder
+        # is the type spec (which can itself be a parametric type, a
+        # nested Tuple, etc.).
+        return first_ident, self._parse_one()
 
     def _parse_enum_body(self) -> dict[str, int]:
         mapping: dict[str, int] = {}

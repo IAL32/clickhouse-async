@@ -110,16 +110,46 @@ class Tuple:
     The wire layout is *not* row-major; each component contributes its
     ``n_rows``-long body sequentially. We read each component's column,
     then ``zip`` them into Python tuples.
+
+    ClickHouse also supports a *named* form, ``Tuple(id Int32, name
+    String)``. Names live only in the type-spec string carried by the
+    block header, never in the column body — wire-format-wise the
+    named and unnamed forms are identical. Pass ``names=...`` to
+    construct a named tuple; a future Client could surface those names
+    as a ``NamedTuple`` row representation, but for now ``read()``
+    still yields plain ``tuple`` values.
     """
 
     null_value: tuple[Any, ...]
 
-    def __init__(self, *components: ColumnCodec) -> None:
+    def __init__(
+        self,
+        *components: ColumnCodec,
+        names: tuple[str, ...] | None = None,
+    ) -> None:
         if not components:
             raise ValueError("Tuple requires at least one component")
+        if names is not None and len(names) != len(components):
+            raise ValueError(
+                f"Tuple names length ({len(names)}) must match components "
+                f"length ({len(components)})"
+            )
         self.components = components
-        self.name = f"Tuple({', '.join(c.name for c in components)})"
+        self.names = names
+        if names is None:
+            self.name = f"Tuple({', '.join(c.name for c in components)})"
+        else:
+            self.name = "Tuple({})".format(
+                ", ".join(
+                    f"{n} {c.name}" for n, c in zip(names, components, strict=True)
+                )
+            )
         self.null_value = tuple(c.null_value for c in components)
+
+    @property
+    def named(self) -> bool:
+        """``True`` iff this Tuple was constructed with field names."""
+        return self.names is not None
 
     async def read(
         self, reader: AsyncBinaryReader, n_rows: int

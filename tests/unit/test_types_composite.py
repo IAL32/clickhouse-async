@@ -152,8 +152,81 @@ async def test_tuple_one_component_round_trip() -> None:
 def test_tuple_requires_at_least_one_component() -> None:
     # BEGIN / WHEN / THEN: parsing Tuple() raises since the parser produces
     #     an empty params list and the factory rejects it
-    with pytest.raises(ValueError, match="one or more"):
+    with pytest.raises(ValueError, match="at least one component"):
         parse_type("Tuple()")
+
+
+# ---- Named Tuple --------------------------------------------------------
+
+
+def test_named_tuple_round_trips_through_parse_and_name() -> None:
+    # BEGIN / WHEN: parsing a named Tuple spec
+    codec = parse_type("Tuple(id UInt32, name String)")
+
+    # THEN: the codec is named and ``codec.name`` reproduces the input
+    assert isinstance(codec, Tuple)
+    assert codec.named is True
+    assert codec.names == ("id", "name")
+    assert codec.name == "Tuple(id UInt32, name String)"
+
+
+def test_unnamed_tuple_keeps_named_false() -> None:
+    # BEGIN / WHEN: parsing an unnamed Tuple
+    codec = parse_type("Tuple(UInt32, String)")
+
+    # THEN: ``.named`` is False and the rendering matches input
+    assert isinstance(codec, Tuple)
+    assert codec.named is False
+    assert codec.names is None
+    assert codec.name == "Tuple(UInt32, String)"
+
+
+def test_mixed_named_and_unnamed_tuple_components_rejected() -> None:
+    # BEGIN / WHEN / THEN: ClickHouse requires Tuple components to be
+    #     all named or all unnamed; mixed forms raise
+    with pytest.raises(ValueError, match="all named or all unnamed"):
+        parse_type("Tuple(id UInt32, String)")
+
+
+def test_nested_named_tuple_parses_both_levels() -> None:
+    # BEGIN / WHEN: a Tuple whose component is itself a named Tuple
+    codec = parse_type("Tuple(meta Tuple(id UInt32, label String), value Int64)")
+
+    # THEN: outer + inner names round-trip
+    assert codec.name == ("Tuple(meta Tuple(id UInt32, label String), value Int64)")
+
+
+async def test_named_tuple_round_trips_values_through_codec() -> None:
+    # BEGIN: a named Tuple codec
+    codec = parse_type("Tuple(id UInt32, name String)")
+    values: list[tuple[object, ...]] = [
+        (1, "alpha"),
+        (2, "beta"),
+        (3, "gamma"),
+    ]
+
+    # WHEN: round-tripping through the codec — wire format is identical
+    #       to unnamed Tuple, so the existing read/write paths apply
+    writer = BinaryWriter()
+    codec.write(writer, values)
+    written = writer.getvalue()
+
+    stream = asyncio.StreamReader()
+    stream.feed_data(written)
+    stream.feed_eof()
+    decoded = await codec.read(AsyncBinaryReader(stream), len(values))
+
+    # THEN: every row comes back identically as a plain tuple — the
+    #       names live only in the codec metadata, not in the values
+    assert decoded == values
+
+
+def test_named_tuple_constructor_validates_names_length() -> None:
+    # BEGIN / WHEN / THEN: a names tuple of the wrong length is rejected
+    from clickhouse_async.types import Int32, String
+
+    with pytest.raises(ValueError, match="names length"):
+        Tuple(Int32(), String(), names=("only_one",))
 
 
 # ---- Map(K, V) ----------------------------------------------------------

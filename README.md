@@ -3,8 +3,11 @@
 An async Python client for ClickHouse that speaks the native TCP protocol on
 port `9000` (or `9440` for TLS).
 
-> **Status:** pre-v0. The codebase is intentionally empty while the API and
-> conventions land. Not yet on PyPI.
+> **Status:** v0.1. Native protocol, types, client, pool, multi-host
+> failover, idle reaper, cross-connection cancel, and the most-common
+> v0 type gaps (LowCardinality(Nullable(T)), named Tuples) all land here.
+> Not yet on PyPI — installable via VCS until the first release artefact
+> ships.
 
 ## Why another ClickHouse client?
 
@@ -15,8 +18,16 @@ port `9000` (or `9440` for TLS).
   hops on the hot path, no sync I/O hidden inside an `async def`.
 - **Streaming by default.** Results arrive block by block — large queries
   do not require loading the full resultset into memory.
+- **Multi-host failover, built in.** A DSN can list comma-separated
+  candidates; `Client.open()` walks them in order and `Pool` rotates
+  the start position with a per-host cooldown so a single dead replica
+  doesn't dominate.
+- **Cross-connection cancel.** `Pool.kill_query(query_id)` opens a fresh
+  side-channel connection so you can cancel a long-running query
+  without touching the connection that issued it.
 - **Small surface.** A `Client` for one-shot or single-session use and a
-  `Pool` for production workloads, both with `async with` semantics.
+  `Pool` with idle reaper + min-size warm for production workloads,
+  both with `async with` semantics.
 - **Typed.** `ty`-clean, public API fully annotated.
 
 ## Installation
@@ -49,12 +60,32 @@ async with ch.create_pool(
     "clickhouse://default:@localhost:9000/default",
     min_size=4,
     max_size=32,
+    max_idle_time=300.0,        # idle reaper closes entries past this
+    idle_check_interval=30.0,   # reaper sweep period
 ) as pool:
     async with pool.acquire() as client:
         await client.execute("INSERT INTO events VALUES", rows=batch)
 
     # one-shot pass-through
     rows = await pool.fetch_all("SELECT count() FROM events")
+
+    # cancel a query running on another connection
+    await pool.kill_query("query-id-from-system.processes")
+```
+
+### Multi-host failover
+
+A DSN can list comma-separated candidates. `Connection.open()` walks them
+in order on each open; `Pool` rotates the start position across acquires
+and cools-down hosts that just failed for `host_failover_cooldown` (default
+5 s).
+
+```python
+async with ch.create_pool(
+    "clickhouse://user:pass@replica-a:9000,replica-b:9000,replica-c/db",
+    host_failover_cooldown=5.0,
+) as pool:
+    rows = await pool.fetch_all("SELECT 1")
 ```
 
 ### Streaming a large result

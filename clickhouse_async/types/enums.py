@@ -24,6 +24,7 @@ class _EnumCodec:
     """Common implementation for both Enum widths."""
 
     null_value: str = ""
+    python_type: type = str
     _size: int = 0
 
     def __init__(self, mapping: dict[str, int]) -> None:

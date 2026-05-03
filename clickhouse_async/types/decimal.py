@@ -37,6 +37,7 @@ class _DecimalCodec:
     """Decimal codec parameterised by its byte width."""
 
     null_value: PyDecimal = PyDecimal(0)
+    python_type: type = PyDecimal
     _size: int = 0
 
     def __init__(self, scale: int) -> None:

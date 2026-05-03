@@ -97,6 +97,7 @@ class AggregateFunction:
     """
 
     null_value: bytes = b""
+    python_type: type = bytes
 
     def __init__(
         self,

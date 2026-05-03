@@ -38,6 +38,7 @@ class Point:
 
     name = "Point"
     null_value: tuple[float, float] = (0.0, 0.0)
+    python_type: type = tuple
 
     def __init__(self) -> None:
         self._inner: Tuple = Tuple(Float64(), Float64())
@@ -56,6 +57,7 @@ class Ring:
 
     name = "Ring"
     null_value: list[tuple[float, float]] = []  # noqa: RUF012
+    python_type: type = list
 
     def __init__(self) -> None:
         self._inner: Array = Array(Point())
@@ -74,6 +76,7 @@ class Polygon:
 
     name = "Polygon"
     null_value: list[list[tuple[float, float]]] = []  # noqa: RUF012
+    python_type: type = list
 
     def __init__(self) -> None:
         self._inner: Array = Array(Ring())
@@ -92,6 +95,7 @@ class MultiPolygon:
 
     name = "MultiPolygon"
     null_value: list[list[list[tuple[float, float]]]] = []  # noqa: RUF012
+    python_type: type = list
 
     def __init__(self) -> None:
         self._inner: Array = Array(Polygon())

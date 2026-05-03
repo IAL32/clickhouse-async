@@ -559,6 +559,52 @@ async def test_named_tuple_column_round_trips_via_server(
     assert rows_out == rows_in
 
 
+async def test_variant_column_round_trips_via_server(pool: ch.Pool) -> None:
+    # BEGIN: a Memory-engine table with a ``Variant(Int64, String,
+    #        Date)`` column. Variant is still gated behind the
+    #        ``allow_experimental_variant_type`` setting on 24.x, so
+    #        each statement that touches the column hands the setting
+    #        in. Mixed-arm rows + a NULL exercise the discriminator
+    #        stream and per-arm body slicing end-to-end against the
+    #        server.
+    table = "test_variant_column"
+    variant_settings = {"allow_experimental_variant_type": "1"}
+    async with pool.acquire() as client:
+        await client.execute(f"DROP TABLE IF EXISTS {table}")
+        await client.execute(
+            f"CREATE TABLE {table} (id UInt64, v Variant(Int64, String, Date)) "
+            f"ENGINE = Memory",
+            settings=variant_settings,
+        )
+
+    rows_in: list[tuple[object, ...]] = [
+        (1, 42),
+        (2, "hello"),
+        (3, date(2026, 5, 3)),
+        (4, None),
+    ]
+
+    # WHEN: inserting via the pool, then reading back. The Variant
+    #       column needs the experimental flag on both INSERT and
+    #       SELECT — the type-spec parse fails otherwise.
+    async with pool.acquire() as client:
+        n = await client.insert(
+            f"INSERT INTO {table} VALUES",
+            rows=rows_in,
+            column_names=["id", "v"],
+            settings=variant_settings,
+        )
+    assert n == 4
+    rows_out = await pool.fetch_all(
+        f"SELECT id, v FROM {table} ORDER BY id",
+        settings=variant_settings,
+    )
+
+    # THEN: every arm survives end-to-end; the NULL row comes back
+    #       as None (NULL discriminator → Python None)
+    assert rows_out == rows_in
+
+
 async def test_multi_host_dsn_falls_through_dead_first_host(dsn: str) -> None:
     # BEGIN: a multi-host DSN whose first candidate is unreachable
     #        (a port nothing's listening on) and second candidate is

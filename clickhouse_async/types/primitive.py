@@ -28,6 +28,11 @@ class _StructCodec:
 
     name: str = ""
     null_value: Any = 0
+    # ``python_type`` drives ``Variant`` arm resolution: when a row's
+    # value matches this type via ``isinstance``, it picks this codec.
+    # Subclasses override (``int`` for the integer codecs, ``float``
+    # for the float codecs).
+    python_type: type = object
     _format: str = ""
     _size: int = 0
 
@@ -50,6 +55,7 @@ class _StructCodec:
 class Int8(_StructCodec):
     name = "Int8"
     null_value: int = 0
+    python_type = int
     _format = "b"
     _size = 1
 
@@ -57,6 +63,7 @@ class Int8(_StructCodec):
 class Int16(_StructCodec):
     name = "Int16"
     null_value: int = 0
+    python_type = int
     _format = "h"
     _size = 2
 
@@ -64,6 +71,7 @@ class Int16(_StructCodec):
 class Int32(_StructCodec):
     name = "Int32"
     null_value: int = 0
+    python_type = int
     _format = "i"
     _size = 4
 
@@ -71,6 +79,7 @@ class Int32(_StructCodec):
 class Int64(_StructCodec):
     name = "Int64"
     null_value: int = 0
+    python_type = int
     _format = "q"
     _size = 8
 
@@ -81,6 +90,7 @@ class Int64(_StructCodec):
 class UInt8(_StructCodec):
     name = "UInt8"
     null_value: int = 0
+    python_type = int
     _format = "B"
     _size = 1
 
@@ -88,6 +98,7 @@ class UInt8(_StructCodec):
 class UInt16(_StructCodec):
     name = "UInt16"
     null_value: int = 0
+    python_type = int
     _format = "H"
     _size = 2
 
@@ -95,6 +106,7 @@ class UInt16(_StructCodec):
 class UInt32(_StructCodec):
     name = "UInt32"
     null_value: int = 0
+    python_type = int
     _format = "I"
     _size = 4
 
@@ -102,6 +114,7 @@ class UInt32(_StructCodec):
 class UInt64(_StructCodec):
     name = "UInt64"
     null_value: int = 0
+    python_type = int
     _format = "Q"
     _size = 8
 
@@ -112,6 +125,7 @@ class UInt64(_StructCodec):
 class Float32(_StructCodec):
     name = "Float32"
     null_value: float = 0.0
+    python_type = float
     _format = "f"
     _size = 4
 
@@ -119,6 +133,7 @@ class Float32(_StructCodec):
 class Float64(_StructCodec):
     name = "Float64"
     null_value: float = 0.0
+    python_type = float
     _format = "d"
     _size = 8
 
@@ -132,6 +147,7 @@ class _BigIntCodec:
 
     name: str = ""
     null_value: int = 0
+    python_type: type = int
     _size: int = 0
     _signed: bool = False
 
@@ -192,6 +208,7 @@ class Bool:
 
     name = "Bool"
     null_value: bool = False
+    python_type: type = bool
 
     async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[bool]:
         if n_rows == 0:

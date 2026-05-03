@@ -134,6 +134,7 @@ def _naive_utc_from_ts(ts: int) -> datetime:
 class Date:
     name = "Date"
     null_value: date = _EPOCH_DATE
+    python_type: type = date
 
     async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[date]:
         if n_rows == 0:
@@ -160,6 +161,7 @@ class Date:
 class Date32:
     name = "Date32"
     null_value: date = _EPOCH_DATE
+    python_type: type = date
 
     async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[date]:
         if n_rows == 0:
@@ -188,6 +190,7 @@ class Date32:
 
 class DateTime:
     null_value: datetime
+    python_type: type = datetime
 
     def __init__(
         self,
@@ -247,6 +250,12 @@ class DateTime:
 
 class DateTime64:
     null_value: datetime | HighPrecisionTimestamp
+    # ``DateTime64`` may surface ``datetime`` (low-precision) or
+    # ``HighPrecisionTimestamp`` (high-precision) values. We declare
+    # ``datetime`` as the variant-resolution type since it's the
+    # common case; high-precision callers can pin via ``Variant.tag``
+    # if they need ``HighPrecisionTimestamp`` to land in this arm.
+    python_type: type = datetime
 
     def __init__(
         self,

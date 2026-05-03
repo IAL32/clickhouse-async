@@ -33,6 +33,7 @@ _ZERO_IPV6 = IPv6Address(0)
 class UUID:
     name = "UUID"
     null_value: uuid.UUID = _NIL_UUID
+    python_type: type = uuid.UUID
 
     async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[uuid.UUID]:
         if n_rows == 0:
@@ -61,6 +62,7 @@ class UUID:
 class IPv4:
     name = "IPv4"
     null_value: IPv4Address = _ZERO_IPV4
+    python_type: type = IPv4Address
 
     async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[IPv4Address]:
         if n_rows == 0:
@@ -85,6 +87,7 @@ class IPv4:
 class IPv6:
     name = "IPv6"
     null_value: IPv6Address = _ZERO_IPV6
+    python_type: type = IPv6Address
 
     async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[IPv6Address]:
         if n_rows == 0:

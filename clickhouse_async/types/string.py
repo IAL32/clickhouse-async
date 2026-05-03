@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 class String:
     name = "String"
     null_value: str = ""
+    python_type: type = str
 
     async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[str]:
         return [await reader.read_string() for _ in range(n_rows)]
@@ -30,6 +31,7 @@ class String:
 
 class FixedString:
     null_value: bytes
+    python_type: type = bytes
 
     def __init__(self, length: int) -> None:
         if length <= 0:

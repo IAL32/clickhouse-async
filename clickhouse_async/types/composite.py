@@ -33,10 +33,16 @@ class Nullable:
     """
 
     null_value: None = None
+    # Forward the inner codec's ``python_type`` so ``Variant``
+    # resolution sees the wrapped concrete type — ``Nullable(Int64)``
+    # still matches ``int`` values (NULL is handled at the Variant
+    # discriminator layer, not by Nullable).
+    python_type: type
 
     def __init__(self, inner: ColumnCodec) -> None:
         self.inner = inner
         self.name = f"Nullable({inner.name})"
+        self.python_type = getattr(inner, "python_type", object)
 
     async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[Any]:
         if n_rows == 0:
@@ -67,6 +73,7 @@ class Array:
     """
 
     null_value: list[Any]
+    python_type: type = list
 
     def __init__(self, inner: ColumnCodec) -> None:
         self.inner = inner
@@ -124,6 +131,7 @@ class Tuple:
     """
 
     null_value: tuple[Any, ...]
+    python_type: type = tuple
 
     def __init__(
         self,
@@ -193,6 +201,7 @@ class Nested:
     """
 
     null_value: list[tuple[Any, ...]]
+    python_type: type = list
 
     def __init__(self, *components: ColumnCodec, names: tuple[str, ...]) -> None:
         if not components:
@@ -230,6 +239,7 @@ class Map:
     """
 
     null_value: dict[Any, Any]
+    python_type: type = dict
 
     def __init__(self, key: ColumnCodec, value: ColumnCodec) -> None:
         self.key = key
@@ -280,6 +290,9 @@ class LowCardinality:
     """
 
     null_value: Any
+    # Forward the inner codec's ``python_type`` so ``Variant``
+    # resolution sees through the dictionary encoding.
+    python_type: type
 
     # Per upstream ``KeysSerializationVersion``, ``1`` =
     # ``SharedDictionariesWithAdditionalKeys`` — the only version
@@ -306,6 +319,7 @@ class LowCardinality:
         # we surface the inner type's own null_value so callers that
         # default-fill a column see something type-correct.
         self.null_value = None if self._inner_is_nullable else inner.null_value
+        self.python_type = getattr(inner, "python_type", object)
 
     @staticmethod
     def _index_tag_for_size(dict_size: int) -> tuple[int, int]:

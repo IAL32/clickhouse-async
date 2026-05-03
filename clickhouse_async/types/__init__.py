@@ -66,6 +66,7 @@ from clickhouse_async.types.primitive import (
     UInt256,
 )
 from clickhouse_async.types.string import FixedString, String
+from clickhouse_async.types.variant import Dynamic, Variant
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -80,6 +81,9 @@ _NULLARY: dict[str, Callable[[], ColumnCodec]] = {
     "Date": Date,
     "Date32": Date32,
     "DateTime": DateTime,
+    # Bare ``Dynamic`` — ``max_types`` defaults to None (unenforced cap;
+    # the per-block prefix is the source of truth on reads).
+    "Dynamic": Dynamic,
     "Float32": Float32,
     "Float64": Float64,
     "IPv4": IPv4,
@@ -128,6 +132,7 @@ _PARAMETRIC: dict[str, Callable[[list[ColumnCodec | int | str]], ColumnCodec]] =
     "Map": lambda p: _make_map(p),
     "Nullable": lambda p: Nullable(_one_type(p, "Nullable")),
     "Tuple": lambda p: _make_tuple(p),
+    "Variant": lambda p: _make_variant(p),
 }
 
 
@@ -211,6 +216,13 @@ def _make_map(params: list[ColumnCodec | int | str]) -> Map:
     ):
         raise ValueError(f"Map takes (key_type, value_type); got {params!r}")
     return Map(params[0], params[1])
+
+
+def _make_variant(params: list[ColumnCodec | int | str]) -> Variant:
+    if not params or any(not isinstance(p, ColumnCodec) for p in params):
+        raise ValueError(f"Variant takes one or more type parameters; got {params!r}")
+    components: list[ColumnCodec] = [p for p in params if isinstance(p, ColumnCodec)]
+    return Variant(*components)
 
 
 def _make_decimal(params: list[ColumnCodec | int | str]) -> ColumnCodec:
@@ -305,6 +317,15 @@ class _Parser:
                 fn_call, arg_types = self._parse_aggregate_function_params()
                 self._consume(")")
                 return AggregateFunction(fn_call, arg_types)
+            # ``Dynamic(max_types=N)`` — the only parametric form. The
+            # named-int ``max_types=N`` syntax isn't expressible in the
+            # generic ``_parse_param`` grammar (which has no ``=``
+            # token), so we read it inline. Bare ``Dynamic`` falls
+            # through to the nullary registry above.
+            if name == "Dynamic":
+                max_types = self._parse_dynamic_max_types_param()
+                self._consume(")")
+                return Dynamic(max_types=max_types)
             params = self._parse_params()
             self._consume(")")
             # ``DateTime`` / ``DateTime64`` need ``session_timezone``
@@ -400,6 +421,28 @@ class _Parser:
         # is the type spec (which can itself be a parametric type, a
         # nested Tuple, etc.).
         return first_ident, self._parse_one()
+
+    def _parse_dynamic_max_types_param(self) -> int:
+        """Parse the ``max_types=N`` named-int param of
+        ``Dynamic(max_types=N)``.
+
+        The named-int form is unique to ``Dynamic`` in v0.2 — extending
+        the generic param parser for one named-int field would
+        complicate every other parametric type's grammar, so we
+        inline-handle it here instead.
+        """
+        self._skip_ws()
+        ident = self._read_identifier()
+        if ident != "max_types":
+            raise ValueError(
+                f"Dynamic only accepts a max_types=N parameter; got {ident!r}"
+            )
+        self._skip_ws()
+        self._consume("=")
+        self._skip_ws()
+        value = self._read_integer()
+        self._skip_ws()
+        return value
 
     def _parse_aggregate_function_params(
         self,

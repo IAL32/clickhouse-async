@@ -31,7 +31,10 @@ jobs:
             uv.lock
 
       - name: Install (no extras)
-        run: uv sync --frozen --no-extras
+        # `uv sync` excludes optional extras by default — pulling them
+        # in requires an explicit `--extra <name>`. The bare install
+        # is what `pip install clickhouse-async` users land on.
+        run: uv sync --frozen
 
       - name: Ruff
         run: uv run ruff check
@@ -62,7 +65,10 @@ jobs:
             uv.lock
 
       - name: Install (no extras)
-        run: uv sync --frozen --no-extras
+        # `uv sync` excludes optional extras by default — pulling them
+        # in requires an explicit `--extra <name>`. The bare install
+        # is what `pip install clickhouse-async` users land on.
+        run: uv sync --frozen
 
       - name: Verify the bare install stays import-clean
         run: |

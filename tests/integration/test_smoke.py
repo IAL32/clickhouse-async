@@ -376,6 +376,49 @@ async def test_insert_returns_server_confirmed_written_rows_via_real_server(
     assert out == rows_in
 
 
+async def test_polygon_column_round_trips_via_server(
+    pool: ch.Pool,
+    fresh_table: Callable[[str, str], Awaitable[None]],
+) -> None:
+    # BEGIN: a Memory-engine table with a ``Polygon`` column. The
+    #        server happily stores polygons as the geo alias and
+    #        emits ``Polygon`` (not the desugared
+    #        ``Array(Array(Tuple(Float64, Float64)))``) in the
+    #        block header, so round-tripping a polygon-with-hole
+    #        plus a single-ring polygon exercises the parser, the
+    #        ``Polygon`` codec's delegation, and the server's view.
+    table = "test_polygon_column"
+    await fresh_table(
+        table,
+        "(id UInt64, shape Polygon) ENGINE = Memory",
+    )
+    rows_in: list[tuple[object, ...]] = [
+        (
+            1,
+            [
+                # outer ring
+                [(0.0, 0.0), (10.0, 0.0), (10.0, 10.0), (0.0, 10.0)],
+                # inner hole
+                [(2.0, 2.0), (4.0, 2.0), (4.0, 4.0), (2.0, 4.0)],
+            ],
+        ),
+        (2, [[(100.0, 100.0), (101.0, 100.0), (101.0, 101.0)]]),
+    ]
+
+    # WHEN: inserting via the pool, then reading back
+    async with pool.acquire() as client:
+        n = await client.insert(
+            f"INSERT INTO {table} VALUES",
+            rows=rows_in,
+            column_names=["id", "shape"],
+        )
+    assert n == 2
+    rows_out = await pool.fetch_all(f"SELECT id, shape FROM {table} ORDER BY id")
+
+    # THEN: every polygon's nested ring structure round-trips
+    assert rows_out == rows_in
+
+
 async def test_nested_column_round_trips_via_server(pool: ch.Pool) -> None:
     # BEGIN: a Memory-engine table with a ``Nested`` column created
     #        under ``flatten_nested = 0`` so the column stays a

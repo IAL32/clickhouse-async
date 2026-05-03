@@ -45,6 +45,7 @@ from clickhouse_async.types.decimal import (
     make_decimal,
 )
 from clickhouse_async.types.enums import Enum8, Enum16
+from clickhouse_async.types.geo import MultiPolygon, Point, Polygon, Ring
 from clickhouse_async.types.net import UUID, IPv4, IPv6
 from clickhouse_async.types.primitive import (
     Bool,
@@ -88,6 +89,12 @@ _NULLARY: dict[str, Callable[[], ColumnCodec]] = {
     "Int64": Int64,
     "Int128": Int128,
     "Int256": Int256,
+    # Geo aliases — pure sugar over Tuple(Float64, Float64) /
+    # Array(Tuple(...)) shapes; codecs in ``types/geo.py``.
+    "Point": Point,
+    "Ring": Ring,
+    "Polygon": Polygon,
+    "MultiPolygon": MultiPolygon,
     "String": String,
     "UInt8": UInt8,
     "UInt16": UInt16,

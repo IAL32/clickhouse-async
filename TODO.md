@@ -19,11 +19,11 @@ codec/module that carries the limitation so a grep finds the on-ramp.
 
 ### Type system (`clickhouse_async/types/`)
 
-- **No `AggregateFunction`, `JSON`, `Variant`, `Dynamic`, geo
-  types.** Listed as out-of-scope in `DESIGN.md §7` (deferred). A
-  query returning any of these will fail at the type-spec parser
-  ("unknown type"). Round-tripping these requires careful work; it's a
-  v0.x feature.
+- **No `AggregateFunction`, `JSON`, `Variant`, `Dynamic` types.**
+  Listed as out-of-scope in `DESIGN.md §7` (deferred). A query
+  returning any of these will fail at the type-spec parser
+  ("unknown type"). Round-tripping these requires careful work;
+  it's a v0.x feature.
 
 ### Protocol primitives
 
@@ -71,7 +71,7 @@ already on `DESIGN.md §13` are repeated here so this file is the single
   views; needed for any non-trivial analytics workload.
 - **`JSON` type** (the new ClickHouse 24.x JSON, not the deprecated
   String-backed Object).
-- **`Variant`, `Dynamic`, geo types.**
+- **`Variant`, `Dynamic` types.**
 - **Custom `column_factories` hook.** Per-type override for Python
   representation (e.g. polars/pyarrow/numpy adapters) — the protocol
   is described in `DESIGN.md §7`. Default factories ship in core; the

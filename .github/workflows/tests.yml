@@ -1,0 +1,114 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags-ignore: ["*"]
+
+# Cancel in-progress runs from the same PR/branch when a new one starts.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Lint and type-check on a bare install — matches the surface the
+  # README's "pip install clickhouse-async" footprint actually has.
+  # Runs once on the lowest supported Python; the lint rules don't
+  # depend on Python minor.
+  lint:
+    name: Lint + types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.11"
+          enable-cache: true
+          cache-dependency-glob: |
+            pyproject.toml
+            uv.lock
+
+      - name: Install (no extras)
+        run: uv sync --frozen --no-extras
+
+      - name: Ruff
+        run: uv run ruff check
+
+      - name: Ty
+        run: uv run ty check
+
+  # Unit tests against the bare install on every supported Python.
+  # No optional libs installed — exercises the import-clean discipline
+  # (compression imports must stay lazy) and the MissingExtraError
+  # paths (mocked via monkeypatch in the unit suite).
+  unit-bare:
+    name: Unit (bare) — Python ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+          cache-dependency-glob: |
+            pyproject.toml
+            uv.lock
+
+      - name: Install (no extras)
+        run: uv sync --frozen --no-extras
+
+      - name: Verify the bare install stays import-clean
+        run: |
+          uv run python -c "import clickhouse_async; print('version:', clickhouse_async.__version__)"
+
+      - name: Unit tests
+        run: uv run pytest tests/unit -q --timeout=10
+
+  # Full suite — unit + integration — with the compression extra
+  # installed and a real ClickHouse server (started via the project's
+  # own scripts/clickhouse.sh, which sources the version from
+  # .clickhouse-version so CI stays in sync with local dev).
+  full:
+    name: Unit + integration (full) — Python ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+          cache-dependency-glob: |
+            pyproject.toml
+            uv.lock
+
+      - name: Install (with compression extra)
+        run: uv sync --frozen --extra compression
+
+      - name: Start ClickHouse (version from .clickhouse-version)
+        run: ./scripts/clickhouse.sh up
+
+      - name: Unit tests
+        run: uv run pytest tests/unit -q --timeout=10
+
+      - name: Integration tests
+        run: uv run pytest tests/integration --localdb -m integration -q --timeout=60
+
+      - name: ClickHouse logs on failure
+        if: failure()
+        run: ./scripts/clickhouse.sh logs --tail 300 || true
+
+      - name: Stop ClickHouse
+        if: always()
+        run: ./scripts/clickhouse.sh down || true

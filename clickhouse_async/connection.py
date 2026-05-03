@@ -34,13 +34,14 @@ from __future__ import annotations
 import asyncio
 import logging
 import ssl as _ssl_module
-from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
+from collections.abc import AsyncIterator, Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass
 from enum import IntEnum
 from typing import Literal, Protocol
 
 from clickhouse_async.errors import (
     ConcurrentQueryError,
+    ConnectError,
     ProtocolError,
     QueryCancellationError,
     ServerError,
@@ -139,29 +140,43 @@ class Connection:
     """Native-protocol connection skeleton.
 
     ``open()`` brings the transport up and runs the Hello handshake;
-    on success the connection ends in ``READY``. ``close()`` is
+    on success the connection ends in ``READY``. With multiple
+    candidate hosts the open walks them in order, returning on the
+    first success and raising ``ConnectError`` (with every per-host
+    error attached) only if every candidate fails. ``close()`` is
     idempotent and safe from any state, including mid-open.
     """
 
     def __init__(
         self,
-        host: str,
-        port: int = 9000,
+        hosts: Sequence[tuple[str, int]],
         *,
         ssl_context: _ssl_module.SSLContext | None = None,
         compression: CompressionMethod = CompressionMethod.NONE,
         transport_factory: TransportFactory | None = None,
+        on_host_attempt: Callable[
+            [tuple[str, int], BaseException | None], None
+        ]
+        | None = None,
     ) -> None:
-        self._host = host
-        self._port = port
+        if not hosts:
+            raise ValueError("Connection requires at least one host")
+        self._hosts: tuple[tuple[str, int], ...] = tuple(hosts)
         self._ssl_context = ssl_context
         self._compression = compression
         self._transport_factory: TransportFactory = (
             transport_factory or _default_transport_factory
         )
+        # Hook called once per candidate at end-of-attempt. ``exc`` is
+        # ``None`` on success, the underlying exception on failure.
+        # Used by the pool's ``_HostRotation`` to track per-host
+        # cooldowns without having to peek at private state.
+        self._on_host_attempt = on_host_attempt
         self._state: State = State.IDLE
         self._reader: AsyncBinaryReader | None = None
         self._writer: _WriterLike | None = None
+        # Set on successful open(); None until then.
+        self._connected_host: tuple[str, int] | None = None
         self._server_info: ServerInfo | None = None
         self._negotiated_revision: int = 0
         self._user: str = ""
@@ -187,12 +202,27 @@ class Connection:
         return self._state
 
     @property
+    def hosts(self) -> tuple[tuple[str, int], ...]:
+        """Candidate host list as configured. ``open()`` walks these
+        in order; whichever wins is exposed via ``host`` / ``port``."""
+        return self._hosts
+
+    @property
     def host(self) -> str:
-        return self._host
+        """Host of the connected peer if open succeeded; the first
+        candidate otherwise (a defensive default for callers that
+        introspect before / during connect)."""
+        if self._connected_host is not None:
+            return self._connected_host[0]
+        return self._hosts[0][0]
 
     @property
     def port(self) -> int:
-        return self._port
+        """Port of the connected peer if open succeeded; the first
+        candidate's port otherwise."""
+        if self._connected_host is not None:
+            return self._connected_host[1]
+        return self._hosts[0][1]
 
     @property
     def transitions(self) -> list[tuple[State, State, str]]:
@@ -230,15 +260,23 @@ class Connection:
     ) -> None:
         """Open the transport and run the Hello handshake.
 
+        With multiple candidate hosts, walks them in order and returns
+        on the first successful handshake. Per-host failures are
+        recorded; if every candidate fails the call raises
+        ``ConnectError`` whose message names every attempted
+        ``host:port`` and the underlying error class.
+
         On success the connection ends in ``READY`` with ``server_info``
         populated and ``negotiated_revision`` set to
-        ``min(OUR_REVISION, server.revision)``.
+        ``min(OUR_REVISION, server.revision)``. ``host`` / ``port``
+        report the candidate that won.
 
-        On a server-side rejection (server replies ``Exception`` to our
-        Hello) the underlying ``ServerError`` propagates and the
-        connection is BROKEN. On any other handshake failure (incl.
-        cancellation, IO error, malformed packet) the connection is
-        also BROKEN and the writer is closed.
+        A server-side rejection of our Hello (the server replies
+        ``Exception``) counts as a per-host failure and falls through
+        to the next candidate just like a transport error. The
+        connection is left ``BROKEN`` with the writer closed when every
+        candidate fails; cancellation during open propagates as
+        ``CancelledError`` without converting to ``ConnectError``.
         """
         if self._state != State.IDLE:
             raise RuntimeError(
@@ -246,23 +284,62 @@ class Connection:
             )
         self._user = user
         self._transition(State.CONNECTING, "open()")
-        try:
-            reader, writer = await self._transport_factory(
-                self._host, self._port, self._ssl_context
+
+        host_errors: list[tuple[str, int, str, BaseException]] = []
+        for host, port in self._hosts:
+            stage = "transport open"
+            try:
+                reader, writer = await self._transport_factory(
+                    host, port, self._ssl_context
+                )
+                self._reader = AsyncBinaryReader(reader)
+                self._writer = writer
+                stage = "handshake"
+                await self._do_handshake(
+                    user=user, password=password, database=database
+                )
+            except asyncio.CancelledError:
+                # Cancellation isn't a per-host failure — propagate.
+                self._transition(
+                    State.BROKEN, f"cancelled during {stage} for {host}:{port}"
+                )
+                await self._cleanup_writer()
+                raise
+            except BaseException as exc:
+                host_errors.append((host, port, stage, exc))
+                if self._on_host_attempt is not None:
+                    self._on_host_attempt((host, port), exc)
+                # Drop the half-opened transport so the next candidate
+                # starts from a clean slate.
+                await self._cleanup_writer()
+                continue
+            # Success.
+            self._connected_host = (host, port)
+            if self._on_host_attempt is not None:
+                self._on_host_attempt((host, port), None)
+            return
+
+        # Every candidate failed — mark broken. The BROKEN reason names
+        # the failing stage so the transition log matches v0's shape.
+        if len(host_errors) == 1:
+            host, port, stage, exc = host_errors[0]
+            self._transition(
+                State.BROKEN,
+                f"{stage} failed for {host}:{port}: {exc!r}",
             )
-        except BaseException as exc:
-            self._transition(State.BROKEN, f"transport open failed: {exc!r}")
-            raise
-        self._reader = AsyncBinaryReader(reader)
-        self._writer = writer
-        try:
-            await self._do_handshake(
-                user=user, password=password, database=database
-            )
-        except BaseException as exc:
-            self._transition(State.BROKEN, f"handshake failed: {exc!r}")
-            await self._cleanup_writer()
-            raise
+            # Surface the underlying error directly so callers can
+            # ``except ServerError`` / ``except ConnectionRefusedError``
+            # the way v0 documented.
+            raise exc
+        self._transition(
+            State.BROKEN,
+            f"all {len(host_errors)} candidate host(s) failed",
+        )
+        # Multi-host: wrap so the message names every attempted candidate
+        # and the per-host exceptions are preserved on ``host_errors``.
+        raise ConnectError(
+            [(h, p, e) for (h, p, _stage, e) in host_errors]
+        )
 
     async def _do_handshake(
         self, *, user: str, password: str, database: str
@@ -286,7 +363,8 @@ class Connection:
             self._transition(
                 State.READY,
                 f"handshake complete (server={info.name!r} "
-                f"revision={info.revision}, negotiated={self._negotiated_revision})",
+                f"revision={info.revision}, "
+                f"negotiated={self._negotiated_revision})",
             )
         elif packet_id == ServerPacket.EXCEPTION:
             raise await read_exception_body(self._reader)

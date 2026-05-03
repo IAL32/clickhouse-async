@@ -21,6 +21,7 @@ import time
 from collections.abc import (
     AsyncGenerator,
     AsyncIterable,
+    Callable,
     Iterable,
     Mapping,
     Sequence,
@@ -78,6 +79,10 @@ class Client:
         *,
         ssl_context: _ssl_module.SSLContext | None = None,
         transport_factory: TransportFactory | None = None,
+        on_host_attempt: Callable[
+            [tuple[str, int], BaseException | None], None
+        ]
+        | None = None,
     ) -> None:
         parsed = dsn if isinstance(dsn, DSN) else parse_dsn(dsn)
         self._dsn: DSN = parsed
@@ -87,11 +92,11 @@ class Client:
         if parsed.secure and ssl_context is None:
             ssl_context = _ssl_module.create_default_context()
         self._conn = Connection(
-            host=parsed.host,
-            port=parsed.port,
+            parsed.hosts,
             ssl_context=ssl_context,
             compression=parsed.compression,
             transport_factory=transport_factory,
+            on_host_attempt=on_host_attempt,
         )
 
     # ---- lifecycle -------------------------------------------------------

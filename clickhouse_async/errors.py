@@ -11,6 +11,37 @@ class ProtocolError(ClickHouseError):
     """Wire data violated the ClickHouse protocol."""
 
 
+class ConnectError(ClickHouseError):
+    """Every candidate host in a multi-host DSN failed to connect.
+
+    ``host_errors`` carries the per-attempt outcome as
+    ``(host, port, exception)`` tuples in the order the candidates
+    were tried. ``__cause__`` is the last exception so the standard
+    traceback machinery still shows at least one underlying failure.
+    """
+
+    host_errors: tuple[tuple[str, int, BaseException], ...]
+
+    def __init__(
+        self, host_errors: list[tuple[str, int, BaseException]]
+    ) -> None:
+        if not host_errors:
+            raise ValueError(
+                "ConnectError requires at least one (host, port, exc) tuple"
+            )
+        parts = [
+            f"  {host}:{port} → {type(exc).__name__}: {exc}"
+            for host, port, exc in host_errors
+        ]
+        msg = (
+            f"failed to connect to any of {len(host_errors)} host(s):\n"
+            + "\n".join(parts)
+        )
+        super().__init__(msg)
+        self.host_errors = tuple(host_errors)
+        self.__cause__ = host_errors[-1][2]
+
+
 class ConcurrentQueryError(ClickHouseError):
     """A second query was issued on a connection while another is in flight.
 

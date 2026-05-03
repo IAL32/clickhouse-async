@@ -25,12 +25,14 @@ What the pool deliberately does **not** do (per ``DESIGN.md`` §5):
 from __future__ import annotations
 
 import asyncio
+import dataclasses
 import ssl as _ssl_module
 import time
 from collections.abc import Mapping
 from dataclasses import dataclass
 from types import TracebackType
 
+from clickhouse_async._host_rotation import _HostRotation
 from clickhouse_async.client import Client, QueryResult
 from clickhouse_async.connection import TransportFactory
 from clickhouse_async.dsn import DSN, parse_dsn
@@ -63,6 +65,7 @@ class Pool:
         acquire_timeout: float = 30.0,
         max_lifetime: float = 600.0,
         health_check_after: float = 30.0,
+        host_failover_cooldown: float = 5.0,
         ssl_context: _ssl_module.SSLContext | None = None,
         transport_factory: TransportFactory | None = None,
     ) -> None:
@@ -81,6 +84,11 @@ class Pool:
             raise ValueError(
                 f"health_check_after must be ≥ 0, got {health_check_after}"
             )
+        if host_failover_cooldown < 0:
+            raise ValueError(
+                f"host_failover_cooldown must be ≥ 0, got "
+                f"{host_failover_cooldown}"
+            )
         self._dsn: DSN = dsn if isinstance(dsn, DSN) else parse_dsn(dsn)
         self._min_size = min_size
         self._max_size = max_size
@@ -89,6 +97,9 @@ class Pool:
         self._health_check_after = health_check_after
         self._ssl_context = ssl_context
         self._transport_factory = transport_factory
+        self._rotation = _HostRotation(
+            self._dsn.hosts, cooldown=host_failover_cooldown
+        )
 
         # Free queue's FIFO semantics give us per-waiter fairness for free.
         self._free: asyncio.Queue[_PoolEntry] = asyncio.Queue(maxsize=max_size)
@@ -275,10 +286,27 @@ class Pool:
         return getattr(client, "_pool_opened_at", time.monotonic())
 
     async def _open_client(self) -> Client:
+        # Pull a freshly-rotated, cooldown-filtered candidate list from
+        # the rotation; hand it to the Client (and onward to its
+        # Connection) by overriding the DSN's hosts for this open. The
+        # ``on_host_attempt`` callback feeds per-host outcomes back into
+        # the rotation so dead replicas earn a cooldown.
+        candidates = self._rotation.next_candidates()
+        per_open_dsn = dataclasses.replace(self._dsn, hosts=candidates)
+
+        def _on_attempt(
+            host: tuple[str, int], exc: BaseException | None
+        ) -> None:
+            if exc is None:
+                self._rotation.record_success(host)
+            else:
+                self._rotation.record_failure(host)
+
         client = Client(
-            self._dsn,
+            per_open_dsn,
             ssl_context=self._ssl_context,
             transport_factory=self._transport_factory,
+            on_host_attempt=_on_attempt,
         )
         await client.open()
         # Stamp the open timestamp on the client itself so we can read
@@ -383,6 +411,7 @@ def create_pool(
     acquire_timeout: float = 30.0,
     max_lifetime: float = 600.0,
     health_check_after: float = 30.0,
+    host_failover_cooldown: float = 5.0,
     ssl_context: _ssl_module.SSLContext | None = None,
     transport_factory: TransportFactory | None = None,
 ) -> Pool:
@@ -394,6 +423,10 @@ def create_pool(
     - ``health_check_after``: idle connections older than this are
       pinged on the way out of the pool; failed pings → discard +
       open fresh.
+    - ``host_failover_cooldown``: for multi-host DSNs, how long
+      (seconds) to skip a host that just failed before considering it
+      again. Best-effort: if every host is in cooldown the rotation
+      retries them all.
 
     ``transport_factory`` is a test-only injection point for the
     underlying socket pair; production callers should leave it unset.
@@ -405,6 +438,7 @@ def create_pool(
         acquire_timeout=acquire_timeout,
         max_lifetime=max_lifetime,
         health_check_after=health_check_after,
+        host_failover_cooldown=host_failover_cooldown,
         ssl_context=ssl_context,
         transport_factory=transport_factory,
     )

@@ -255,8 +255,11 @@ async with ch.create_pool(
   that is invisible and safe.
 - **No multiplexing.** One connection, one query at a time. If you need 32
   parallel queries, use a pool of 32.
-- **No load balancing across hosts in v0.** A list of hosts in the DSN is
-  on the roadmap (round-robin + failover), but v0 connects to exactly one.
+- **Multi-host DSN with failover.** A DSN can list comma-separated
+  candidates; `Connection.open` walks them in order, and `Pool` rotates
+  the start position across acquires with a per-host failure cooldown.
+  Read-replica vs primary routing and health-aware load balancing
+  (least-conns, RTT) are still roadmap.
 
 ---
 
@@ -436,10 +439,9 @@ tests/
 
 In rough priority order, gated on v0 being stable:
 
-1. Multi-host DSN with round-robin + failover.
-2. `AggregateFunction(...)` state columns and the new `JSON` type.
-3. Optional `pyarrow` / `polars` zero-copy adapters as separate extras.
-4. A C/Cython hot path for the int/float/string codecs if profiling shows
+1. `AggregateFunction(...)` state columns and the new `JSON` type.
+2. Optional `pyarrow` / `polars` zero-copy adapters as separate extras.
+3. A C/Cython hot path for the int/float/string codecs if profiling shows
    the pure-Python encoders are the bottleneck on large inserts.
 5. Server-side query cancellation by `query_id` (cancelling from a different
    connection than the one running the query).

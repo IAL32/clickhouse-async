@@ -90,7 +90,7 @@ async def _connect(transport: ScriptedTransport, *, revision: int | None = None)
         if revision is not None
         else encode_server_hello()
     )
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
     await conn.open(user="alice")
     return conn
 

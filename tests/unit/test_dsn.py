@@ -226,3 +226,81 @@ def test_invalid_secure_value_raises() -> None:
     # BEGIN / WHEN / THEN: a non-boolean secure value raises
     with pytest.raises(ValueError, match="invalid bool"):
         parse_dsn("clickhouse://host?secure=maybe")
+
+
+# ---- multi-host DSN -----------------------------------------------------
+
+
+def test_single_host_yields_one_element_hosts_tuple() -> None:
+    # BEGIN / WHEN: a plain single-host DSN
+    dsn = parse_dsn("clickhouse://host:9000/db")
+
+    # THEN: the canonical .hosts is a one-element tuple, and the .host /
+    #       .port shortcuts agree
+    assert dsn.hosts == (("host", 9000),)
+    assert dsn.host == "host"
+    assert dsn.port == 9000
+
+
+def test_two_hosts_with_explicit_ports() -> None:
+    # BEGIN / WHEN: a DSN naming two hosts with explicit ports
+    dsn = parse_dsn(
+        "clickhouse://alice:secret@h1:9000,h2:9001/db?compression=lz4"
+    )
+
+    # THEN: both hosts are parsed in order; userinfo / database / query
+    #       parameters still apply across the candidate list
+    assert dsn.hosts == (("h1", 9000), ("h2", 9001))
+    assert dsn.user == "alice"
+    assert dsn.password == "secret"
+    assert dsn.database == "db"
+    assert dsn.compression == CompressionMethod.LZ4
+
+
+def test_mixed_port_and_no_port_inherit_scheme_default() -> None:
+    # BEGIN / WHEN: a multi-host DSN where one piece omits the port
+    dsn = parse_dsn("clickhouse://h1:9000,h2,h3:9002/db")
+
+    # THEN: bare hosts inherit the scheme's plain default port
+    assert dsn.hosts == (("h1", 9000), ("h2", DEFAULT_PORT), ("h3", 9002))
+
+
+def test_secure_scheme_default_port_applies_per_piece() -> None:
+    # BEGIN / WHEN: a secure-scheme DSN with bare hosts
+    dsn = parse_dsn("clickhouses://h1,h2:9450")
+
+    # THEN: bare hosts pick up the secure default port; explicit ports
+    #       are respected
+    assert dsn.secure is True
+    assert dsn.hosts == (("h1", DEFAULT_SECURE_PORT), ("h2", 9450))
+
+
+def test_ipv6_host_alongside_named_host_in_multi_host_dsn() -> None:
+    # BEGIN / WHEN: an IPv6 literal shares the candidate list with a
+    #               named host — the comma split must respect the brackets
+    dsn = parse_dsn("clickhouse://user@[::1]:9000,h2:9001/db")
+
+    # THEN: each piece is parsed independently
+    assert dsn.hosts == (("::1", 9000), ("h2", 9001))
+
+
+def test_percent_encoded_password_works_with_multiple_hosts() -> None:
+    # BEGIN / WHEN: percent-encoded credentials with a multi-host netloc
+    dsn = parse_dsn("clickhouse://alice:p%40ss@h1:9000,h2:9001/db")
+
+    # THEN: the password is decoded; both hosts come through verbatim
+    assert dsn.password == "p@ss"
+    assert dsn.hosts == (("h1", 9000), ("h2", 9001))
+
+
+def test_invalid_port_in_a_piece_raises() -> None:
+    # BEGIN / WHEN / THEN: a malformed port surfaces as ValueError
+    with pytest.raises(ValueError, match="invalid port"):
+        parse_dsn("clickhouse://h1:9000,h2:notaport/db")
+
+
+def test_empty_host_in_list_raises() -> None:
+    # BEGIN / WHEN / THEN: a stray empty piece (e.g. trailing comma) is
+    #                     rejected so callers don't silently lose a host
+    with pytest.raises(ValueError, match="empty"):
+        parse_dsn("clickhouse://h1:9000,,h2:9001/db")

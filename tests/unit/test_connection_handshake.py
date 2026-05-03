@@ -53,7 +53,7 @@ async def test_handshake_populates_server_info_and_promotes_to_ready() -> None:
             version_patch=12,
         )
     )
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
 
     # WHEN: opening with credentials
     await conn.open(user="alice", password="secret", database="analytics")
@@ -74,7 +74,7 @@ async def test_client_hello_bytes_match_documented_field_order() -> None:
     # BEGIN: a connection ready to handshake
     transport = ScriptedTransport()
     transport.feed(encode_server_hello())
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
 
     # WHEN: opening with credentials
     await conn.open(user="alice", password="secret", database="db")
@@ -100,7 +100,7 @@ async def test_negotiated_revision_caps_at_our_revision_for_newer_servers() -> N
     # BEGIN: a server claiming a revision newer than ours
     transport = ScriptedTransport()
     transport.feed(encode_server_hello(revision=OUR_REVISION + 5))
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
 
     # WHEN: handshaking
     await conn.open()
@@ -118,7 +118,7 @@ async def test_negotiated_revision_follows_server_for_older_servers() -> None:
     older = OUR_REVISION - 30
     transport = ScriptedTransport()
     transport.feed(encode_server_hello(revision=older))
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
 
     # WHEN: handshaking
     await conn.open()
@@ -141,7 +141,7 @@ async def test_server_exception_during_handshake_raises_and_breaks_connection() 
             display_text="User 'alice' does not exist",
         )
     )
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
 
     # WHEN: handshaking against the rejecting server
     # THEN: a ServerError surfaces with the documented fields, and the
@@ -169,7 +169,7 @@ async def test_nested_server_exception_round_trips() -> None:
             code=42, name="OUTER", display_text="failed to do X", nested=inner
         )
     )
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
 
     # WHEN: handshake fails
     with pytest.raises(ServerError) as exc_info:
@@ -190,7 +190,7 @@ async def test_unexpected_first_packet_raises_protocol_error_and_breaks() -> Non
     #        Hello or Exception (e.g. Pong = 4)
     transport = ScriptedTransport()
     transport.feed(b"\x04")  # ServerPacket.PONG = 4
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
 
     # WHEN / THEN: the connection rejects the unexpected packet and is BROKEN
     with pytest.raises(ProtocolError, match="unexpected packet id 4"):
@@ -204,7 +204,7 @@ async def test_unexpected_first_packet_raises_protocol_error_and_breaks() -> Non
 async def test_server_info_raises_before_handshake() -> None:
     # BEGIN: an IDLE connection
     transport = ScriptedTransport()
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
 
     # WHEN / THEN: accessing server_info before handshake raises with the
     #              current state in the message
@@ -221,7 +221,7 @@ async def test_old_server_omitting_optional_fields_still_handshakes() -> None:
     pre_timezone = 54057
     transport = ScriptedTransport()
     transport.feed(encode_server_hello(revision=pre_timezone))
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
 
     # WHEN: handshaking
     await conn.open()

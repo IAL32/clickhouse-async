@@ -109,3 +109,25 @@ async def test_streaming_iter_rows_returns_to_ready(pool: ch.Pool) -> None:
         assert [r[0] for r in rows] == list(range(n_rows))
         # A follow-up trivial query confirms the connection survived
         assert await client.fetch_all("SELECT 1") == [(1,)]
+
+
+async def test_multi_host_dsn_falls_through_dead_first_host(dsn: str) -> None:
+    # BEGIN: a multi-host DSN whose first candidate is unreachable
+    #        (a port nothing's listening on) and second candidate is
+    #        the real ClickHouse from the session DSN
+    real = ch.parse_dsn(dsn)
+    real_host, real_port = real.host, real.port
+    multi = (
+        f"clickhouse://{real.user}:{real.password}"
+        f"@localhost:9999,{real_host}:{real_port}/{real.database}"
+    )
+
+    # WHEN: connecting via the multi-host DSN
+    async with ch.connect(multi) as client:
+        # THEN: the connection landed on the real (second) candidate
+        assert client.dsn.hosts == (
+            ("localhost", 9999),
+            (real_host, real_port),
+        )
+        # And the connection is fully functional
+        assert await client.fetch_all("SELECT 1") == [(1,)]

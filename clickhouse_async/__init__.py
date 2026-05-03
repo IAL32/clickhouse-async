@@ -11,6 +11,7 @@ from clickhouse_async.dsn import DSN, parse_dsn
 from clickhouse_async.errors import (
     ClickHouseError,
     ConcurrentQueryError,
+    ConnectError,
     MissingExtraError,
     PoolClosedError,
     PoolError,
@@ -29,6 +30,7 @@ __all__ = [
     "Client",
     "CompressionMethod",
     "ConcurrentQueryError",
+    "ConnectError",
     "MissingExtraError",
     "Pool",
     "PoolClosedError",

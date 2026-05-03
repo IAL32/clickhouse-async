@@ -23,7 +23,7 @@ from ._scripted_packets import encode_server_hello
 async def test_freshly_constructed_connection_is_idle() -> None:
     # BEGIN: a brand-new Connection over a scripted transport
     transport = ScriptedTransport()
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
 
     # WHEN / THEN: the connection is in IDLE and has not opened the transport
     assert conn.state == State.IDLE
@@ -38,7 +38,7 @@ async def test_open_completes_handshake_and_reaches_ready() -> None:
     #        reply queued
     transport = ScriptedTransport()
     transport.feed(encode_server_hello())
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
 
     # WHEN: opening the transport
     await conn.open()
@@ -55,7 +55,7 @@ async def test_open_from_non_idle_state_raises() -> None:
     # BEGIN: a connection already in READY from a successful handshake
     transport = ScriptedTransport()
     transport.feed(encode_server_hello())
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
     await conn.open()
 
     # WHEN: calling open() a second time
@@ -71,7 +71,7 @@ async def test_transport_factory_failure_marks_connection_broken() -> None:
     ) -> Never:
         raise ConnectionRefusedError("nope")
 
-    conn = Connection("h", 9000, transport_factory=boom)
+    conn = Connection([("h", 9000)], transport_factory=boom)
 
     # WHEN: opening fails
     # THEN: the underlying error propagates, the connection is BROKEN, and
@@ -92,7 +92,7 @@ async def test_close_from_ready_transitions_to_closed_and_closes_writer() -> Non
     # BEGIN: an open connection in READY (handshake complete)
     transport = ScriptedTransport()
     transport.feed(encode_server_hello())
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
     await conn.open()
 
     # WHEN: closing the connection
@@ -107,7 +107,7 @@ async def test_close_is_idempotent() -> None:
     # BEGIN: a connection that has already been closed once
     transport = ScriptedTransport()
     transport.feed(encode_server_hello())
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
     await conn.open()
     await conn.close()
 
@@ -122,7 +122,7 @@ async def test_close_is_idempotent() -> None:
 async def test_close_from_idle_is_safe() -> None:
     # BEGIN: a brand-new connection that never opened
     transport = ScriptedTransport()
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
 
     # WHEN: closing without opening
     await conn.close()
@@ -141,7 +141,7 @@ async def test_close_from_broken_does_not_resurrect_writer() -> None:
     ) -> Never:
         raise ConnectionRefusedError("nope")
 
-    conn = Connection("h", 9000, transport_factory=boom)
+    conn = Connection([("h", 9000)], transport_factory=boom)
     with pytest.raises(ConnectionRefusedError):
         await conn.open()
     assert conn.state == State.BROKEN
@@ -160,7 +160,7 @@ async def test_mock_transport_carries_handshake_traffic_both_directions() -> Non
     # BEGIN: a connection ready to handshake against a scripted server
     transport = ScriptedTransport()
     transport.feed(encode_server_hello())
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
 
     # WHEN: running the handshake
     await conn.open(user="u", password="p", database="db")

@@ -37,7 +37,7 @@ from ._scripted_packets import (
 
 async def _connect_and_send_query(transport: ScriptedTransport) -> Connection:
     transport.feed(encode_server_hello())
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
     await conn.open()
     await conn.send_query("SELECT 1")
     return conn
@@ -92,7 +92,7 @@ async def test_progress_at_pre_total_bytes_revision_omits_late_fields() -> None:
     older_revision = DBMS_MIN_PROTOCOL_VERSION_WITH_TOTAL_BYTES_IN_PROGRESS - 1
     transport = ScriptedTransport()
     transport.feed(encode_server_hello(revision=older_revision))
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
     await conn.open()
     await conn.send_query("SELECT 1")
     received: list[ProgressInfo] = []
@@ -396,7 +396,7 @@ async def test_iter_packets_passes_negotiated_revision_to_block_reader() -> None
     older_revision = OUR_REVISION - 30
     transport = ScriptedTransport()
     transport.feed(encode_server_hello(revision=older_revision))
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
     await conn.open()
     await conn.send_query("SELECT 1")
     spec, vals = make_column("x", "Int32", [1, 2, 3])

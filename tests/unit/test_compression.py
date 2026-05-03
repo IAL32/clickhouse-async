@@ -260,7 +260,7 @@ async def test_send_query_compression_flag_flips_when_lz4_enabled() -> None:
     transport = ScriptedTransport()
     transport.feed(encode_server_hello())
     conn = Connection(
-        "h", 9000, compression=CompressionMethod.LZ4, transport_factory=transport
+        [("h", 9000)], compression=CompressionMethod.LZ4, transport_factory=transport
     )
     await conn.open()
 
@@ -315,7 +315,7 @@ async def test_send_data_round_trips_compressed_block_through_loopback() -> None
     transport = ScriptedTransport()
     transport.feed(encode_server_hello())
     conn = Connection(
-        "h", 9000, compression=CompressionMethod.LZ4, transport_factory=transport
+        [("h", 9000)], compression=CompressionMethod.LZ4, transport_factory=transport
     )
     await conn.open()
     await conn.send_query("INSERT INTO t VALUES")
@@ -347,7 +347,7 @@ async def test_iter_packets_decodes_compressed_data_block() -> None:
     transport = ScriptedTransport()
     transport.feed(encode_server_hello())
     conn = Connection(
-        "h", 9000, compression=CompressionMethod.LZ4, transport_factory=transport
+        [("h", 9000)], compression=CompressionMethod.LZ4, transport_factory=transport
     )
     await conn.open()
     await conn.send_query("SELECT 1")
@@ -385,7 +385,7 @@ async def test_default_connection_uses_no_compression() -> None:
     # BEGIN: a connection opened without specifying a compression method
     transport = ScriptedTransport()
     transport.feed(encode_server_hello())
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
     await conn.open()
 
     # WHEN: sending a non-trivial block via send_data after a query

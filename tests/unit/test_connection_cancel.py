@@ -24,7 +24,7 @@ async def _connect_in_flight(transport: ScriptedTransport) -> Connection:
     """Open a connection past handshake and dispatch a SELECT so it
     sits in IN_FLIGHT, ready to be cancelled."""
     transport.feed(encode_server_hello())
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
     await conn.open()
     await conn.send_query("SELECT 1")
     return conn
@@ -41,7 +41,7 @@ async def test_cancel_from_ready_is_a_silent_noop() -> None:
     # BEGIN: a connected READY connection (no query in flight)
     transport = ScriptedTransport()
     transport.feed(encode_server_hello())
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
     await conn.open()
     assert conn.state == State.READY
     pre = len(transport.written())
@@ -211,7 +211,7 @@ async def test_cancel_from_broken_raises_not_in_flight() -> None:
 async def test_cancel_from_idle_raises_not_in_flight() -> None:
     # BEGIN: a brand-new IDLE connection (never opened)
     transport = ScriptedTransport()
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
     assert conn.state == State.IDLE
 
     # WHEN / THEN: cancelling raises with reason "not_in_flight"

@@ -100,12 +100,6 @@ already on `DESIGN.md §13` are repeated here so this file is the single
 
 ### Connection / protocol
 
-- **Multi-host DSN with round-robin + failover.** v0 connects to
-  exactly one host. The DSN parser will need to accept comma-separated
-  hosts; the connection logic gets a "try next on connect failure"
-  loop. Pool integration is the trickier part — failed acquire-time
-  health checks should mark a host bad for some cooldown, not just
-  rotate forever.
 - **Cancel a query by `query_id` from a different connection.** v0's
   cancel goes through the same connection that issued the query.
   Issuing `KILL QUERY WHERE query_id = ...` from a side channel is the

@@ -44,7 +44,7 @@ async def _open_in_flight(transport: ScriptedTransport) -> Connection:
     test. Server replies with a header block as the first response so
     callers can immediately consume it via ``iter_packets``."""
     transport.feed(encode_server_hello())
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
     await conn.open()
     await conn.send_query("INSERT INTO t VALUES")
     return conn
@@ -106,7 +106,7 @@ async def test_send_data_from_ready_raises() -> None:
     # BEGIN: a connection that just completed handshake but has no query in flight
     transport = ScriptedTransport()
     transport.feed(encode_server_hello())
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
     await conn.open()
     assert conn.state == State.READY
 
@@ -119,7 +119,7 @@ async def test_send_data_from_ready_raises() -> None:
 async def test_send_data_from_idle_raises() -> None:
     # BEGIN: a brand-new connection that never opened
     transport = ScriptedTransport()
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
 
     # WHEN / THEN: send_data without opening
     with pytest.raises(RuntimeError, match="IDLE"):

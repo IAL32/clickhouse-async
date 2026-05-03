@@ -41,7 +41,7 @@ async def _connect(transport: ScriptedTransport) -> Connection:
     """Open a connection that's already through the handshake — saves
     boilerplate in tests focused on send_query."""
     transport.feed(encode_server_hello())
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
     await conn.open(user="alice")
     return conn
 
@@ -206,7 +206,7 @@ async def test_send_query_from_in_flight_raises_concurrent_query_error() -> None
 async def test_send_query_from_idle_raises() -> None:
     # BEGIN: a brand-new connection that never opened
     transport = ScriptedTransport()
-    conn = Connection("h", 9000, transport_factory=transport)
+    conn = Connection([("h", 9000)], transport_factory=transport)
 
     # WHEN: trying to send a query without opening
     # THEN: a RuntimeError surfaces naming the current state

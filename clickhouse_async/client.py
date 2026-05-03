@@ -18,14 +18,15 @@ from __future__ import annotations
 
 import ssl as _ssl_module
 import time
-from collections.abc import Awaitable, Callable, Mapping
+from collections.abc import AsyncGenerator, Awaitable, Callable, Mapping
 from dataclasses import dataclass, field
 from types import TracebackType
 from typing import TYPE_CHECKING
 
-from clickhouse_async.connection import Connection, _WriterLike
+from clickhouse_async.connection import Connection, State, _WriterLike
 from clickhouse_async.dsn import DSN, parse_dsn
-from clickhouse_async.protocol.block import ColumnSpec
+from clickhouse_async.errors import QueryCancellationError
+from clickhouse_async.protocol.block import Block, ColumnSpec
 from clickhouse_async.protocol.server_packets import ProfileInfo, ProgressInfo
 
 if TYPE_CHECKING:
@@ -115,9 +116,9 @@ class Client:
 
     async def __aexit__(
         self,
-        exc_type: type[BaseException] | None,
-        exc: BaseException | None,
-        tb: TracebackType | None,
+        _exc_type: type[BaseException] | None,
+        _exc: BaseException | None,
+        _tb: TracebackType | None,
     ) -> None:
         await self.close()
 
@@ -204,15 +205,23 @@ class Client:
             self._conn.on_profile_info = prior_profile
 
         elapsed = time.monotonic() - start
+        # Materialise both fields once so ty's flow analysis doesn't
+        # over-narrow the inline conditionals (the callbacks run inside
+        # the async-for loop, which ty doesn't track for closure
+        # mutation).
+        final_progress: ProgressInfo
+        if captured_progress is not None:
+            final_progress = captured_progress
+        else:
+            final_progress = ProgressInfo(
+                read_rows=0, read_bytes=0, total_rows_to_read=0
+            )
         return QueryResult(
             columns=columns,
             rows=rows,
-            written_rows=(
-                captured_progress.written_rows if captured_progress else 0
-            ),
+            written_rows=final_progress.written_rows,
             elapsed=elapsed,
-            progress=captured_progress
-            or ProgressInfo(read_rows=0, read_bytes=0, total_rows_to_read=0),
+            progress=final_progress,
             profile_info=captured_profile,
         )
 
@@ -244,6 +253,88 @@ class Client:
             sql, params=params, settings=settings, query_id=query_id
         )
         return rows[0] if rows else None
+
+    # ---- streaming -------------------------------------------------------
+
+    async def iter_blocks(
+        self,
+        sql: str,
+        *,
+        params: Mapping[str, object] | None = None,
+        settings: Mapping[str, str] | None = None,
+        query_id: str = "",
+    ) -> AsyncGenerator[Block, None]:
+        """Async-iterate the result of ``sql`` block-by-block.
+
+        Header-only blocks (``n_rows == 0``) are filtered out; only
+        data-bearing blocks are yielded. Totals / Extremes are not
+        yielded — those need their own typed surface and aren't part
+        of the v0 streaming API.
+
+        The generator holds the underlying connection until exhausted.
+        To break out early without leaking the connection, wrap with
+        ``contextlib.aclosing`` so the cleanup (Cancel + drain) runs
+        deterministically at the ``async with`` exit:
+
+            from contextlib import aclosing
+            async with aclosing(client.iter_blocks("SELECT …")) as blocks:
+                async for block in blocks:
+                    if some_condition:
+                        break
+
+        Without ``aclosing``, Python defers async-generator cleanup to
+        GC time — a subsequent operation on the same client may fire
+        before cancel completes.
+        """
+        await self._conn.send_query(
+            sql, query_id=query_id, settings=settings, params=params
+        )
+        try:
+            async for streamed in self._conn.iter_packets():
+                if streamed.kind != "data":
+                    continue
+                if streamed.block.n_rows == 0:
+                    continue
+                yield streamed.block
+        finally:
+            # If the user broke out before EndOfStream, cancel and drain
+            # so the connection is reusable for the next operation.
+            if self._conn.state == State.IN_FLIGHT:
+                try:
+                    await self._conn.cancel()
+                except QueryCancellationError:
+                    # cancel() always raises with a reason field; we
+                    # only need its side effects here.
+                    pass
+
+    async def iter_rows(
+        self,
+        sql: str,
+        *,
+        params: Mapping[str, object] | None = None,
+        settings: Mapping[str, str] | None = None,
+        query_id: str = "",
+    ) -> AsyncGenerator[tuple[object, ...], None]:
+        """Async-iterate the result of ``sql`` row-by-row.
+
+        A thin transpose around ``iter_blocks``; the same
+        ``contextlib.aclosing`` recommendation applies for
+        deterministic cleanup on early exit.
+        """
+        # Hold the inner generator explicitly so we can aclose() it on
+        # GeneratorExit — Python doesn't propagate aclose through a
+        # `async for` loop, so a break-out at the iter_rows level would
+        # otherwise leave iter_blocks dangling and the connection stuck
+        # in IN_FLIGHT.
+        inner = self.iter_blocks(
+            sql, params=params, settings=settings, query_id=query_id
+        )
+        try:
+            async for block in inner:
+                for i in range(block.n_rows):
+                    yield tuple(col[i] for col in block.data)
+        finally:
+            await inner.aclose()
 
 
 def connect(

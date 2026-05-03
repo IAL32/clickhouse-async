@@ -111,11 +111,15 @@ up() {
     # ports — tests then race the gap and see ConnectionResetError.
     # The "Ready for connections" log line only appears once per real
     # server lifecycle, after every listener is up.
+    #
+    # ClickHouse logs to a file (clickhouse-server.log), not stdout,
+    # so ``docker logs`` only shows entrypoint output. Grep the file
+    # directly via ``docker exec``.
     printf 'Waiting for server'
     local server_ready=0
     for _ in $(seq 1 60); do
-        if docker logs "$CONTAINER_NAME" 2>&1 |
-                grep -q "Ready for connections"; then
+        if docker exec "$CONTAINER_NAME" sh -c \
+                'grep -q "Ready for connections" /var/log/clickhouse-server/clickhouse-server.log 2>/dev/null'; then
             server_ready=1
             break
         fi

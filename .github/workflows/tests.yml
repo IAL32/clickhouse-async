@@ -109,7 +109,16 @@ jobs:
         run: uv run pytest tests/unit -q --timeout=10
 
       - name: Integration tests
-        run: uv run pytest tests/integration --localdb -m integration -q --timeout=60
+        # Pin to 127.0.0.1 explicitly. Linux Docker hosts publish ports
+        # only on the IPv4 loopback by default, and asyncio's resolver
+        # may try the IPv6 entry first when given the literal "localhost"
+        # — that path can connect through Docker's userland proxy and
+        # then RST on read, masking the real port-mapping behaviour. The
+        # IPv4 literal sidesteps the dual-stack ambiguity entirely.
+        run: |
+          uv run pytest tests/integration \
+            --localdb=clickhouse://clickhouse:clickhouse@127.0.0.1:9000/clickhouse \
+            -m integration -q --timeout=60
 
       - name: ClickHouse logs on failure
         if: failure()

@@ -150,7 +150,19 @@ down() {
 
 logs() {
     require_docker
+    # Container stdout/stderr — entrypoint output, mostly.
     docker logs "$@" "$CONTAINER_NAME"
+    # The actual server log lives on the container filesystem; dump it
+    # so CI captures handshake-time errors (auth rejections, malformed
+    # packets, etc.) that the entrypoint stdout never sees.
+    if is_running; then
+        printf '\n--- /var/log/clickhouse-server/clickhouse-server.log ---\n'
+        docker exec "$CONTAINER_NAME" \
+            sh -c 'tail -n 500 /var/log/clickhouse-server/clickhouse-server.log 2>/dev/null || true'
+        printf '\n--- /var/log/clickhouse-server/clickhouse-server.err.log ---\n'
+        docker exec "$CONTAINER_NAME" \
+            sh -c 'tail -n 500 /var/log/clickhouse-server/clickhouse-server.err.log 2>/dev/null || true'
+    fi
 }
 
 shell() {

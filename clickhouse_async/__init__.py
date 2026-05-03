@@ -6,7 +6,7 @@
 # trigger a circular import that fails attribute lookup.
 __version__ = "0.1.0"
 
-from clickhouse_async.client import Client, connect
+from clickhouse_async.client import Client, QueryResult, connect
 from clickhouse_async.dsn import DSN, parse_dsn
 from clickhouse_async.errors import (
     ClickHouseError,
@@ -28,6 +28,7 @@ __all__ = [
     "MissingExtraError",
     "ProtocolError",
     "QueryCancellationError",
+    "QueryResult",
     "ServerError",
     "UnsupportedFeatureError",
     "__version__",

@@ -138,6 +138,13 @@ class Client:
     def dsn(self) -> DSN:
         return self._dsn
 
+    @property
+    def is_alive(self) -> bool:
+        """``True`` iff the underlying connection is in ``READY`` —
+        i.e. usable for the next query. Used by the pool's release
+        path to decide whether to recycle a returned client."""
+        return self._conn.state == State.READY
+
     # ---- queries ---------------------------------------------------------
 
     async def execute(

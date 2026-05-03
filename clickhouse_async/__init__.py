@@ -12,11 +12,15 @@ from clickhouse_async.errors import (
     ClickHouseError,
     ConcurrentQueryError,
     MissingExtraError,
+    PoolClosedError,
+    PoolError,
+    PoolTimeoutError,
     ProtocolError,
     QueryCancellationError,
     ServerError,
     UnsupportedFeatureError,
 )
+from clickhouse_async.pool import Pool, create_pool
 from clickhouse_async.protocol.compression import CompressionMethod
 
 __all__ = [
@@ -26,6 +30,10 @@ __all__ = [
     "CompressionMethod",
     "ConcurrentQueryError",
     "MissingExtraError",
+    "Pool",
+    "PoolClosedError",
+    "PoolError",
+    "PoolTimeoutError",
     "ProtocolError",
     "QueryCancellationError",
     "QueryResult",
@@ -33,5 +41,6 @@ __all__ = [
     "UnsupportedFeatureError",
     "__version__",
     "connect",
+    "create_pool",
     "parse_dsn",
 ]

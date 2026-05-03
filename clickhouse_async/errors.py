@@ -44,6 +44,19 @@ class QueryCancellationError(ClickHouseError):
         self.reason = reason
 
 
+class PoolError(ClickHouseError):
+    """Base class for pool-related errors."""
+
+
+class PoolClosedError(PoolError):
+    """Operation attempted on a closed ``Pool``."""
+
+
+class PoolTimeoutError(PoolError):
+    """``Pool.acquire()`` did not get a connection within the
+    configured ``acquire_timeout``."""
+
+
 class MissingExtraError(ClickHouseError):
     """A feature was requested but its optional dependency isn't installed.
 

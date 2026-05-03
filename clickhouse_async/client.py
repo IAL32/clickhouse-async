@@ -89,6 +89,11 @@ class Client:
         # custom CAs hand us a configured context.
         if parsed.secure and ssl_context is None:
             ssl_context = _ssl_module.create_default_context()
+        # Stash the resolved config so ``kill_query`` can mint a fresh
+        # side-channel ``Client`` when the primary connection is busy.
+        self._ssl_context = ssl_context
+        self._transport_factory = transport_factory
+        self._on_host_attempt = on_host_attempt
         self._conn = Connection(
             parsed.hosts,
             ssl_context=ssl_context,
@@ -425,6 +430,58 @@ class Client:
                     yield tuple(col[i] for col in block.data)
         finally:
             await inner.aclose()
+
+    # ---- query control --------------------------------------------------
+
+    async def kill_query(self, query_id: str, *, sync: bool = True) -> int:
+        """Cancel a running query identified by ``query_id`` from a
+        side channel.
+
+        Issues ``KILL QUERY WHERE query_id = {qid:String}`` (with
+        ``SYNC`` appended when ``sync=True``, the default) over a
+        separate connection from the one that started the query. The
+        return value is the number of queries the server confirmed it
+        targeted — each row in the ``KILL QUERY`` result corresponds
+        to one targeted query.
+
+        ``sync=True`` (default) waits for the server to actually
+        cancel the target query before returning. ``sync=False``
+        drops the ``SYNC`` keyword and returns as soon as the server
+        has accepted the request; the original task may briefly keep
+        running.
+
+        Permissions: requires either the same user that issued the
+        query or a user with the ``KILL QUERY`` access right.
+
+        If the current ``Client``'s connection is ``READY``, the kill
+        runs over it directly. Otherwise — typically because *this*
+        client is the one mid-query — a fresh side-channel ``Client``
+        is opened against the same DSN for the duration of the call
+        and closed before returning.
+        """
+        if not query_id or not query_id.strip():
+            raise ValueError(
+                f"query_id must be a non-empty, non-whitespace string; got {query_id!r}"
+            )
+
+        sql = "KILL QUERY WHERE query_id = {qid:String}" + (" SYNC" if sync else "")
+        params: Mapping[str, object] = {"qid": query_id}
+
+        if self._conn.state == State.READY:
+            result = await self.execute(sql, params=params)
+            return result.row_count
+
+        # Primary connection is busy / broken / closed — open a fresh
+        # side-channel client with the same DSN config for this call
+        # only, then drop it.
+        async with Client(
+            self._dsn,
+            ssl_context=self._ssl_context,
+            transport_factory=self._transport_factory,
+            on_host_attempt=self._on_host_attempt,
+        ) as fresh:
+            result = await fresh.execute(sql, params=params)
+            return result.row_count
 
 
 async def _async_rows(

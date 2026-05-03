@@ -530,6 +530,23 @@ class Pool:
                 sql, params=params, settings=settings, query_id=query_id
             )
 
+    async def kill_query(self, query_id: str, *, sync: bool = True) -> int:
+        """Cancel a running query identified by ``query_id`` from a
+        side-channel connection borrowed from this pool.
+
+        Equivalent to ``async with pool.acquire() as c:
+        await c.kill_query(query_id, sync=sync)`` — pulled out so the
+        common case of "I have a query_id, please kill it" doesn't
+        need its own ``async with`` block at the call site.
+
+        Returns the number of queries the server confirmed it
+        targeted (each row in the ``KILL QUERY`` result corresponds
+        to one targeted query). Permissions and sync semantics match
+        ``Client.kill_query``; see that docstring for the details.
+        """
+        async with self.acquire() as client:
+            return await client.kill_query(query_id, sync=sync)
+
 
 class _PoolAcquireContext:
     """Async context manager returned by ``Pool.acquire()``. Wrapping

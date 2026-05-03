@@ -8,6 +8,7 @@ code on both sides) surface here against the real server's parser.
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Awaitable, Callable
 from datetime import date
 
@@ -109,6 +110,78 @@ async def test_streaming_iter_rows_returns_to_ready(pool: ch.Pool) -> None:
         assert [r[0] for r in rows] == list(range(n_rows))
         # A follow-up trivial query confirms the connection survived
         assert await client.fetch_all("SELECT 1") == [(1,)]
+
+
+async def test_kill_query_cancels_query_running_on_another_connection(
+    pool: ch.Pool,
+) -> None:
+    # BEGIN: a long-running SELECT with a known query_id launched on
+    #        one pool client; the kill goes through a *different* pool
+    #        client so we exercise the cross-connection cancel path.
+    qid = "test-kill-query-cross-conn"
+
+    async def runner() -> BaseException | None:
+        try:
+            async with pool.acquire() as client:
+                # ``sleepEachRow(2.5)`` is the longest single sleep
+                # ClickHouse permits per call; we chain 8 rows under a
+                # raised ``function_sleep_max_microseconds_per_block``
+                # cap so the query takes ~20 s. That leaves ample
+                # headroom for the killer task to run.
+                await client.fetch_all(
+                    "SELECT sleepEachRow(2.5) FROM numbers(8)",
+                    query_id=qid,
+                    settings={
+                        "function_sleep_max_microseconds_per_block": "30000000",
+                    },
+                )
+        except BaseException as exc:
+            return exc
+        return None
+
+    runner_task = asyncio.create_task(runner())
+
+    # Poll system.processes until the runner's query is registered.
+    # Faster and more robust than a fixed sleep — the pool acquire
+    # plus first-block round-trip can take 100 ms on a cold pool.
+    deadline = asyncio.get_event_loop().time() + 5.0
+    found = False
+    while asyncio.get_event_loop().time() < deadline:
+        procs = await pool.fetch_all(
+            "SELECT query_id FROM system.processes WHERE query_id = {qid:String}",
+            params={"qid": qid},
+        )
+        if procs:
+            found = True
+            break
+        await asyncio.sleep(0.05)
+    if not found:
+        runner_task.cancel()
+        raise AssertionError(
+            "runner's query never showed up in system.processes within 5 s"
+        )
+
+    # WHEN: the runner is in flight, a separate pool.kill_query
+    #       cancels it from a fresh connection
+    try:
+        async with asyncio.timeout(15):
+            n = await pool.kill_query(qid)
+    except TimeoutError:
+        runner_task.cancel()
+        raise
+
+    # THEN: the server confirmed at least one query targeted (sync
+    #       waits for the kill to actually land)
+    assert n >= 1
+
+    # And the original task surfaces ServerError code 394
+    # (QUERY_WAS_CANCELLED).
+    result = await asyncio.wait_for(runner_task, timeout=15)
+    assert isinstance(result, ch.ServerError)
+    assert result.code == 394, (
+        f"expected QUERY_WAS_CANCELLED (394), got {result.code} "
+        f"({result.name}): {result.display_text}"
+    )
 
 
 async def test_multi_host_dsn_falls_through_dead_first_host(dsn: str) -> None:

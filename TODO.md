@@ -87,10 +87,6 @@ already on `DESIGN.md §13` are repeated here so this file is the single
 
 ### Connection / protocol
 
-- **Cancel a query by `query_id` from a different connection.** v0's
-  cancel goes through the same connection that issued the query.
-  Issuing `KILL QUERY WHERE query_id = ...` from a side channel is the
-  cross-connection path; needs a small helper API on the pool.
 - **Compression default on.** Currently off. Once we have a benchmark
   suite and an integration test that exercises multi-block compressed
   payloads, flip the default for connections opened with the

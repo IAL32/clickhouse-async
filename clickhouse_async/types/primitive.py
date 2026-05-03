@@ -14,10 +14,12 @@ Two implementation paths based on width:
 from __future__ import annotations
 
 import struct
-from collections.abc import Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 
 
 class _StructCodec:

@@ -32,6 +32,7 @@ undo the cancellation reasoning we get for free here.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import ssl as _ssl_module
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping, Sequence
@@ -750,10 +751,8 @@ class Connection:
         if writer is None or writer.is_closing():
             return
         writer.close()
-        try:
+        with contextlib.suppress(OSError, asyncio.CancelledError):
             await writer.wait_closed()
-        except (OSError, asyncio.CancelledError):
-            pass
 
     async def close(self) -> None:
         """Close the transport and transition to ``CLOSED``.
@@ -768,12 +767,10 @@ class Connection:
         self._reader = None
         if writer is not None and not writer.is_closing():
             writer.close()
-            try:
+            # Already-closed sockets and cancellation during shutdown
+            # aren't load-bearing — we're closing anyway.
+            with contextlib.suppress(OSError, asyncio.CancelledError):
                 await writer.wait_closed()
-            except (OSError, asyncio.CancelledError):
-                # Already-closed sockets and cancellation during shutdown
-                # aren't load-bearing — we're closing anyway.
-                pass
 
     # ---- internals -------------------------------------------------------
 

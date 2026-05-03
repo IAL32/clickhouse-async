@@ -12,10 +12,12 @@ position even when the row is null, so ``Nullable`` substitutes
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Any, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
-from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 
 
 @runtime_checkable

@@ -10,10 +10,14 @@ to enum bodies — there is no general ``key = value`` param syntax.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from clickhouse_async.errors import ProtocolError
-from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 
 
 class _EnumCodec:

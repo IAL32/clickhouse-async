@@ -17,10 +17,20 @@ to the right size) or as the explicit ``Decimal32(S)``/``…(S)`` form
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from decimal import Decimal as PyDecimal
+from typing import TYPE_CHECKING
 
-from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+
+# Storage-width breakpoints for the ``Decimal(P, S)`` dispatcher.
+# ClickHouse caps total decimal precision at 76 digits.
+_DECIMAL32_MAX_PRECISION = 9
+_DECIMAL64_MAX_PRECISION = 18
+_DECIMAL128_MAX_PRECISION = 38
+_MAX_DECIMAL_PRECISION = 76
 
 
 class _DecimalCodec:
@@ -85,13 +95,16 @@ def make_decimal(precision: int, scale: int) -> _DecimalCodec:
     server sent.
     """
 
-    if precision < 1 or precision > 76:
-        raise ValueError(f"Decimal precision out of range [1, 76], got {precision}")
-    if precision <= 9:
+    if precision < 1 or precision > _MAX_DECIMAL_PRECISION:
+        raise ValueError(
+            f"Decimal precision out of range [1, {_MAX_DECIMAL_PRECISION}], "
+            f"got {precision}"
+        )
+    if precision <= _DECIMAL32_MAX_PRECISION:
         codec: _DecimalCodec = Decimal32(scale)
-    elif precision <= 18:
+    elif precision <= _DECIMAL64_MAX_PRECISION:
         codec = Decimal64(scale)
-    elif precision <= 38:
+    elif precision <= _DECIMAL128_MAX_PRECISION:
         codec = Decimal128(scale)
     else:
         codec = Decimal256(scale)

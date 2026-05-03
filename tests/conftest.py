@@ -10,11 +10,14 @@ gracefully when neither a local server nor docker is available.
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from typing import TYPE_CHECKING
 
 import pytest
 
 from tests.containers.clickhouse import ClickHouseContainer
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 # Canonical default — kept in sync with CLAUDE.md and
 # scripts/clickhouse.sh. Bumping in one place needs a bump in all.

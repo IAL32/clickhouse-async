@@ -35,9 +35,9 @@ consumed the leading packet id so it can dispatch.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import clickhouse_async
-from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 from clickhouse_async.protocol.packets import (
     DBMS_MIN_PROTOCOL_VERSION_WITH_PASSWORD_COMPLEXITY_RULES,
     DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET_V2,
@@ -48,6 +48,9 @@ from clickhouse_async.protocol.packets import (
     ClientPacket,
 )
 
+if TYPE_CHECKING:
+    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+
 CLIENT_NAME = "clickhouse-async"
 
 
@@ -55,8 +58,8 @@ def _split_version(v: str) -> tuple[int, int]:
     """Parse ``"0.1.0"`` → ``(0, 1)``. Patch is folded into the minor's
     submission; we send only major/minor at handshake."""
     parts = v.split(".")
-    major = int(parts[0]) if len(parts) >= 1 and parts[0].isdigit() else 0
-    minor = int(parts[1]) if len(parts) >= 2 and parts[1].isdigit() else 0
+    major = int(parts[0]) if parts and parts[0].isdigit() else 0
+    minor = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 0
     return major, minor
 
 

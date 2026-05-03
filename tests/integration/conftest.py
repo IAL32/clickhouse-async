@@ -8,12 +8,15 @@ them explicitly: ``pytest tests/integration`` or ``pytest -m integration``.
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator, Awaitable, Callable
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
 import clickhouse_async as ch
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator, Awaitable, Callable
 
 
 def pytest_collection_modifyitems(

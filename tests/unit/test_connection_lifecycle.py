@@ -7,8 +7,7 @@ tests that reach an open connection feed a scripted Hello reply via
 
 from __future__ import annotations
 
-import ssl
-from typing import Never
+from typing import TYPE_CHECKING, Never
 
 import pytest
 
@@ -16,6 +15,9 @@ from clickhouse_async.connection import Connection, State
 
 from ._mock_transport import ScriptedTransport
 from ._scripted_packets import encode_server_hello
+
+if TYPE_CHECKING:
+    import ssl
 
 # ---- starts in IDLE -----------------------------------------------------
 

@@ -26,8 +26,8 @@ from __future__ import annotations
 
 import getpass
 import socket
-from collections.abc import Mapping
 from enum import IntEnum
+from typing import TYPE_CHECKING
 
 from clickhouse_async.protocol.block import Block, BlockInfo, write_block
 from clickhouse_async.protocol.handshake import (
@@ -35,7 +35,6 @@ from clickhouse_async.protocol.handshake import (
     CLIENT_VERSION_MAJOR,
     CLIENT_VERSION_MINOR,
 )
-from clickhouse_async.protocol.io import BinaryWriter
 from clickhouse_async.protocol.packets import (
     DBMS_MIN_PROTOCOL_VERSION_WITH_DISTRIBUTED_DEPTH,
     DBMS_MIN_PROTOCOL_VERSION_WITH_INITIAL_QUERY_START_TIME,
@@ -49,6 +48,11 @@ from clickhouse_async.protocol.packets import (
     OUR_REVISION,
     ClientPacket,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from clickhouse_async.protocol.io import BinaryWriter
 
 
 class QueryStage(IntEnum):

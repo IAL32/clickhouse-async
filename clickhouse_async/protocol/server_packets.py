@@ -18,19 +18,22 @@ Layouts pinned against upstream:
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
-from clickhouse_async.protocol.block import Block
 from clickhouse_async.protocol.compression import (
     CompressionMethod,
     read_block_framed,
 )
-from clickhouse_async.protocol.io import AsyncBinaryReader
 from clickhouse_async.protocol.packets import (
     DBMS_MIN_PROTOCOL_VERSION_WITH_SERVER_QUERY_TIME_IN_PROGRESS,
     DBMS_MIN_PROTOCOL_VERSION_WITH_TOTAL_BYTES_IN_PROGRESS,
     DBMS_MIN_REVISION_WITH_CLIENT_WRITE_INFO,
     DBMS_MIN_REVISION_WITH_ROWS_BEFORE_AGGREGATION,
 )
+
+if TYPE_CHECKING:
+    from clickhouse_async.protocol.block import Block
+    from clickhouse_async.protocol.io import AsyncBinaryReader
 
 
 @dataclass

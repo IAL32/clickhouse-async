@@ -12,15 +12,19 @@ while still exercising the real timing path.
 from __future__ import annotations
 
 import asyncio
-import ssl
+from typing import TYPE_CHECKING
 
 import pytest
 
 import clickhouse_async as ch
-from clickhouse_async.connection import _WriterLike
 
 from ._mock_transport import ScriptedTransport
 from ._scripted_packets import encode_server_hello
+
+if TYPE_CHECKING:
+    import ssl
+
+    from clickhouse_async.connection import _WriterLike
 
 # A Pong packet is a single varuint with the PONG packet id (4).
 _PONG = bytes([4])

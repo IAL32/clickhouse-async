@@ -11,7 +11,7 @@ in ``BROKEN``.
 from __future__ import annotations
 
 import asyncio
-import ssl
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -20,6 +20,9 @@ from clickhouse_async.errors import ConnectError, ProtocolError, ServerError
 
 from ._mock_transport import _ScriptedWriter
 from ._scripted_packets import encode_server_exception, encode_server_hello
+
+if TYPE_CHECKING:
+    import ssl
 
 
 class _PerHostTransport:

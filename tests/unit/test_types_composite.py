@@ -3,14 +3,18 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
 from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 from clickhouse_async.types import ColumnCodec, parse_type
 from clickhouse_async.types.composite import Array, Map, Tuple
+from clickhouse_async.types.primitive import Int32
+from clickhouse_async.types.string import String
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 def _reader(data: bytes) -> AsyncBinaryReader:
@@ -223,8 +227,6 @@ async def test_named_tuple_round_trips_values_through_codec() -> None:
 
 def test_named_tuple_constructor_validates_names_length() -> None:
     # BEGIN / WHEN / THEN: a names tuple of the wrong length is rejected
-    from clickhouse_async.types import Int32, String
-
     with pytest.raises(ValueError, match="names length"):
         Tuple(Int32(), String(), names=("only_one",))
 

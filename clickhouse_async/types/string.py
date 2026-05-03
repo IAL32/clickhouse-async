@@ -8,9 +8,12 @@ often binary, not text — returning bytes preserves that).
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
-from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 
 
 class String:
@@ -18,10 +21,7 @@ class String:
     null_value: str = ""
 
     async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[str]:
-        out: list[str] = []
-        for _ in range(n_rows):
-            out.append(await reader.read_string())
-        return out
+        return [await reader.read_string() for _ in range(n_rows)]
 
     def write(self, writer: BinaryWriter, values: Sequence[str]) -> None:
         for v in values:

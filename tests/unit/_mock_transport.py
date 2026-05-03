@@ -9,9 +9,12 @@ packet loop, cancel, compression — without spinning up a real socket.
 from __future__ import annotations
 
 import asyncio
-import ssl
+from typing import TYPE_CHECKING
 
-from clickhouse_async.connection import _WriterLike
+if TYPE_CHECKING:
+    import ssl
+
+    from clickhouse_async.connection import _WriterLike
 
 
 class _ScriptedWriter:

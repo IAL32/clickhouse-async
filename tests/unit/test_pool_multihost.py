@@ -5,13 +5,17 @@ when some replicas are dead.
 from __future__ import annotations
 
 import asyncio
-import ssl
+from typing import TYPE_CHECKING
 
 import clickhouse_async as ch
-from clickhouse_async.connection import _WriterLike
 
 from ._mock_transport import _ScriptedWriter
 from ._scripted_packets import encode_server_hello
+
+if TYPE_CHECKING:
+    import ssl
+
+    from clickhouse_async.connection import _WriterLike
 
 
 class _RotatingTransport:

@@ -25,24 +25,29 @@ What the pool deliberately does **not** do (per ``DESIGN.md`` §5):
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import dataclasses
 import logging
-import ssl as _ssl_module
 import time
 from collections import deque
-from collections.abc import Mapping
 from dataclasses import dataclass
-from types import TracebackType
+from typing import TYPE_CHECKING
 
 from clickhouse_async._host_rotation import _HostRotation
 from clickhouse_async.client import Client, QueryResult
-from clickhouse_async.connection import TransportFactory
 from clickhouse_async.dsn import DSN, parse_dsn
 from clickhouse_async.errors import (
     ClickHouseError,
     PoolClosedError,
     PoolTimeoutError,
 )
+
+if TYPE_CHECKING:
+    import ssl as _ssl_module
+    from collections.abc import Mapping
+    from types import TracebackType
+
+    from clickhouse_async.connection import TransportFactory
 
 _logger = logging.getLogger(__name__)
 
@@ -466,10 +471,8 @@ class Pool:
 
         if self._reaper_task is not None:
             self._reaper_task.cancel()
-            try:
+            with contextlib.suppress(TimeoutError, asyncio.CancelledError):
                 await asyncio.wait_for(self._reaper_task, timeout=2.0)
-            except (TimeoutError, asyncio.CancelledError):
-                pass
             self._reaper_task = None
 
         # Drain idle entries.

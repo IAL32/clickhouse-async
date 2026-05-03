@@ -61,15 +61,71 @@ build-backend = "hatchling.build"
 
 [tool.ruff]
 # Enable pycodestyle (E), Pyflakes (F), isort (I), and more
-lint.select = ["E", "F", "I", "W", "N", "B", "A", "C4", "UP", "ANN", "RUF", "T"]
-# Allow unused variables when underscore-prefixed
-lint.ignore = ["E501"]
+lint.select = [
+    "ANN",
+    "ASYNC",
+    "S",
+    "E",
+    "F",
+    "I",
+    "W",
+    "N",
+    "B",
+    "A",
+    "C4",
+    "UP",
+    "ANN",
+    "RUF",
+    "T",
+    "FA",
+    "T20",
+    "SIM",
+    "TID",
+    "TC",
+    "PERF",
+    "PL",
+]
+lint.ignore = [
+    # Allow unused variables when underscore-prefixed
+    "E501",
+    # Allow multiple nested `with` statements in single line
+    "SIM117",
+    # Forwarding lambdas in dispatch tables let us reference helpers
+    # that are defined later in the same module without forward-decl
+    # gymnastics (the lambda body's name lookup is deferred to call
+    # time). Worth more than the rule's micro-optimisation.
+    "PLW0108",
+    # Structural-complexity rules from pylint's "design" group flag
+    # legitimate complexity in our protocol-parser dispatch loops and
+    # in the public ``Pool`` / ``Client`` / ``create_pool``
+    # constructors that lean heavily on keyword args. Refactoring to
+    # appease the limits would either fragment a state-machine match
+    # statement or make the public surface harder to read.
+    "PLR0911",  # too many returns (state machine handlers)
+    "PLR0912",  # too many branches (parser dispatch)
+    "PLR0913",  # too many arguments (public-API constructors)
+    "PLR0915",  # too many statements
+]
 # Exclude a variety of commonly ignored directories
 exclude = [".git", ".ruff_cache", "__pycache__", "dist", "build"]
 # Same as Black
 line-length = 88
 # Assume Python 3.11
 target-version = "py311"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = [
+    # Allow `assert` statements
+    "S",
+    # Allow magic values in comparisons
+    "PLR2004",
+]
+# ``Connection`` and ``Pool`` use ``assert`` for state-machine invariant
+# narrowing (``assert self._reader is not None`` after a State check).
+# These are real invariants — the State enum guarantees the values are
+# set in the relevant states — and serve as type narrowing for ty / mypy.
+"clickhouse_async/connection.py" = ["S101"]
+"clickhouse_async/pool.py" = ["S101"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["clickhouse_async"]

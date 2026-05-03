@@ -14,7 +14,10 @@ serialises them naturally without an explicit lock.
 from __future__ import annotations
 
 import time
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 class _HostRotation:

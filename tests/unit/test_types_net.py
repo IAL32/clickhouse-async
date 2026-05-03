@@ -4,15 +4,17 @@ from __future__ import annotations
 
 import asyncio
 import uuid
-from collections.abc import Sequence
 from ipaddress import IPv4Address, IPv6Address
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
 from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 from clickhouse_async.types import ColumnCodec, parse_type
 from clickhouse_async.types.net import UUID, IPv4, IPv6
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 def _reader(data: bytes) -> AsyncBinaryReader:

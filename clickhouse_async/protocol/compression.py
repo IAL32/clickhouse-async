@@ -30,11 +30,14 @@ from __future__ import annotations
 
 import importlib
 from enum import IntEnum
-from types import ModuleType
+from typing import TYPE_CHECKING
 
 from clickhouse_async.errors import MissingExtraError, ProtocolError
 from clickhouse_async.protocol.block import Block, read_block, write_block
 from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+
+if TYPE_CHECKING:
+    from types import ModuleType
 
 
 class CompressionMethod(IntEnum):

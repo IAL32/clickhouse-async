@@ -18,8 +18,12 @@ Wire format (per upstream ``Common/Exception.cpp::writeException``):
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from clickhouse_async.errors import ServerError
-from clickhouse_async.protocol.io import AsyncBinaryReader
+
+if TYPE_CHECKING:
+    from clickhouse_async.protocol.io import AsyncBinaryReader
 
 
 async def read_exception_body(reader: AsyncBinaryReader) -> ServerError:

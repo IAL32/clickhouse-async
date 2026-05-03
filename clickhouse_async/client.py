@@ -16,6 +16,7 @@ explicitly and pair it with ``await client.close()``.
 
 from __future__ import annotations
 
+import contextlib
 import ssl as _ssl_module
 import time
 from collections.abc import (
@@ -27,7 +28,6 @@ from collections.abc import (
     Sequence,
 )
 from dataclasses import dataclass, field
-from types import TracebackType
 from typing import TYPE_CHECKING, cast
 
 from clickhouse_async.connection import Connection, State, TransportFactory
@@ -37,6 +37,8 @@ from clickhouse_async.protocol.block import Block, BlockInfo, ColumnSpec
 from clickhouse_async.protocol.server_packets import ProfileInfo, ProgressInfo
 
 if TYPE_CHECKING:
+    from types import TracebackType
+
     from clickhouse_async.protocol.handshake import ServerInfo
 
 
@@ -211,8 +213,9 @@ class Client:
                 if block.n_rows == 0:
                     continue
                 # Transpose column-major block.data into row-major tuples.
-                for i in range(block.n_rows):
-                    rows.append(tuple(col[i] for col in block.data))
+                rows.extend(
+                    tuple(col[i] for col in block.data) for i in range(block.n_rows)
+                )
         finally:
             self._conn.on_progress = prior_progress
             self._conn.on_profile_info = prior_profile
@@ -312,13 +315,11 @@ class Client:
         finally:
             # If the user broke out before EndOfStream, cancel and drain
             # so the connection is reusable for the next operation.
+            # ``cancel()`` always raises ``QueryCancellationError`` with a
+            # reason — we only need its side effects here.
             if self._conn.state == State.IN_FLIGHT:
-                try:
+                with contextlib.suppress(QueryCancellationError):
                     await self._conn.cancel()
-                except QueryCancellationError:
-                    # cancel() always raises with a reason field; we
-                    # only need its side effects here.
-                    pass
 
     # ---- inserts --------------------------------------------------------
 
@@ -367,10 +368,8 @@ class Client:
         # surface a ValueError with both lists named.
         server_names = [c.name for c in header.columns]
         if list(column_names) != server_names:
-            try:
+            with contextlib.suppress(QueryCancellationError):
                 await self._conn.cancel()
-            except QueryCancellationError:
-                pass
             raise ValueError(
                 f"INSERT column names mismatch: passed {list(column_names)!r}, "
                 f"server expects {server_names!r}"
@@ -510,8 +509,8 @@ def _normalise_row_source(
     ``object`` rather than ``Sequence[object]``). The ``cast`` calls
     re-attach the parameter ty's isinstance narrowing strips off."""
     if isinstance(rows, AsyncIterable):
-        return _async_rows(cast(AsyncIterable[Sequence[object]], rows))
-    return _sync_rows(cast(Iterable[Sequence[object]], rows))
+        return _async_rows(cast("AsyncIterable[Sequence[object]]", rows))
+    return _sync_rows(cast("Iterable[Sequence[object]]", rows))
 
 
 def _build_insert_block(

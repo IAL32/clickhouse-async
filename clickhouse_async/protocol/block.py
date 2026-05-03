@@ -28,16 +28,24 @@ are valid and used by the server to signal the column metadata of a
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from clickhouse_async.errors import ProtocolError
-from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 from clickhouse_async.protocol.packets import (
     DBMS_MIN_REVISION_WITH_CUSTOM_SERIALIZATION,
 )
 from clickhouse_async.types import ColumnCodec, parse_type
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+
+# BlockInfo TLV field numbers (canonical layout, ``Core/BlockInfo.cpp``).
+_BLOCK_INFO_FIELD_TERMINATOR = 0
+_BLOCK_INFO_FIELD_IS_OVERFLOWS = 1
+_BLOCK_INFO_FIELD_BUCKET_NUM = 2
 
 
 @dataclass
@@ -81,11 +89,11 @@ async def read_block_info(reader: AsyncBinaryReader) -> BlockInfo:
     info = BlockInfo()
     while True:
         field_num = await reader.read_varuint()
-        if field_num == 0:
+        if field_num == _BLOCK_INFO_FIELD_TERMINATOR:
             return info
-        if field_num == 1:
+        if field_num == _BLOCK_INFO_FIELD_IS_OVERFLOWS:
             info.is_overflows = (await reader.read_byte()) != 0
-        elif field_num == 2:
+        elif field_num == _BLOCK_INFO_FIELD_BUCKET_NUM:
             info.bucket_num = await reader.read_int(4, signed=True)
         else:
             raise ProtocolError(
@@ -96,11 +104,11 @@ async def read_block_info(reader: AsyncBinaryReader) -> BlockInfo:
 
 
 def write_block_info(writer: BinaryWriter, info: BlockInfo) -> None:
-    writer.write_varuint(1)
+    writer.write_varuint(_BLOCK_INFO_FIELD_IS_OVERFLOWS)
     writer.write_byte(1 if info.is_overflows else 0)
-    writer.write_varuint(2)
+    writer.write_varuint(_BLOCK_INFO_FIELD_BUCKET_NUM)
     writer.write_int(info.bucket_num, 4, signed=True)
-    writer.write_varuint(0)
+    writer.write_varuint(_BLOCK_INFO_FIELD_TERMINATOR)
 
 
 # ---- Block -----------------------------------------------------------------

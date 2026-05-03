@@ -9,11 +9,14 @@ code on both sides) surface here against the real server's parser.
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable
 from datetime import date, datetime, timedelta
+from typing import TYPE_CHECKING
 
 import clickhouse_async as ch
 from clickhouse_async.types.datetime import HighPrecisionTimestamp
+
+if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
 
 
 async def test_handshake_against_real_server_populates_server_info(
@@ -100,11 +103,12 @@ async def test_streaming_iter_rows_returns_to_ready(pool: ch.Pool) -> None:
     n_rows = 100
     async with pool.acquire() as client:
         # WHEN: consuming the full stream
-        rows: list[tuple[object, ...]] = []
-        async for row in client.iter_rows(
-            f"SELECT number FROM system.numbers LIMIT {n_rows}"
-        ):
-            rows.append(row)
+        rows: list[tuple[object, ...]] = [
+            row
+            async for row in client.iter_rows(
+                f"SELECT number FROM system.numbers LIMIT {n_rows}"
+            )
+        ]
 
         # THEN: every number arrived in order; the connection is
         #       reusable for the next operation

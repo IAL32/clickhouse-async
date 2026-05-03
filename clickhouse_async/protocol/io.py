@@ -15,6 +15,10 @@ from clickhouse_async.errors import ProtocolError
 
 # ceil(64 / 7) — the longest LEB128 unsigned encoding for a u64.
 _VARUINT_MAX_BYTES = 10
+# LEB128 / varuint: bit 7 of each byte is the "continuation" marker;
+# the low 7 bits hold the payload.
+_VARUINT_CONTINUATION_BIT = 0x80
+_VARUINT_PAYLOAD_MASK = 0x7F
 
 
 class AsyncBinaryReader:
@@ -118,8 +122,10 @@ class BinaryWriter:
     def write_varuint(self, value: int) -> None:
         if value < 0:
             raise ValueError(f"varuint cannot be negative: {value}")
-        while value >= 0x80:
-            self._buf.append((value & 0x7F) | 0x80)
+        while value >= _VARUINT_CONTINUATION_BIT:
+            self._buf.append(
+                (value & _VARUINT_PAYLOAD_MASK) | _VARUINT_CONTINUATION_BIT
+            )
             value >>= 7
         self._buf.append(value)
 

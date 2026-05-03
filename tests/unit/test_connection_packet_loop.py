@@ -9,6 +9,8 @@ terminates on ``END_OF_STREAM`` (READY) or ``EXCEPTION`` (raises).
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 from clickhouse_async.connection import Connection, State, StreamedBlock
@@ -20,7 +22,6 @@ from clickhouse_async.protocol.packets import (
     OUR_REVISION,
     ServerPacket,
 )
-from clickhouse_async.protocol.server_packets import ProfileInfo, ProgressInfo
 
 from ._mock_transport import ScriptedTransport
 from ._scripted_packets import (
@@ -33,6 +34,9 @@ from ._scripted_packets import (
     encode_server_table_columns,
     encode_server_timezone_update,
 )
+
+if TYPE_CHECKING:
+    from clickhouse_async.protocol.server_packets import ProfileInfo, ProgressInfo
 
 
 async def _connect_and_send_query(transport: ScriptedTransport) -> Connection:

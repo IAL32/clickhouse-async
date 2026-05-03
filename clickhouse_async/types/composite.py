@@ -12,12 +12,15 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from clickhouse_async.errors import ProtocolError
-from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
-from clickhouse_async.types.base import ColumnCodec
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+    from clickhouse_async.types.base import ColumnCodec
 
 
 class Nullable:
@@ -156,9 +159,9 @@ class Tuple:
     ) -> list[tuple[Any, ...]]:
         if n_rows == 0:
             return []
-        columns: list[list[Any]] = []
-        for component in self.components:
-            columns.append(await component.read(reader, n_rows))
+        columns: list[list[Any]] = [
+            await component.read(reader, n_rows) for component in self.components
+        ]
         return [
             tuple(columns[c][i] for c in range(len(self.components)))
             for i in range(n_rows)

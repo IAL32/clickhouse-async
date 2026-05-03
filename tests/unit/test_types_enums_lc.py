@@ -4,8 +4,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -14,6 +13,9 @@ from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 from clickhouse_async.types import ColumnCodec, parse_type
 from clickhouse_async.types.composite import LowCardinality
 from clickhouse_async.types.enums import Enum8, Enum16
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 def _reader(data: bytes) -> AsyncBinaryReader:

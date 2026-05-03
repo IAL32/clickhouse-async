@@ -4,15 +4,13 @@ acquire_timeout, close."""
 from __future__ import annotations
 
 import asyncio
-import ssl
-from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING
 
 import pytest
 
 import clickhouse_async as ch
 from clickhouse_async import Pool, create_pool
-from clickhouse_async.connection import _WriterLike
 from clickhouse_async.errors import PoolClosedError, PoolTimeoutError
 from clickhouse_async.protocol.block import Block, BlockInfo, make_column
 from clickhouse_async.protocol.io import BinaryWriter
@@ -20,6 +18,12 @@ from clickhouse_async.protocol.packets import ClientPacket, ServerPacket
 
 from ._mock_transport import ScriptedTransport
 from ._scripted_packets import encode_server_data, encode_server_hello
+
+if TYPE_CHECKING:
+    import ssl
+    from collections.abc import AsyncIterator
+
+    from clickhouse_async.connection import _WriterLike
 
 
 class _FreshTransports:

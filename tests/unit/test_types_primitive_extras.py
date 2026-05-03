@@ -10,10 +10,9 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Sequence
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal as PyDecimal
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -32,6 +31,9 @@ from clickhouse_async.types.decimal import (
     make_decimal,
 )
 from clickhouse_async.types.string import FixedString
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 def _reader(data: bytes) -> AsyncBinaryReader:

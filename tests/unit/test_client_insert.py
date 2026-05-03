@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import pytest
 
@@ -17,6 +16,9 @@ from ._scripted_packets import (
     encode_server_end_of_stream,
     encode_server_hello,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
 
 
 def _insert_response(
@@ -82,7 +84,7 @@ async def test_insert_async_iterable_round_trips() -> None:
     ) as client:
         n = await client.insert(
             "INSERT INTO t VALUES",
-            rows=cast(AsyncIterator[tuple[object, ...]], _gen()),
+            rows=cast("AsyncIterator[tuple[object, ...]]", _gen()),
             column_names=["id", "name"],
         )
 

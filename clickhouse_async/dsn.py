@@ -39,6 +39,8 @@ DEFAULT_SECURE_PORT = 9440
 DEFAULT_USER = "default"
 DEFAULT_DATABASE = "default"
 DEFAULT_CONNECT_TIMEOUT = 10.0
+# Inclusive upper bound on TCP port numbers per RFC 6335.
+_MAX_TCP_PORT = 65535
 
 
 @dataclass(frozen=True)
@@ -205,7 +207,7 @@ def _parse_port(s: str, piece: str) -> int:
         port = int(s)
     except ValueError as exc:
         raise ValueError(f"invalid port {s!r} in DSN host {piece!r}") from exc
-    if not 0 < port < 65536:
+    if not 0 < port <= _MAX_TCP_PORT:
         raise ValueError(f"port out of range in DSN host {piece!r}: {port}")
     return port
 

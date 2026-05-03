@@ -9,13 +9,12 @@ and the busy-connection fallback opens a fresh client.
 from __future__ import annotations
 
 import asyncio
-import ssl
+from typing import TYPE_CHECKING
 
 import pytest
 
 import clickhouse_async as ch
 from clickhouse_async import connect
-from clickhouse_async.connection import _WriterLike
 from clickhouse_async.protocol.block import Block, BlockInfo, make_column
 from clickhouse_async.protocol.io import AsyncBinaryReader
 from clickhouse_async.protocol.packets import ClientPacket
@@ -26,6 +25,11 @@ from ._scripted_packets import (
     encode_server_end_of_stream,
     encode_server_hello,
 )
+
+if TYPE_CHECKING:
+    import ssl
+
+    from clickhouse_async.connection import _WriterLike
 
 
 def _reader_over(data: bytes) -> AsyncBinaryReader:

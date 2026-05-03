@@ -35,14 +35,24 @@ fall back to UTC interpretation (the v0 behaviour).
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta, timezone
+from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
-from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 
 _EPOCH_DATE = date(1970, 1, 1)
+
+# Python's ``datetime`` only carries microsecond resolution. Anything past
+# scale 6 (microseconds) needs ``HighPrecisionTimestamp``; anything at or
+# below survives a ``datetime`` round-trip exactly.
+_MICROSECOND_SCALE = 6
+# ClickHouse caps DateTime64 precision at 9 (nanoseconds).
+_MAX_DATETIME64_PRECISION = 9
 
 
 # ---- HighPrecisionTimestamp ---------------------------------------------
@@ -68,13 +78,14 @@ class HighPrecisionTimestamp:
     scale: int  # power-of-ten exponent: 1 tick == 10**-scale seconds
 
     def to_datetime(self) -> datetime:
-        """Convert to a naive UTC ``datetime``. Lossy when ``scale > 6``
-        — sub-microsecond ticks are truncated."""
-        if self.scale <= 6:
-            us_per_tick = 10 ** (6 - self.scale)
+        """Convert to a naive UTC ``datetime``. Lossy when
+        ``scale > _MICROSECOND_SCALE`` — sub-microsecond ticks are
+        truncated."""
+        if self.scale <= _MICROSECOND_SCALE:
+            us_per_tick = 10 ** (_MICROSECOND_SCALE - self.scale)
             us_total = self.ticks * us_per_tick
         else:
-            ticks_per_us = 10 ** (self.scale - 6)
+            ticks_per_us = 10 ** (self.scale - _MICROSECOND_SCALE)
             us_total = self.ticks // ticks_per_us
         seconds, microseconds = divmod(us_total, 1_000_000)
         return _naive_utc_from_ts(seconds).replace(microsecond=microseconds)
@@ -89,10 +100,14 @@ class HighPrecisionTimestamp:
         else:
             seconds = int(dt.timestamp())
         microseconds = dt.microsecond
-        if scale <= 6:
-            ticks = seconds * (10**scale) + microseconds // (10 ** (6 - scale))
+        if scale <= _MICROSECOND_SCALE:
+            ticks = seconds * (10**scale) + microseconds // (
+                10 ** (_MICROSECOND_SCALE - scale)
+            )
         else:
-            ticks = seconds * (10**scale) + microseconds * (10 ** (scale - 6))
+            ticks = seconds * (10**scale) + microseconds * (
+                10 ** (scale - _MICROSECOND_SCALE)
+            )
         return cls(ticks=ticks, scale=scale)
 
 
@@ -241,8 +256,11 @@ class DateTime64:
         high_precision: bool | None = None,
         session_timezone: str | None = None,
     ) -> None:
-        if precision < 0 or precision > 9:
-            raise ValueError(f"DateTime64 precision must be in [0, 9], got {precision}")
+        if precision < 0 or precision > _MAX_DATETIME64_PRECISION:
+            raise ValueError(
+                f"DateTime64 precision must be in [0, "
+                f"{_MAX_DATETIME64_PRECISION}], got {precision}"
+            )
         self.precision = precision
         self.explicit_timezone = timezone
         # Resolve display tz: explicit beats session beats none.
@@ -258,7 +276,9 @@ class DateTime64:
         # sub-microsecond resolution; flip it explicitly to opt out
         # (forcing ``datetime`` returns at the cost of truncation).
         self.high_precision: bool = (
-            (precision > 6) if high_precision is None else high_precision
+            (precision > _MICROSECOND_SCALE)
+            if high_precision is None
+            else high_precision
         )
         if self.high_precision:
             self.null_value = HighPrecisionTimestamp(ticks=0, scale=precision)
@@ -288,10 +308,10 @@ class DateTime64:
             ticks = int.from_bytes(data[i * 8 : (i + 1) * 8], "little", signed=True)
             seconds, fraction = divmod(ticks, scale)
             # Map fraction (10**-precision seconds) into microseconds (10**-6).
-            if self.precision <= 6:
-                microseconds = fraction * (10 ** (6 - self.precision))
+            if self.precision <= _MICROSECOND_SCALE:
+                microseconds = fraction * (10 ** (_MICROSECOND_SCALE - self.precision))
             else:
-                microseconds = fraction // (10 ** (self.precision - 6))
+                microseconds = fraction // (10 ** (self.precision - _MICROSECOND_SCALE))
             if self._tz is not None:
                 base = datetime.fromtimestamp(seconds, tz=self._tz)
             else:
@@ -334,10 +354,14 @@ class DateTime64:
                 else:
                     seconds = int(v.timestamp())
                 microseconds = v.microsecond
-                if self.precision <= 6:
-                    fraction = microseconds // (10 ** (6 - self.precision))
+                if self.precision <= _MICROSECOND_SCALE:
+                    fraction = microseconds // (
+                        10 ** (_MICROSECOND_SCALE - self.precision)
+                    )
                 else:
-                    fraction = microseconds * (10 ** (self.precision - 6))
+                    fraction = microseconds * (
+                        10 ** (self.precision - _MICROSECOND_SCALE)
+                    )
                 ticks = seconds * scale + fraction
             out.extend(ticks.to_bytes(8, "little", signed=True))
         writer.write_raw(bytes(out))

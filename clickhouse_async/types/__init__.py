@@ -20,7 +20,7 @@ The parser handles:
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from clickhouse_async.types.base import ColumnCodec
 from clickhouse_async.types.composite import (
@@ -64,6 +64,9 @@ from clickhouse_async.types.primitive import (
 )
 from clickhouse_async.types.string import FixedString, String
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 __all__ = ["ColumnCodec", "parse_type"]
 
 
@@ -95,7 +98,11 @@ _NULLARY: dict[str, Callable[[], ColumnCodec]] = {
 }
 
 # Each factory takes the heterogeneous params list and either returns a codec
-# or raises ValueError for the wrong shape.
+# or raises ValueError for the wrong shape. Many of these forward to a
+# helper defined below; the lambdas defer the name lookup until call time
+# so the helpers don't need to be hoisted above the dict literal. Ruff's
+# PLW0108 (unnecessary lambda) is intentionally ignored project-wide for
+# this reason — see ``pyproject.toml::[tool.ruff.lint.ignore]``.
 _Param = "ColumnCodec | int | str"
 # ``DateTime`` / ``DateTime64`` are not in this registry — the parser
 # special-cases them in ``_parse_one`` so it can thread the connection's
@@ -174,7 +181,7 @@ def _make_named_tuple(names: list[str | None], components: list[ColumnCodec]) ->
 
 def _make_map(params: list[ColumnCodec | int | str]) -> Map:
     if (
-        len(params) != 2
+        len(params) != _MAP_PARAM_COUNT
         or not isinstance(params[0], ColumnCodec)
         or not isinstance(params[1], ColumnCodec)
     ):
@@ -184,12 +191,19 @@ def _make_map(params: list[ColumnCodec | int | str]) -> Map:
 
 def _make_decimal(params: list[ColumnCodec | int | str]) -> ColumnCodec:
     if (
-        len(params) != 2
+        len(params) != _DECIMAL_PARAM_COUNT
         or not isinstance(params[0], int)
         or not isinstance(params[1], int)
     ):
         raise ValueError(f"Decimal takes (precision, scale) integers; got {params!r}")
     return make_decimal(precision=params[0], scale=params[1])
+
+
+# Param-count constants for the factories above — extracted so PLR2004
+# stops flagging the literal ``2`` in the dispatcher signatures.
+_MAP_PARAM_COUNT = 2
+_DECIMAL_PARAM_COUNT = 2
+_DT64_MAX_PARAMS = 2  # DateTime64(precision[, 'timezone'])
 
 
 # ---- parser ---------------------------------------------------------------
@@ -281,13 +295,15 @@ class _Parser:
             )
         precision = params[0]
         explicit_tz: str | None = None
-        if len(params) == 2:
+        # ``DateTime64(precision[, 'timezone'])`` — precision is mandatory,
+        # timezone is the optional second arg.
+        if len(params) == _DT64_MAX_PARAMS:
             if not isinstance(params[1], str):
                 raise ValueError(
                     f"DateTime64 timezone must be a string; got {params!r}"
                 )
             explicit_tz = params[1]
-        elif len(params) > 2:
+        elif len(params) > _DT64_MAX_PARAMS:
             raise ValueError(f"DateTime64 takes at most two parameters; got {params!r}")
         return DateTime64(
             precision=precision,

@@ -29,6 +29,7 @@ here.
 
 from __future__ import annotations
 
+import math
 from datetime import date, datetime
 from decimal import Decimal
 from ipaddress import IPv4Address, IPv6Address
@@ -57,7 +58,11 @@ def _to_text(value: object) -> str:
     if isinstance(value, int):
         return str(value)
     if isinstance(value, float):
-        if value != value:  # NaN
+        # ``math.isnan`` over a self-comparison so PLR0124 doesn't fire;
+        # they're equivalent (NaN is the only value that isn't equal to
+        # itself, but isnan reads better and is what static analysis
+        # expects).
+        if math.isnan(value):
             return "nan"
         if value == float("inf"):
             return "inf"

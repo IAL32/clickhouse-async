@@ -220,9 +220,7 @@ async def test_multi_frame_round_trip_over_one_megabyte() -> None:
     for p in payloads:
         CompressedBlockWriter(writer, method=CompressionMethod.LZ4).write_payload(p)
     rdr = _reader_over(writer.getvalue())
-    decoded = []
-    for _ in range(len(payloads)):
-        decoded.append(await CompressedBlockReader(rdr).read_payload())
+    decoded = [await CompressedBlockReader(rdr).read_payload() for _ in payloads]
 
     # THEN: each frame's CityHash128 verifies and the payloads round-trip
     assert decoded == payloads

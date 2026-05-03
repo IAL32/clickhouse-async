@@ -17,10 +17,13 @@ On-wire layouts:
 from __future__ import annotations
 
 import uuid
-from collections.abc import Sequence
 from ipaddress import IPv4Address, IPv6Address
+from typing import TYPE_CHECKING
 
-from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 
 _NIL_UUID = uuid.UUID(int=0)
 _ZERO_IPV4 = IPv4Address(0)

@@ -47,6 +47,7 @@ from clickhouse_async.types.decimal import (
 )
 from clickhouse_async.types.enums import Enum8, Enum16
 from clickhouse_async.types.geo import MultiPolygon, Point, Polygon, Ring
+from clickhouse_async.types.json_type import JSON, _JSONHint
 from clickhouse_async.types.net import UUID, IPv4, IPv6
 from clickhouse_async.types.primitive import (
     Bool,
@@ -84,6 +85,9 @@ _NULLARY: dict[str, Callable[[], ColumnCodec]] = {
     # Bare ``Dynamic`` — ``max_types`` defaults to None (unenforced cap;
     # the per-block prefix is the source of truth on reads).
     "Dynamic": Dynamic,
+    # Bare ``JSON`` — parser-only stub in v0.2 (read/write raise
+    # ``NotImplementedError``; ``codec.name`` round-trips the spec).
+    "JSON": JSON,
     "Float32": Float32,
     "Float64": Float64,
     "IPv4": IPv4,
@@ -326,6 +330,17 @@ class _Parser:
                 max_types = self._parse_dynamic_max_types_param()
                 self._consume(")")
                 return Dynamic(max_types=max_types)
+            # ``JSON(hint, hint, …)`` — hints are a heterogeneous mix
+            # of ``ident=int`` (``max_dynamic_paths=N``,
+            # ``max_dynamic_types=N``), ``SKIP path.with.dots``, and
+            # ``SKIP REGEXP 'pattern'``. None fit the generic param
+            # parser, so we read each hint verbatim and store it for
+            # ``codec.name`` round-tripping. The codec doesn't act on
+            # the hints (read/write are stubbed in v0.2).
+            if name == "JSON":
+                hints = self._parse_json_hints()
+                self._consume(")")
+                return JSON(hints=hints)
             params = self._parse_params()
             self._consume(")")
             # ``DateTime`` / ``DateTime64`` need ``session_timezone``
@@ -421,6 +436,61 @@ class _Parser:
         # is the type spec (which can itself be a parametric type, a
         # nested Tuple, etc.).
         return first_ident, self._parse_one()
+
+    def _parse_json_hints(self) -> list[_JSONHint]:
+        """Parse the body of ``JSON(...)`` as a list of verbatim hint
+        strings.
+
+        Hints come in three shapes — ``identifier=integer``,
+        ``SKIP path.maybe.dotted``, and ``SKIP REGEXP 'quoted'`` — and
+        are stored as raw text for ``codec.name`` round-tripping. The
+        codec doesn't interpret them (read/write are v0.2 stubs).
+        """
+        hints: list[_JSONHint] = []
+        self._skip_ws()
+        while self._peek() not in (")", ""):
+            text = self._read_one_json_hint()
+            hints.append(_JSONHint(text))
+            self._skip_ws()
+            if self._peek() == ",":
+                self._consume(",")
+                self._skip_ws()
+        return hints
+
+    def _read_one_json_hint(self) -> str:
+        """Read one hint verbatim (without consuming the trailing
+        comma or closing paren).
+
+        ``SKIP REGEXP 'pattern'`` is the only form whose value contains
+        whitespace and quotes; everything else is a contiguous run of
+        identifier / digit / ``=`` / ``.`` characters.
+        """
+        self._skip_ws()
+        start = self.pos
+        # Look-ahead for ``SKIP`` keyword (case-sensitive — upstream's
+        # parser is). ``SKIP REGEXP 'pat'`` needs special handling for
+        # the quoted regex.
+        if self.spec.startswith("SKIP", self.pos):
+            self.pos += len("SKIP")
+            self._skip_ws()
+            if self.spec.startswith("REGEXP", self.pos):
+                self.pos += len("REGEXP")
+                self._skip_ws()
+                # Consume the quoted regex string.
+                self._read_quoted_string()
+            else:
+                # ``SKIP some.dotted.path`` — consume up to comma / paren
+                while self.pos < len(self.spec) and self.spec[self.pos] not in (
+                    ",",
+                    ")",
+                ):
+                    self.pos += 1
+            return self.spec[start : self.pos].rstrip()
+        # ``identifier=integer`` form. We don't validate the identifier
+        # name here — upstream rejects unknown ones server-side.
+        while self.pos < len(self.spec) and self.spec[self.pos] not in (",", ")"):
+            self.pos += 1
+        return self.spec[start : self.pos].rstrip()
 
     def _parse_dynamic_max_types_param(self) -> int:
         """Parse the ``max_types=N`` named-int param of

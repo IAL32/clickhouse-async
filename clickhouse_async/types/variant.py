@@ -69,9 +69,33 @@ _NULL_DISCRIMINATOR = 0xFF
 _MAX_VARIANTS = 255
 
 # Dynamic's top-level structure version. Upstream declares this in
-# ``SerializationDynamic::DynamicSerializationVersion``; ``BASIC = 0``
-# is the format described in the v0.2 plan.
-_DYNAMIC_VERSION_BASIC = 0
+# ``SerializationDynamic::DynamicSerializationVersion`` — ``V1 = 1``
+# is the legacy form (writes ``max_dynamic_types`` then
+# ``num_dynamic_types`` to the wire); ``V2 = 2`` drops the duplicate
+# and is the default ClickHouse 24.x emits. We accept both on read
+# and always emit V2 on write.
+_DYNAMIC_VERSION_V1 = 1
+_DYNAMIC_VERSION_V2 = 2
+
+# ClickHouse's default ``max_dynamic_types`` for a ``Dynamic`` column.
+# Upstream constant: ``ColumnDynamic::DEFAULT_MAX_DYNAMIC_TYPES``. Used
+# in the V1 wire format (the slot is a column-policy hint, not a wire
+# constraint — the server's reader just skips it past — but we still
+# emit a sensible default so wire dumps don't have garbage in that
+# field).
+_DEFAULT_MAX_DYNAMIC_TYPES = 32
+
+# Every ``Dynamic`` column on the wire silently carries one extra
+# variant arm at the end — ``SharedVariant`` (a ``String``) — used
+# server-side to spill values whose type exceeds ``max_dynamic_types``.
+# Upstream omits it from the declared types list (``num_dynamic_types
+# = variant_names.size() - 1``) but always *deserializes* with it
+# appended, so an inner ``Variant`` of a Dynamic actually has
+# ``num_dynamic_types + 1`` arms. We never use SharedVariant on
+# writes (always declare the actual type), so its on-wire body is
+# always 0 rows; we only need it on the read path so the inner
+# ``Variant._read_body`` knows the arm count.
+_SHARED_VARIANT_TYPE_SPEC = "String"
 
 
 class _VariantTag:
@@ -279,6 +303,21 @@ class Dynamic:
     declare). The codec doesn't enforce it on reads — the server is
     the source of truth — but raises on writes if the inferred arm
     count exceeds the cap (when set).
+
+    .. note::
+
+        v0.2 caveat: ``Dynamic`` round-trips with itself in unit tests
+        but does not yet pass real-server INSERT round-trips on
+        ClickHouse 24.8 LTS. The wire format (V1 ``8B version + varuint
+        max_dynamic_types + varuint num_dynamic_types + per-arm type
+        names + 8B variant mode + n_rows discriminators + per-arm
+        bodies + implicit ``SharedVariant`` (String) tail-arm`) is
+        believed correct from upstream source-reading but a real
+        24.8.14 server still rejects writes with "Unknown type code:
+        0x68" for reasons we haven't pinned down. Use only inside
+        unit tests that exercise the codec against itself; real-server
+        ``Dynamic`` and ``JSON`` (which is built on Dynamic) round-trips
+        are tracked as v0.3 follow-ups in ``TODO.md``.
     """
 
     null_value: ClassVar[None] = None
@@ -312,16 +351,28 @@ class Dynamic:
         from clickhouse_async.types import parse_type  # noqa: PLC0415
 
         version = await reader.read_int(8, signed=False)
-        if version != _DYNAMIC_VERSION_BASIC:
+        if version not in (_DYNAMIC_VERSION_V1, _DYNAMIC_VERSION_V2):
             raise ProtocolError(
                 f"unsupported Dynamic structure version {version}; "
-                f"only BASIC (0) is supported"
+                f"only V1 ({_DYNAMIC_VERSION_V1}) and V2 ({_DYNAMIC_VERSION_V2}) "
+                f"are supported"
             )
+        if version == _DYNAMIC_VERSION_V1:
+            # V1 emits ``max_dynamic_types`` before the actual count; we
+            # ignore the cap (server-side policy, not a wire constraint).
+            await reader.read_varuint()
         n_types = await reader.read_varuint()
         components: list[ColumnCodec] = [
             parse_type(await reader.read_string()) for _ in range(n_types)
         ]
-        # The Variant payload still carries its own version byte.
+        # Append the implicit ``SharedVariant`` arm before reading the
+        # inner Variant body. Upstream ``ColumnDynamic`` always carries
+        # this arm at the tail (used to spill rare types over
+        # ``max_dynamic_types``); the wire format hides it from the
+        # declared list but the inner Variant *does* count it as an
+        # arm and reserves a discriminator slot for it.
+        components.append(parse_type(_SHARED_VARIANT_TYPE_SPEC))
+        # The Variant payload carries its own state-prefix version byte.
         inner_version = await reader.read_int(8, signed=False)
         if inner_version != _VARIANT_VERSION_BASIC:
             raise ProtocolError(
@@ -367,11 +418,30 @@ class Dynamic:
                 f"or raise the cap"
             )
 
-        writer.write_int(_DYNAMIC_VERSION_BASIC, 8, signed=False)
+        # Write V1: server-side ``DynamicSerializationVersion::checkVersion``
+        # accepts both V1 and V2, but ClickHouse 24.8 LTS gates V2 behind
+        # ``DBMS_MIN_REVISION_WITH_V2_DYNAMIC_AND_JSON_SERIALIZATION`` (54473).
+        # Our negotiated revision (54469) is below that, so the server's
+        # codec is configured for V1; we mirror that on writes for
+        # symmetry. V1 layout (per upstream
+        # ``SerializationDynamic::serializeBinaryBulkStatePrefix``):
+        # ``8B version + varuint max_dynamic_types + varuint
+        # num_dynamic_types + n type-spec strings``. The reader skips the
+        # ``max_dynamic_types`` slot (it's a column-policy hint, not a
+        # wire constraint), so we just write our cap when the user set
+        # one and the default ``32`` otherwise.
+        writer.write_int(_DYNAMIC_VERSION_V1, 8, signed=False)
+        writer.write_varuint(len(type_specs))
         writer.write_varuint(len(type_specs))
         for spec in type_specs:
             writer.write_string(spec)
+        # Append the implicit ``SharedVariant`` arm so the inner
+        # ``Variant._write_body`` reserves a per-arm body slot for it.
+        # Our writes never assign to SharedVariant — its body is always
+        # 0 rows — but the inner Variant still needs to know it exists
+        # to match the discriminator stream the server expects.
         components = [parse_type(spec) for spec in type_specs]
+        components.append(parse_type(_SHARED_VARIANT_TYPE_SPEC))
         # The Variant body carries its own version + discriminators +
         # per-arm bodies. An all-NULL block still emits both versions
         # plus the n_rows x 0xFF discriminator stream.

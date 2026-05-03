@@ -271,13 +271,18 @@ async def test_dynamic_per_block_prefix_declares_only_used_types() -> None:
     codec.write(writer, values)
     encoded = writer.getvalue()
 
-    # The prefix layout: 8B dynamic version + varuint num_active_types
-    # + one length-prefixed type-spec string. ``Int64`` encodes as
-    # one varuint length (5) plus 5 ASCII bytes.
+    # The prefix layout (V1 form per upstream
+    # ``SerializationDynamic::DynamicSerializationVersion``): 8B
+    # version + varuint duplicate ``max_dynamic_types`` slot + varuint
+    # actual ``num_dynamic_types`` + one length-prefixed type-spec
+    # string. ``Int64`` encodes as varuint length (5) + 5 ASCII bytes.
+    # The implicit ``SharedVariant`` arm is *not* in the declared list
+    # — it's only appended on the read side.
     # WHEN: peek at the prefix
     expected_prefix = (
-        bytes(8)  # dynamic version 0
-        + b"\x01"  # varuint 1: one active type
+        b"\x01\x00\x00\x00\x00\x00\x00\x00"  # UInt64 LE: version V1 = 1
+        + b"\x01"  # varuint: max_dynamic_types slot (we mirror count)
+        + b"\x01"  # varuint: actual num_dynamic_types = 1
         + b"\x05Int64"  # length-prefixed type-spec
     )
 

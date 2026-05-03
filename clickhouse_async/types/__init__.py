@@ -22,6 +22,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from clickhouse_async.types.aggregate import AggregateFunction
 from clickhouse_async.types.base import ColumnCodec
 from clickhouse_async.types.composite import (
     Array,
@@ -293,6 +294,17 @@ class _Parser:
                 names, components = self._parse_tuple_params()
                 self._consume(")")
                 return _make_nested(names, components)
+            # ``AggregateFunction(func[, arg_type, …])`` has a
+            # function-call-shaped first param: an identifier
+            # optionally followed by a balanced ``(literal_args)``
+            # block (``quantilesTDigest(0.5, 0.9)``). The remainder
+            # is type params. The generic param parser can't see this
+            # shape because the inner literal args are values, not
+            # types.
+            if name == "AggregateFunction":
+                fn_call, arg_types = self._parse_aggregate_function_params()
+                self._consume(")")
+                return AggregateFunction(fn_call, arg_types)
             params = self._parse_params()
             self._consume(")")
             # ``DateTime`` / ``DateTime64`` need ``session_timezone``
@@ -388,6 +400,56 @@ class _Parser:
         # is the type spec (which can itself be a parametric type, a
         # nested Tuple, etc.).
         return first_ident, self._parse_one()
+
+    def _parse_aggregate_function_params(
+        self,
+    ) -> tuple[str, list[ColumnCodec]]:
+        """Parse the params of an ``AggregateFunction(...)`` form.
+
+        First param is the function "call": an identifier optionally
+        followed by a balanced ``(literal_args)`` block. We slurp it
+        verbatim — the literal args inside aren't types, just numbers
+        / strings — so ``codec.name`` round-trips
+        ``quantilesTDigest(0.5, 0.9)`` unchanged. Subsequent params
+        are type specs.
+        """
+        self._skip_ws()
+        fn_call_start = self.pos
+        self._read_identifier()
+        self._skip_ws()
+        if self._peek() == "(":
+            # Walk balanced parens. The literal args may contain
+            # commas, dots, spaces — anything except an unmatched
+            # closing paren.
+            depth = 0
+            while self.pos < len(self.spec):
+                ch = self.spec[self.pos]
+                if ch == "(":
+                    depth += 1
+                elif ch == ")":
+                    depth -= 1
+                    self.pos += 1
+                    if depth == 0:
+                        break
+                    continue
+                self.pos += 1
+            if depth != 0:
+                raise ValueError(
+                    "unterminated AggregateFunction function-call "
+                    f"in spec {self.spec!r}"
+                )
+        fn_call = self.spec[fn_call_start : self.pos]
+        # Remaining params: comma-separated type specs.
+        arg_types: list[ColumnCodec] = []
+        self._skip_ws()
+        while self._peek() == ",":
+            self._consume(",")
+            self._skip_ws()
+            if self._peek() == ")":
+                break
+            arg_types.append(self._parse_one())
+            self._skip_ws()
+        return fn_call, arg_types
 
     def _parse_enum_body(self) -> dict[str, int]:
         mapping: dict[str, int] = {}

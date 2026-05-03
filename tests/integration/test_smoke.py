@@ -376,6 +376,71 @@ async def test_insert_returns_server_confirmed_written_rows_via_real_server(
     assert out == rows_in
 
 
+async def test_aggregate_function_avg_state_round_trip_through_merge(
+    pool: ch.Pool,
+    fresh_table: Callable[[str, str], Awaitable[None]],
+) -> None:
+    # BEGIN: a Memory-engine table holding ``AggregateFunction(avg,
+    #        Float64)`` state bytes, plus a parallel raw-values table
+    #        we'll aggregate from server-side. The pipeline:
+    #
+    #          values → avgState (server) → state column
+    #              ↓ SELECT state column over our client
+    #              ↓ INSERT same bytes into a sibling state column
+    #          → avgMerge (server) → final average
+    #
+    #        round-trips opaque state bytes through Python without
+    #        the client ever interpreting them.
+    src = "test_aggfn_src"
+    state_a = "test_aggfn_state_a"
+    state_b = "test_aggfn_state_b"
+    await fresh_table(src, "(x Float64) ENGINE = Memory")
+    await fresh_table(
+        state_a,
+        "(s AggregateFunction(avg, Float64)) ENGINE = Memory",
+    )
+    await fresh_table(
+        state_b,
+        "(s AggregateFunction(avg, Float64)) ENGINE = Memory",
+    )
+
+    # Seed the source table; values average to 4.0 (= (2+4+6)/3).
+    async with pool.acquire() as client:
+        await client.insert(
+            f"INSERT INTO {src} VALUES",
+            rows=[(2.0,), (4.0,), (6.0,)],
+            column_names=["x"],
+        )
+        # Build state bytes server-side and store in state_a.
+        await client.execute(f"INSERT INTO {state_a} SELECT avgState(x) FROM {src}")
+
+    # WHEN: pull the state bytes through our client and re-INSERT them
+    #       into state_b
+    state_rows = await pool.fetch_all(f"SELECT s FROM {state_a}")
+    assert len(state_rows) == 1
+    state_bytes = state_rows[0][0]
+    assert isinstance(state_bytes, bytes)
+    # avg state on the wire = Float64 numerator (8 B) + varuint
+    # denominator. For our 3-row source the denominator is 3 → 1 B,
+    # giving a 9-byte state.
+    assert len(state_bytes) == 9
+
+    async with pool.acquire() as client:
+        n = await client.insert(
+            f"INSERT INTO {state_b} VALUES",
+            rows=[(state_bytes,)],
+            column_names=["s"],
+        )
+    assert n == 1
+
+    # THEN: the server reads our re-inserted bytes back through
+    #       avgMerge and produces 4.0 — proving the bytes survived
+    #       the Python round-trip identically
+    merged = await pool.fetch_one(f"SELECT avgMerge(s) FROM {state_b}")
+    assert merged is not None
+    assert merged[0] == pytest.approx(4.0)
+
+
 async def test_polygon_column_round_trips_via_server(
     pool: ch.Pool,
     fresh_table: Callable[[str, str], Awaitable[None]],

@@ -19,11 +19,15 @@ codec/module that carries the limitation so a grep finds the on-ramp.
 
 ### Type system (`clickhouse_async/types/`)
 
-- **No `AggregateFunction`, `JSON`, `Variant`, `Dynamic` types.**
-  Listed as out-of-scope in `DESIGN.md §7` (deferred). A query
-  returning any of these will fail at the type-spec parser
-  ("unknown type"). Round-tripping these requires careful work;
-  it's a v0.x feature.
+- **No `JSON`, `Variant`, `Dynamic` types.** Listed as out-of-scope
+  in `DESIGN.md §7` (deferred). A query returning any of these
+  will fail at the type-spec parser ("unknown type"). Round-tripping
+  these requires careful work; it's a v0.x feature.
+- **`AggregateFunction(...)` only round-trips a small allow-list of
+  known aggregates.** v0.2 ships per-row state readers for ``avg``
+  and ``count``; everything else parses but raises
+  ``NotImplementedError`` on read/write. Adding a function is a
+  one-line registration in ``types/aggregate.py::_READERS``.
 
 ### Protocol primitives
 
@@ -67,8 +71,6 @@ already on `DESIGN.md §13` are repeated here so this file is the single
 
 ### Type system
 
-- **`AggregateFunction(...)` state columns.** Used by materialised
-  views; needed for any non-trivial analytics workload.
 - **`JSON` type** (the new ClickHouse 24.x JSON, not the deprecated
   String-backed Object).
 - **`Variant`, `Dynamic` types.**

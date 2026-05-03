@@ -1,11 +1,13 @@
-"""Format Python values into the textual form ClickHouse parameter
-parsing expects.
+"""Format Python values into the wire form ClickHouse parameters expect.
 
-The Connection wire format for parameters is ``Mapping[str, str]`` —
-the server re-parses each value according to the placeholder's
-declared type (``{name:Date}``, ``{n:Int32}``, ``{tz:String}`` …). The
-*type* lives in the SQL itself; we just need to convert the Python
-value to a textual representation the server can re-parse.
+Each parameter value travels as a single-quoted SQL string literal.
+The server treats every parameter's storage type as a ``Field(String)``
+on the way in, then *unquotes* the value and re-parses it according to
+the placeholder's declared type at substitution time
+(``{name:Date}``, ``{n:Int32}``, ``{tz:String}``, …). This means
+``format_param`` always produces ``'<text>'``, regardless of the
+Python type — internal single quotes and backslashes get escaped per
+ClickHouse's ``readQuoted`` convention.
 
 For v0 we cover the common types in ``DESIGN.md §7``:
 
@@ -34,11 +36,19 @@ from uuid import UUID
 
 
 def format_param(value: object) -> str:
-    """Convert ``value`` to the textual form ClickHouse parameter
-    parsing expects. Order of ``isinstance`` checks matters: ``bool``
-    is a subclass of ``int``, so it must be checked first; ``Decimal``
-    is not a ``float`` but is checked before the numeric block for
-    clarity."""
+    """Format ``value`` as a single-quoted SQL string literal — the
+    wire form parameter values must take regardless of the placeholder's
+    declared type."""
+
+    return _quote(_to_text(value))
+
+
+def _to_text(value: object) -> str:
+    """Render ``value`` into the unquoted text the server will parse
+    after stripping the wire-level single quotes. Order of ``isinstance``
+    checks matters: ``bool`` is a subclass of ``int``, so it must be
+    checked first; ``Decimal`` is not a ``float`` but is checked
+    before the numeric block for clarity."""
 
     if isinstance(value, str):
         return value
@@ -73,3 +83,11 @@ def format_param(value: object) -> str:
         f"{value!r}; pass a pre-stringified value or extend "
         f"format_param for a new Python type"
     )
+
+
+def _quote(s: str) -> str:
+    """Escape and wrap with single quotes per ClickHouse's
+    ``readQuoted`` convention: backslashes and single quotes inside
+    the value get a leading backslash."""
+    escaped = s.replace("\\", "\\\\").replace("'", "\\'")
+    return f"'{escaped}'"

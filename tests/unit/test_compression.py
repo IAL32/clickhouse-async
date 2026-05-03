@@ -279,6 +279,7 @@ async def test_send_query_compression_flag_flips_when_lz4_enabled() -> None:
     await rdr.read_string()          # database
     await rdr.read_string()          # user
     await rdr.read_string()          # password
+    await rdr.read_string()          # addendum: quota_key (empty)
     # Drain Query packet up to the compression flag
     assert await rdr.read_varuint() == ClientPacket.QUERY
     await rdr.read_string()          # query_id

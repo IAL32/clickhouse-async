@@ -59,7 +59,9 @@ from clickhouse_async.protocol.handshake import (
 )
 from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 from clickhouse_async.protocol.packets import (
+    DBMS_MIN_PROTOCOL_VERSION_WITH_ADDENDUM,
     DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS,
+    DBMS_MIN_PROTOCOL_VERSION_WITH_QUOTA_KEY,
     OUR_REVISION,
     ClientPacket,
     ServerPacket,
@@ -280,6 +282,7 @@ class Connection:
             info = await read_server_hello(self._reader)
             self._server_info = info
             self._negotiated_revision = min(OUR_REVISION, info.revision)
+            await self._send_addendum()
             self._transition(
                 State.READY,
                 f"handshake complete (server={info.name!r} "
@@ -310,10 +313,10 @@ class Connection:
         formatted via ``format_param`` and emitted in the parameters
         block of the Query packet. The placeholder *type* lives in the
         SQL itself (``WHERE day = {d:Date}``); the wire only carries
-        textual values. The negotiated revision must be at least
-        ``DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS`` (54459) — older
-        servers raise ``UnsupportedFeatureError`` rather than silently
-        falling back to client-side string interpolation.
+        textual values. The negotiated revision must be at or above
+        ``DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS`` — older servers
+        raise ``UnsupportedFeatureError`` rather than silently falling
+        back to client-side string interpolation.
 
         Concurrent calls on the same connection raise
         ``ConcurrentQueryError`` rather than queueing or fanning out.
@@ -619,6 +622,31 @@ class Connection:
                     f"READ_TASK_REQUEST / MERGE_TREE_* are not expected on "
                     f"initial-query connections)"
                 )
+
+    async def _send_addendum(self) -> None:
+        """Send the post-Hello addendum the server expects from clients
+        whose negotiated revision is at or above
+        ``DBMS_MIN_PROTOCOL_VERSION_WITH_ADDENDUM``.
+
+        At ``OUR_REVISION`` the addendum is just one length-prefixed
+        string — the quota key, which we don't use — so we always emit
+        an empty string. Newer revisions add chunked-protocol
+        negotiation and parallel-replicas versioning; both gates sit
+        above ``OUR_REVISION`` and surface as no-ops here.
+        """
+        if self._negotiated_revision < DBMS_MIN_PROTOCOL_VERSION_WITH_ADDENDUM:
+            return
+        assert self._writer is not None
+        out = BinaryWriter()
+        if (
+            self._negotiated_revision
+            >= DBMS_MIN_PROTOCOL_VERSION_WITH_QUOTA_KEY
+        ):
+            out.write_string("")  # empty quota_key — we don't use quotas
+        if len(out) == 0:
+            return
+        self._writer.write(out.getvalue())
+        await self._writer.drain()
 
     async def _cleanup_writer(self) -> None:
         writer = self._writer

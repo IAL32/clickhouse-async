@@ -47,8 +47,8 @@ async def _connect(transport: ScriptedTransport) -> Connection:
 
 
 async def _drain_client_hello(rdr: AsyncBinaryReader) -> None:
-    """Walk past the bytes ``write_client_hello`` writes so subsequent
-    field reads land at the start of the next packet."""
+    """Walk past the bytes ``write_client_hello`` writes plus the
+    post-Hello addendum so subsequent reads land at the next packet."""
     assert await rdr.read_varuint() == ClientPacket.HELLO
     await rdr.read_string()   # client name
     await rdr.read_varuint()  # version major
@@ -57,6 +57,7 @@ async def _drain_client_hello(rdr: AsyncBinaryReader) -> None:
     await rdr.read_string()   # database
     await rdr.read_string()   # user
     await rdr.read_string()   # password
+    await rdr.read_string()   # addendum: quota_key (empty)
 
 
 # ---- send_query bytes ---------------------------------------------------
@@ -94,7 +95,7 @@ async def test_send_query_emits_documented_field_order_through_sql() -> None:
     assert await rdr.read_byte() == 1
     assert await rdr.read_string() == "alice"   # initial_user (the open() user)
     assert await rdr.read_string() == ""        # initial_query_id
-    assert await rdr.read_string() == ""        # initial_address
+    assert await rdr.read_string() == "0.0.0.0:0"  # initial_address
     await rdr.read_int(8, signed=True)          # initial_query_start_time microseconds
     assert await rdr.read_byte() == 1           # interface = TCP
     await rdr.read_string()                     # os_user (env-dependent)

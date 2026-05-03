@@ -19,6 +19,13 @@ Wire layout, in order:
 - if ``revision >= DBMS_MIN_REVISION_WITH_SERVER_TIMEZONE``: string ``timezone``
 - if ``revision >= DBMS_MIN_REVISION_WITH_SERVER_DISPLAY_NAME``: string ``display_name``
 - if ``revision >= DBMS_MIN_REVISION_WITH_VERSION_PATCH``: varuint ``version_patch``
+- if ``revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_PASSWORD_COMPLEXITY_RULES``:
+  varuint ``n_rules`` followed by ``n_rules`` pairs of (string
+  ``pattern``, string ``message``) — informational; v0 reads and
+  discards them.
+- if ``revision >= DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET_V2``: 8-byte
+  little-endian unsigned ``nonce`` — used for inter-server auth, which
+  v0 doesn't drive; we read and discard.
 
 Both ``read_server_hello`` and ``read_exception_body`` (in
 ``exception_packet``) operate on the body — the caller has already
@@ -32,6 +39,8 @@ from dataclasses import dataclass
 import clickhouse_async
 from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 from clickhouse_async.protocol.packets import (
+    DBMS_MIN_PROTOCOL_VERSION_WITH_PASSWORD_COMPLEXITY_RULES,
+    DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET_V2,
     DBMS_MIN_REVISION_WITH_SERVER_DISPLAY_NAME,
     DBMS_MIN_REVISION_WITH_SERVER_TIMEZONE,
     DBMS_MIN_REVISION_WITH_VERSION_PATCH,
@@ -106,6 +115,19 @@ async def read_server_hello(reader: AsyncBinaryReader) -> ServerInfo:
     version_patch = 0
     if revision >= DBMS_MIN_REVISION_WITH_VERSION_PATCH:
         version_patch = await reader.read_varuint()
+
+    # Password complexity rules — informational, the client doesn't use
+    # them. Drained so the wire stays in sync.
+    if revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_PASSWORD_COMPLEXITY_RULES:
+        n_rules = await reader.read_varuint()
+        for _ in range(n_rules):
+            await reader.read_string()  # pattern
+            await reader.read_string()  # message
+
+    # Interserver-secret-v2 nonce — used for inter-server auth. v0
+    # doesn't drive that path; we read and discard.
+    if revision >= DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET_V2:
+        await reader.read_int(8, signed=False)
 
     return ServerInfo(
         name=name,

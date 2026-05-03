@@ -109,7 +109,11 @@ def _write_client_info(
     # initial_user / initial_query_id / initial_address
     writer.write_string(user)
     writer.write_string(query_id)
-    writer.write_string("")  # initial_address — we don't know our public IP
+    # initial_address: ClickHouse parses this through Poco's SocketAddress
+    # which asserts non-empty input. We don't have a public IP to report
+    # for an initial query, so we send a documented sentinel that parses
+    # as "no address" without tripping the assertion.
+    writer.write_string("0.0.0.0:0")
 
     if revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_INITIAL_QUERY_START_TIME:
         # Int64 microseconds since the Unix epoch — 0 means unset

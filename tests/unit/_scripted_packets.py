@@ -11,9 +11,11 @@ from __future__ import annotations
 from clickhouse_async.protocol.block import Block, write_block
 from clickhouse_async.protocol.io import BinaryWriter
 from clickhouse_async.protocol.packets import (
+    DBMS_MIN_PROTOCOL_VERSION_WITH_PASSWORD_COMPLEXITY_RULES,
     DBMS_MIN_PROTOCOL_VERSION_WITH_SERVER_QUERY_TIME_IN_PROGRESS,
     DBMS_MIN_PROTOCOL_VERSION_WITH_TOTAL_BYTES_IN_PROGRESS,
     DBMS_MIN_REVISION_WITH_CLIENT_WRITE_INFO,
+    DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET_V2,
     DBMS_MIN_REVISION_WITH_ROWS_BEFORE_AGGREGATION,
     DBMS_MIN_REVISION_WITH_SERVER_DISPLAY_NAME,
     DBMS_MIN_REVISION_WITH_SERVER_TIMEZONE,
@@ -56,6 +58,10 @@ def encode_server_hello(
         w.write_string(display_name)
     if revision >= DBMS_MIN_REVISION_WITH_VERSION_PATCH:
         w.write_varuint(version_patch)
+    if revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_PASSWORD_COMPLEXITY_RULES:
+        w.write_varuint(0)  # zero password-complexity rules
+    if revision >= DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET_V2:
+        w.write_int(0, 8, signed=False)  # nonce — discarded by client
     return w.getvalue()
 
 

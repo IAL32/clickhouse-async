@@ -36,14 +36,17 @@ def _reader_over(data: bytes) -> AsyncBinaryReader:
 
 
 async def _drain_client_hello(rdr: AsyncBinaryReader) -> None:
+    """Walk past the bytes ``write_client_hello`` writes plus the
+    post-Hello addendum so subsequent reads land at the next packet."""
     assert await rdr.read_varuint() == ClientPacket.HELLO
-    await rdr.read_string()
-    await rdr.read_varuint()
-    await rdr.read_varuint()
-    await rdr.read_varuint()
-    await rdr.read_string()
-    await rdr.read_string()
-    await rdr.read_string()
+    await rdr.read_string()    # client_name
+    await rdr.read_varuint()   # version major
+    await rdr.read_varuint()   # version minor
+    await rdr.read_varuint()   # revision
+    await rdr.read_string()    # database
+    await rdr.read_string()    # user
+    await rdr.read_string()    # password
+    await rdr.read_string()    # addendum: quota_key (empty)
 
 
 async def _drain_query_through_sql(
@@ -96,7 +99,7 @@ async def _connect(transport: ScriptedTransport, *, revision: int | None = None)
 
 
 @pytest.mark.parametrize(
-    "value,expected",
+    "value,expected_inner",
     [
         ("hello", "hello"),
         ("", ""),
@@ -119,19 +122,25 @@ async def _connect(transport: ScriptedTransport, *, revision: int | None = None)
         (b"\xde\xad\xbe\xef", "deadbeef"),
     ],
 )
-def test_format_param_round_trip(value: object, expected: str) -> None:
+def test_format_param_round_trip(value: object, expected_inner: str) -> None:
     # BEGIN: a representative value of every supported Python type
     # WHEN: formatting via the registry
-    # THEN: the textual form matches the documented representation
-    assert format_param(value) == expected
+    # THEN: the wire form is the inner text wrapped in single quotes
+    assert format_param(value) == f"'{expected_inner}'"
 
 
 def test_format_param_handles_special_floats() -> None:
     # BEGIN: the IEEE-754 specials that need bespoke string forms
-    # WHEN / THEN: each surfaces with the documented spelling
-    assert format_param(float("nan")) == "nan"
-    assert format_param(float("inf")) == "inf"
-    assert format_param(float("-inf")) == "-inf"
+    # WHEN / THEN: each surfaces with the documented spelling, quoted
+    assert format_param(float("nan")) == "'nan'"
+    assert format_param(float("inf")) == "'inf'"
+    assert format_param(float("-inf")) == "'-inf'"
+
+
+def test_format_param_escapes_internal_quotes_and_backslashes() -> None:
+    # BEGIN / WHEN: a string that contains both metacharacters
+    # THEN: single quotes get a leading backslash; backslashes double
+    assert format_param("it's a \\path") == r"'it\'s a \\path'"
 
 
 def test_format_param_rejects_unsupported_types() -> None:
@@ -175,7 +184,9 @@ async def test_send_query_emits_parameters_block_with_custom_flag() -> None:
         flag = await rdr.read_varuint()
         assert flag == 0x02, f"parameter {name!r} flag must be CUSTOM (0x02)"
         seen[name] = await rdr.read_string()
-    assert seen == {"d": "2026-05-03", "n": "42", "s": "alice"}
+    # Wire values are SQL-quoted; the server unquotes and re-parses
+    # per the placeholder type
+    assert seen == {"d": "'2026-05-03'", "n": "'42'", "s": "'alice'"}
 
 
 async def test_send_query_omits_parameters_block_when_no_params_passed() -> None:
@@ -261,9 +272,9 @@ async def test_send_query_typed_values_format_via_registry() -> None:
             break
         await rdr.read_varuint()  # flag
         seen[name] = await rdr.read_string()
-    assert seen["ts"] == "2026-05-03 12:00:00.500000"
-    assert seen["id"] == "12345678-1234-5678-9abc-def012345678"
-    assert seen["blob"] == "00ff"
+    assert seen["ts"] == "'2026-05-03 12:00:00.500000'"
+    assert seen["id"] == "'12345678-1234-5678-9abc-def012345678'"
+    assert seen["blob"] == "'00ff'"
 
 
 async def test_send_query_unsupported_param_type_raises_type_error() -> None:

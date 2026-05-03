@@ -5,12 +5,13 @@ Values mirror upstream byte-for-byte:
 - ``src/Core/Protocol.h``         — ``ClientPacket`` and ``ServerPacket``.
 - ``src/Core/ProtocolDefines.h``  — revision gates and ``OUR_REVISION``.
 
-``OUR_REVISION`` is what this client claims in ``Hello``. We pin it to the
-ClickHouse 24.8 LTS ``DBMS_TCP_PROTOCOL_VERSION`` (54469) so the negotiated
-revision against any modern server is exactly what we implement; newer
-servers downshift to ours at handshake. Bumping ``OUR_REVISION`` must come
-paired with implementing the fields the higher revision introduces — lifting
-this number alone produces subtly broken handshakes.
+``OUR_REVISION`` is what this client claims in ``Hello``. It's pinned to a
+specific upstream ``DBMS_TCP_PROTOCOL_VERSION`` (see ``.clickhouse-version``
+for the matching server image); the negotiated revision against any modern
+server is exactly what we implement, and newer servers downshift at
+handshake. Bumping ``OUR_REVISION`` must come paired with implementing the
+fields the higher revision introduces — lifting this number alone produces
+subtly broken handshakes.
 
 Every constant declared below is enforced to be ``≤ OUR_REVISION`` by
 ``tests/unit/test_protocol_packets.py``. Add a constant only when this
@@ -94,12 +95,17 @@ DBMS_MIN_PROTOCOL_VERSION_WITH_INITIAL_QUERY_START_TIME = 54449
 DBMS_MIN_PROTOCOL_VERSION_WITH_INCREMENTAL_PROFILE_EVENTS = 54451
 DBMS_MIN_REVISION_WITH_PARALLEL_REPLICAS = 54453
 DBMS_MIN_REVISION_WITH_CUSTOM_SERIALIZATION = 54454
+DBMS_MIN_PROTOCOL_VERSION_WITH_QUOTA_KEY = 54458
+DBMS_MIN_PROTOCOL_VERSION_WITH_ADDENDUM = 54458
 DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS = 54459
 DBMS_MIN_PROTOCOL_VERSION_WITH_SERVER_QUERY_TIME_IN_PROGRESS = 54460
+DBMS_MIN_PROTOCOL_VERSION_WITH_PASSWORD_COMPLEXITY_RULES = 54461
+DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET_V2 = 54462
 DBMS_MIN_PROTOCOL_VERSION_WITH_TOTAL_BYTES_IN_PROGRESS = 54463
 DBMS_MIN_PROTOCOL_VERSION_WITH_TIMEZONE_UPDATES = 54464
 DBMS_MIN_REVISION_WITH_ROWS_BEFORE_AGGREGATION = 54469
 
-# The protocol revision this client claims in Hello. Pinned to ClickHouse
-# 24.8 LTS DBMS_TCP_PROTOCOL_VERSION. Keep in sync with .clickhouse-version.
+# The protocol revision this client claims in Hello. Pinned to the
+# upstream DBMS_TCP_PROTOCOL_VERSION matching the server image declared
+# in .clickhouse-version; bumping is a paired edit on both files.
 OUR_REVISION = 54469

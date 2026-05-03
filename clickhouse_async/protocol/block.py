@@ -5,12 +5,12 @@ Block. The wire layout (mirrors upstream ``Formats/NativeReader.cpp``
 and ``NativeWriter.cpp``):
 
 1. **BlockInfo** — numbered TLV-style fields ending in a varuint ``0``
-   sentinel (see ``Core/BlockInfo.cpp`` for the canonical layout). For
-   ``OUR_REVISION`` (24.8 LTS) the live fields are ``is_overflows``
-   (bool, field 1) and ``bucket_num`` (Int32, field 2). Field 3
-   (``out_of_order_buckets``) is gated above our revision and we treat
-   it as a protocol error if a server emits it — the handshake contract
-   says the server should not.
+   sentinel (see ``Core/BlockInfo.cpp`` for the canonical layout). At
+   ``OUR_REVISION`` the live fields are ``is_overflows`` (bool, field
+   1) and ``bucket_num`` (Int32, field 2). Higher-numbered fields
+   (e.g. ``out_of_order_buckets``) are gated above our revision and we
+   treat them as a protocol error if a server emits them — the
+   handshake contract says it shouldn't.
 2. **Varuint ``n_columns``**, then **varuint ``n_rows``**.
 3. For each column, in declared order:
    - Length-prefixed UTF-8 column name.

@@ -18,27 +18,25 @@ from __future__ import annotations
 
 import ssl as _ssl_module
 import time
-from collections.abc import AsyncGenerator, Awaitable, Callable, Mapping
+from collections.abc import (
+    AsyncGenerator,
+    AsyncIterable,
+    Iterable,
+    Mapping,
+    Sequence,
+)
 from dataclasses import dataclass, field
 from types import TracebackType
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
-from clickhouse_async.connection import Connection, State, _WriterLike
+from clickhouse_async.connection import Connection, State, TransportFactory
 from clickhouse_async.dsn import DSN, parse_dsn
-from clickhouse_async.errors import QueryCancellationError
-from clickhouse_async.protocol.block import Block, ColumnSpec
+from clickhouse_async.errors import ProtocolError, QueryCancellationError
+from clickhouse_async.protocol.block import Block, BlockInfo, ColumnSpec
 from clickhouse_async.protocol.server_packets import ProfileInfo, ProgressInfo
 
 if TYPE_CHECKING:
-    import asyncio
-
     from clickhouse_async.protocol.handshake import ServerInfo
-
-
-_TransportFactory = Callable[
-    [str, int, _ssl_module.SSLContext | None],
-    Awaitable[tuple["asyncio.StreamReader", _WriterLike]],
-]
 
 
 @dataclass
@@ -79,7 +77,7 @@ class Client:
         dsn: str | DSN,
         *,
         ssl_context: _ssl_module.SSLContext | None = None,
-        transport_factory: _TransportFactory | None = None,
+        transport_factory: TransportFactory | None = None,
     ) -> None:
         parsed = dsn if isinstance(dsn, DSN) else parse_dsn(dsn)
         self._dsn: DSN = parsed
@@ -188,8 +186,8 @@ class Client:
         self._conn.on_profile_info = _on_profile
         try:
             async for streamed in self._conn.iter_packets():
-                # 07b ignores totals/extremes — they're part of the
-                # streaming surface in 07c.
+                # execute() ignores totals/extremes — those land on the
+                # streaming surface (iter_blocks / iter_rows).
                 if streamed.kind != "data":
                     continue
                 block = streamed.block
@@ -307,6 +305,90 @@ class Client:
                     # only need its side effects here.
                     pass
 
+    # ---- inserts --------------------------------------------------------
+
+    async def insert(
+        self,
+        sql: str,
+        *,
+        rows: Iterable[Sequence[object]] | AsyncIterable[Sequence[object]],
+        column_names: Sequence[str],
+        insert_block_size: int = 65536,
+        settings: Mapping[str, str] | None = None,
+        query_id: str = "",
+    ) -> int:
+        """Run ``INSERT INTO t [ (col, …) ] VALUES`` and stream ``rows`` to
+        the server in batches of ``insert_block_size``.
+
+        ``rows`` is a sync iterable, async iterable, or a single iterable
+        of tuples / sequences. Each row's length must match
+        ``column_names``. The codec for each column is taken from the
+        server's INSERT header block — we don't infer types client-side.
+
+        Returns the total number of rows we shipped to the server. A
+        column-name mismatch between ``column_names`` and the server's
+        header raises ``ValueError`` after cancelling the query
+        cleanly; the connection remains reusable.
+        """
+        await self._conn.send_query(
+            sql, query_id=query_id, settings=settings
+        )
+
+        # Drain server packets until the header DATA arrives. The server
+        # may emit Progress / Log / TimezoneUpdate before the header in
+        # some configurations; iter_packets dispatches those through
+        # the existing callback hooks while we wait.
+        iterator = self._conn.iter_packets()
+        header: Block | None = None
+        async for streamed in iterator:
+            if streamed.kind == "data":
+                header = streamed.block
+                break
+        if header is None:
+            raise ProtocolError(
+                "INSERT did not receive a header DATA block from the server"
+            )
+
+        # Validate column-name alignment. A mismatch is a programmer
+        # error, not a transport failure, so we cancel cleanly and
+        # surface a ValueError with both lists named.
+        server_names = [c.name for c in header.columns]
+        if list(column_names) != server_names:
+            try:
+                await self._conn.cancel()
+            except QueryCancellationError:
+                pass
+            raise ValueError(
+                f"INSERT column names mismatch: passed {list(column_names)!r}, "
+                f"server expects {server_names!r}"
+            )
+
+        total_rows = 0
+        batch: list[Sequence[object]] = []
+
+        async def _flush(batch: list[Sequence[object]]) -> int:
+            block = _build_insert_block(header.columns, batch)  # type: ignore[union-attr]
+            await self._conn.send_data(block)
+            return len(batch)
+
+        async for row in _normalise_row_source(rows):
+            batch.append(row)
+            if len(batch) >= insert_block_size:
+                total_rows += await _flush(batch)
+                batch = []
+        if batch:
+            total_rows += await _flush(batch)
+
+        # Empty terminator block tells the server the INSERT payload is
+        # complete; the server then emits Progress / EndOfStream.
+        await self._conn.send_data(None)
+
+        # Drain remaining packets (Progress / EndOfStream / etc.).
+        async for _ in iterator:
+            pass
+
+        return total_rows
+
     async def iter_rows(
         self,
         sql: str,
@@ -337,11 +419,66 @@ class Client:
             await inner.aclose()
 
 
+async def _async_rows(
+    rows: AsyncIterable[Sequence[object]],
+) -> AsyncGenerator[Sequence[object], None]:
+    async for row in rows:
+        yield row
+
+
+async def _sync_rows(
+    rows: Iterable[Sequence[object]],
+) -> AsyncGenerator[Sequence[object], None]:
+    for row in rows:
+        yield row
+
+
+def _normalise_row_source(
+    rows: Iterable[Sequence[object]] | AsyncIterable[Sequence[object]],
+) -> AsyncGenerator[Sequence[object], None]:
+    """Wrap a sync or async iterable in a uniform async-generator
+    interface so the insert loop can ``async for`` over either shape.
+
+    Split into two single-purpose helpers because narrowing a
+    sync-or-async-iterable union inside one function loses the
+    parametric element type at the iteration site (ty observes
+    ``object`` rather than ``Sequence[object]``). The ``cast`` calls
+    re-attach the parameter ty's isinstance narrowing strips off."""
+    if isinstance(rows, AsyncIterable):
+        return _async_rows(cast(AsyncIterable[Sequence[object]], rows))
+    return _sync_rows(cast(Iterable[Sequence[object]], rows))
+
+
+def _build_insert_block(
+    specs: Sequence[ColumnSpec], rows: Sequence[Sequence[object]]
+) -> Block:
+    """Transpose row-major ``rows`` into a column-major Block matching
+    ``specs``. Raises ValueError naming the offending row index when a
+    row's arity doesn't match."""
+    n_cols = len(specs)
+    n_rows = len(rows)
+    columns_data: list[list[object]] = [[] for _ in range(n_cols)]
+    for i, row in enumerate(rows):
+        if len(row) != n_cols:
+            raise ValueError(
+                f"INSERT row {i} has {len(row)} columns; expected {n_cols} "
+                f"(column names: {[s.name for s in specs]})"
+            )
+        for c, val in enumerate(row):
+            columns_data[c].append(val)
+    return Block(
+        info=BlockInfo(),
+        columns=list(specs),
+        n_rows=n_rows,
+        data=columns_data,
+    )
+
+
 def connect(
     dsn: str | DSN,
     *,
     ssl_context: _ssl_module.SSLContext | None = None,
-    transport_factory: _TransportFactory | None = None,
+    transport_factory: TransportFactory | None = None,
 ) -> Client:
     """Build an unopened ``Client``. The handshake happens when you
     enter the ``async with`` block (or call ``await client.open()``).

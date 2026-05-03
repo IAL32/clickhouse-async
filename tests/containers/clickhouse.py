@@ -86,9 +86,7 @@ class ClickHouseContainer(DockerContainer):
             "2>/dev/null || echo 0",
         ]
         while time.monotonic() < deadline:
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, check=False
-            )
+            result = subprocess.run(cmd, capture_output=True, text=True, check=False)
             count_str = result.stdout.strip().splitlines()[-1] if result.stdout else "0"
             try:
                 if int(count_str) >= 2:

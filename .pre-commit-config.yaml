@@ -1,0 +1,30 @@
+# Read by `prek` (the drop-in pre-commit replacement we use per
+# CLAUDE.md). Install with: ``uv run prek install``.
+#
+# Keep this short — the canonical lint+type pipeline already lives in
+# `.github/workflows/tests.yml`. The hooks here are a pre-push convenience
+# so the same gates run locally.
+
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        language: system
+        entry: uv run ruff check
+        types: [python]
+        pass_filenames: false
+
+      - id: ruff-format
+        name: ruff format (check only)
+        language: system
+        entry: uv run ruff format --check
+        types: [python]
+        pass_filenames: false
+
+      - id: ty-check
+        name: ty (type check)
+        language: system
+        entry: uv run ty check
+        types: [python]
+        pass_filenames: false

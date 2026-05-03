@@ -175,3 +175,4 @@ cython_debug/
 
 # Local planning notes
 .plans/
+.claude/*.lock

@@ -136,6 +136,28 @@ def test_negative_cooldown_rejected() -> None:
         _HostRotation([("a", 9000)], cooldown=-1.0)
 
 
+def test_low_monotonic_clock_does_not_cool_down_unfailed_hosts(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # BEGIN: a freshly-booted runner where ``time.monotonic()`` is
+    #        still smaller than the cooldown window. The rotation
+    #        must not treat unfailed hosts as "in cooldown" just
+    #        because (now - 0.0) is less than the cooldown — the
+    #        sentinel-default approach was a real bug exposed by
+    #        Linux CI runners with small uptimes.
+    fake_now = [0.5]  # less than any reasonable cooldown
+    monkeypatch.setattr(time, "monotonic", lambda: fake_now[0])
+    rot = _HostRotation([("a", 9000), ("b", 9000)], cooldown=60.0)
+
+    # WHEN: no failure has been recorded — every host is healthy
+    fake_now[0] = 1.0
+    candidates = rot.next_candidates()
+
+    # THEN: both hosts come back, in the canonical rotation order;
+    #       neither was filtered out by the small-clock quirk
+    assert candidates == (("a", 9000), ("b", 9000))
+
+
 def test_record_failure_for_unknown_host_is_a_noop() -> None:
     # BEGIN: a single-host rotation
     rot = _HostRotation([("a", 9000)], cooldown=5.0)

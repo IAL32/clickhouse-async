@@ -97,6 +97,7 @@ up() {
         -e CLICKHOUSE_PASSWORD=clickhouse \
         -e CLICKHOUSE_DB=clickhouse \
         -e CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1 \
+        -v "${ROOT}/scripts/clickhouse-config/listen-all.xml:/etc/clickhouse-server/config.d/listen-all.xml:ro" \
         -p "${NATIVE_PORT}:9000" \
         -p "${HTTP_PORT}:8123" \
         "clickhouse/clickhouse-server:${version}" >/dev/null

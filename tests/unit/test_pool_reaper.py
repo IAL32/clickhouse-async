@@ -14,6 +14,8 @@ from __future__ import annotations
 import asyncio
 import ssl
 
+import pytest
+
 import clickhouse_async as ch
 from clickhouse_async.connection import _WriterLike
 
@@ -222,6 +224,51 @@ async def test_concurrent_acquire_stress_test() -> None:
         assert pool.size <= pool._max_size
         assert pool.free_size <= pool.size
         assert pool.size >= pool._min_size
+
+
+async def test_enable_reaper_false_skips_starting_the_task() -> None:
+    # BEGIN: a pool with enable_reaper=False — useful in test harnesses
+    #        / short-lived scripts where the per-acquire health check
+    #        is enough and we don't want a background task ticking
+    factory = _CountingTransports()
+    pool = ch.create_pool(
+        "clickhouse://default:@host/db",
+        max_size=2,
+        enable_reaper=False,
+        idle_check_interval=0.05,
+        max_idle_time=0.05,
+        health_check_after=999,
+        transport_factory=factory,
+    )
+
+    async with pool:
+        # WHEN: a couple of acquires + releases happen
+        async with pool.acquire():
+            pass
+        async with pool.acquire():
+            pass
+        # And we wait long enough that the reaper *would* have closed
+        # everything had it been running
+        await asyncio.sleep(0.3)
+
+        # THEN: no reaper task was ever started
+        assert pool._reaper_task is None
+        # And idle entries are still in the deque — they weren't reaped
+        assert pool.free_size == 1
+
+
+async def test_min_size_with_disabled_reaper_is_rejected() -> None:
+    # BEGIN / WHEN / THEN: ``min_size`` only gets enforced by the
+    #                     reaper, so combining the two is meaningless;
+    #                     refuse at construction rather than silently
+    #                     accept a parameter we won't honour
+    with pytest.raises(ValueError, match=r"min_size.*requires enable_reaper"):
+        ch.create_pool(
+            "clickhouse://default:@host/db",
+            min_size=2,
+            max_size=4,
+            enable_reaper=False,
+        )
 
 
 async def test_close_drains_free_deque_and_decrements_size() -> None:

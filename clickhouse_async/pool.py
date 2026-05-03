@@ -70,6 +70,7 @@ class Pool:
         max_lifetime: float = 600.0,
         max_idle_time: float = 300.0,
         idle_check_interval: float = 30.0,
+        enable_reaper: bool = True,
         health_check_after: float = 30.0,
         host_failover_cooldown: float = 5.0,
         ssl_context: _ssl_module.SSLContext | None = None,
@@ -98,6 +99,15 @@ class Pool:
             raise ValueError(
                 f"host_failover_cooldown must be ≥ 0, got {host_failover_cooldown}"
             )
+        # ``min_size`` only gets actively warmed by the background reaper —
+        # without one nothing opens connections proactively. Refusing the
+        # contradiction here is friendlier than silently leaving the
+        # parameter unenforced.
+        if min_size > 0 and not enable_reaper:
+            raise ValueError(
+                f"min_size={min_size} requires enable_reaper=True; the "
+                f"reaper is what keeps the pool warm to min_size"
+            )
         self._dsn: DSN = dsn if isinstance(dsn, DSN) else parse_dsn(dsn)
         self._min_size = min_size
         self._max_size = max_size
@@ -105,6 +115,7 @@ class Pool:
         self._max_lifetime = max_lifetime
         self._max_idle_time = max_idle_time
         self._idle_check_interval = idle_check_interval
+        self._enable_reaper = enable_reaper
         self._health_check_after = health_check_after
         self._ssl_context = ssl_context
         self._transport_factory = transport_factory
@@ -333,10 +344,11 @@ class Pool:
         """Spawn the idle reaper task on first ``acquire()``. Idempotent.
 
         Runs only when the pool has actually been used so an idle
-        ``create_pool`` doesn't burn an event-loop task. ``close()``
-        cancels and awaits the task before returning.
+        ``create_pool`` doesn't burn an event-loop task. A no-op if
+        ``enable_reaper=False`` was passed at construction.
+        ``close()`` cancels and awaits the task before returning.
         """
-        if self._reaper_task is not None or self._closed:
+        if self._reaper_task is not None or self._closed or not self._enable_reaper:
             return
         self._reaper_task = asyncio.create_task(
             self._reaper_loop(), name="clickhouse-async pool reaper"
@@ -556,6 +568,7 @@ def create_pool(
     max_lifetime: float = 600.0,
     max_idle_time: float = 300.0,
     idle_check_interval: float = 30.0,
+    enable_reaper: bool = True,
     health_check_after: float = 30.0,
     host_failover_cooldown: float = 5.0,
     ssl_context: _ssl_module.SSLContext | None = None,
@@ -571,6 +584,12 @@ def create_pool(
       ``size > min_size``. Defaults to 5 minutes.
     - ``idle_check_interval``: how often (seconds) the reaper sweeps
       the free deque. Default 30 s.
+    - ``enable_reaper``: when ``False``, the background idle reaper
+      task is never started — ``max_idle_time`` and the ``min_size``
+      warm aspect become no-ops. Useful in test harnesses or
+      short-lived scripts where the per-acquire health check
+      (``health_check_after``) and per-release lifetime cap
+      (``max_lifetime``) are sufficient. Default ``True``.
     - ``health_check_after``: idle connections older than this are
       pinged on the way out of the pool; failed pings → discard +
       open fresh.
@@ -590,6 +609,7 @@ def create_pool(
         max_lifetime=max_lifetime,
         max_idle_time=max_idle_time,
         idle_check_interval=idle_check_interval,
+        enable_reaper=enable_reaper,
         health_check_after=health_check_after,
         host_failover_cooldown=host_failover_cooldown,
         ssl_context=ssl_context,

@@ -22,9 +22,7 @@ class _RotatingTransport:
     tests can assert the rotation visited the expected sequence.
     """
 
-    def __init__(
-        self, outcomes: dict[tuple[str, int], bytes | Exception]
-    ) -> None:
+    def __init__(self, outcomes: dict[tuple[str, int], bytes | Exception]) -> None:
         self.outcomes = outcomes
         self.calls: list[tuple[str, int]] = []
 

@@ -126,9 +126,7 @@ async def test_execute_captures_final_progress_and_profile_info() -> None:
     transport.feed(encode_server_data(header))
     transport.feed(encode_server_progress(read_rows=10, read_bytes=200))
     transport.feed(encode_server_data(data))
-    transport.feed(
-        encode_server_progress(read_rows=20, read_bytes=400, written_rows=1)
-    )
+    transport.feed(encode_server_progress(read_rows=20, read_bytes=400, written_rows=1))
     transport.feed(encode_server_profile_info(rows=1, blocks=2, bytes_=64))
     transport.feed(encode_server_end_of_stream())
 
@@ -177,9 +175,7 @@ async def test_execute_passes_params_through_to_send_query() -> None:
     async with connect(
         "clickhouse://default:@host/db", transport_factory=transport
     ) as client:
-        await client.execute(
-            "SELECT number WHERE n = {n:Int32}", params={"n": 42}
-        )
+        await client.execute("SELECT number WHERE n = {n:Int32}", params={"n": 42})
 
     # THEN: the captured Query packet's tail carries the parameter
     #       block (we just check the bytes contain the value as text)

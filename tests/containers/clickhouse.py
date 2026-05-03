@@ -35,6 +35,11 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 _VERSION_FILE = _REPO_ROOT / ".clickhouse-version"
 DEFAULT_VERSION = _VERSION_FILE.read_text().strip()
 CLICKHOUSE_IMAGE = f"clickhouse/clickhouse-server:{DEFAULT_VERSION}"
+# Config snippet mounted into /etc/clickhouse-server/config.d/ to make
+# the server bind to 0.0.0.0 instead of the default loopback. Without
+# this override the listener stays on 127.0.0.1 inside the container
+# and Docker's port mapping forwards traffic that nobody answers.
+_LISTEN_OVERRIDE = _REPO_ROOT / "scripts" / "clickhouse-config" / "listen-all.xml"
 
 NATIVE_PORT = 9000
 HTTP_PORT = 8123
@@ -55,8 +60,13 @@ class ClickHouseContainer(DockerContainer):
         self.with_env("CLICKHOUSE_DB", DEFAULT_DATABASE)
         # CH refuses to start with the default soft nofile on macOS / some
         # Linux distros.
-        self.with_kwargs(
-            ulimits=[{"name": "nofile", "soft": 262144, "hard": 262144}]
+        self.with_kwargs(ulimits=[{"name": "nofile", "soft": 262144, "hard": 262144}])
+        # Drop the loopback-only default listen_host so the server
+        # accepts traffic forwarded by Docker's port mapping.
+        self.with_volume_mapping(
+            str(_LISTEN_OVERRIDE),
+            "/etc/clickhouse-server/config.d/listen-all.xml",
+            "ro",
         )
 
     def start(self) -> ClickHouseContainer:
@@ -117,9 +127,7 @@ class ClickHouseContainer(DockerContainer):
         ]
         exit_code, output = self.exec(cmd)
         if exit_code != 0:
-            raise RuntimeError(
-                f"clickhouse-client exited {exit_code}: {output!r}"
-            )
+            raise RuntimeError(f"clickhouse-client exited {exit_code}: {output!r}")
         if isinstance(output, bytes):
             return output.decode("utf-8", errors="replace")
         return str(output)

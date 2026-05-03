@@ -131,7 +131,12 @@ async def test_fixed_string_round_trip_pads_short_inputs_with_nul() -> None:
 
     # THEN: short inputs come back NUL-padded to length 5 (not their original
     #       length) — the on-wire format is fixed, no length is preserved
-    assert decoded == [b"hello", b"hi\x00\x00\x00", b"\x00\x00\x00\x00\x00", b"\xff\x00\xab\xcd\xef"]
+    assert decoded == [
+        b"hello",
+        b"hi\x00\x00\x00",
+        b"\x00\x00\x00\x00\x00",
+        b"\xff\x00\xab\xcd\xef",
+    ]
 
 
 def test_fixed_string_rejects_over_length_input() -> None:
@@ -154,7 +159,7 @@ def test_fixed_string_rejects_over_length_input() -> None:
         ("Decimal32(4)", Decimal32),
         ("Decimal64(4)", Decimal64),
         ("Decimal128(4)", Decimal128),
-        ("Decimal(9, 4)", Decimal32),     # precision dispatch
+        ("Decimal(9, 4)", Decimal32),  # precision dispatch
         ("Decimal(18, 4)", Decimal64),
         ("Decimal(38, 4)", Decimal128),
     ],
@@ -292,9 +297,9 @@ async def test_datetime_naming_round_trips() -> None:
 @pytest.mark.parametrize(
     "precision,sub_second_micro",
     [
-        (0, 0),         # whole seconds only
-        (3, 123_000),   # millisecond — 123 ticks → 123_000 microseconds
-        (6, 123_456),   # microsecond — exact match for Python's resolution
+        (0, 0),  # whole seconds only
+        (3, 123_000),  # millisecond — 123 ticks → 123_000 microseconds
+        (6, 123_456),  # microsecond — exact match for Python's resolution
     ],
 )
 async def test_datetime64_round_trip_at_supported_precisions(

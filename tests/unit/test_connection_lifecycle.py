@@ -172,5 +172,3 @@ async def test_mock_transport_carries_handshake_traffic_both_directions() -> Non
     assert len(transport.written()) > 0
     # First written byte is the ClientPacket.HELLO varuint id (0x00).
     assert transport.written()[0] == 0
-
-

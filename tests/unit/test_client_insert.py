@@ -129,12 +129,8 @@ async def test_insert_column_name_mismatch_raises_and_keeps_client_usable() -> N
     # Queue a follow-up SELECT response so we can verify the client
     # is still usable
     spec, _ = make_column("n", "Int32", [])
-    follow_header = Block(
-        info=BlockInfo(), columns=[spec], n_rows=0, data=[[]]
-    )
-    follow_data = Block(
-        info=BlockInfo(), columns=[spec], n_rows=1, data=[[42]]
-    )
+    follow_header = Block(info=BlockInfo(), columns=[spec], n_rows=0, data=[[]])
+    follow_data = Block(info=BlockInfo(), columns=[spec], n_rows=1, data=[[42]])
     transport.feed(encode_server_data(follow_header))
     transport.feed(encode_server_data(follow_data))
     transport.feed(encode_server_end_of_stream())

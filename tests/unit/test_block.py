@@ -66,7 +66,10 @@ async def test_block_info_layout_is_numbered_fields_terminated_by_zero() -> None
 
     # THEN: the layout is exactly: varuint 1, byte 1, varuint 2, Int32 LE 42,
     #       varuint 0 (sentinel)
-    assert writer.getvalue() == b"\x01\x01\x02" + (42).to_bytes(4, "little", signed=True) + b"\x00"
+    assert (
+        writer.getvalue()
+        == b"\x01\x01\x02" + (42).to_bytes(4, "little", signed=True) + b"\x00"
+    )
 
 
 async def test_block_info_unknown_field_raises_protocol_error() -> None:
@@ -181,7 +184,8 @@ async def test_multi_column_mixed_types_round_trip() -> None:
 async def test_nested_types_round_trip() -> None:
     # BEGIN: a block with a deeply nested column type
     spec, vals = make_column(
-        "tags", "Array(Nullable(String))",
+        "tags",
+        "Array(Nullable(String))",
         [["a", None, "b"], [], ["c"]],
     )
     block = Block(

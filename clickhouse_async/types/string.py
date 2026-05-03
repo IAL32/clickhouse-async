@@ -17,17 +17,13 @@ class String:
     name = "String"
     null_value: str = ""
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
-    ) -> list[str]:
+    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[str]:
         out: list[str] = []
         for _ in range(n_rows):
             out.append(await reader.read_string())
         return out
 
-    def write(
-        self, writer: BinaryWriter, values: Sequence[str]
-    ) -> None:
+    def write(self, writer: BinaryWriter, values: Sequence[str]) -> None:
         for v in values:
             writer.write_string(v)
 
@@ -37,25 +33,19 @@ class FixedString:
 
     def __init__(self, length: int) -> None:
         if length <= 0:
-            raise ValueError(
-                f"FixedString length must be positive, got {length}"
-            )
+            raise ValueError(f"FixedString length must be positive, got {length}")
         self.length = length
         self.name = f"FixedString({length})"
         self.null_value = b"\x00" * length
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
-    ) -> list[bytes]:
+    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[bytes]:
         if n_rows == 0:
             return []
         n = self.length
         data = await reader.read_exact(n * n_rows)
         return [bytes(data[i * n : (i + 1) * n]) for i in range(n_rows)]
 
-    def write(
-        self, writer: BinaryWriter, values: Sequence[bytes]
-    ) -> None:
+    def write(self, writer: BinaryWriter, values: Sequence[bytes]) -> None:
         n = self.length
         out = bytearray()
         for v in values:

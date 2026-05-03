@@ -106,9 +106,7 @@ def write_block_info(writer: BinaryWriter, info: BlockInfo) -> None:
 # ---- Block -----------------------------------------------------------------
 
 
-async def read_block(
-    reader: AsyncBinaryReader, *, revision: int
-) -> Block:
+async def read_block(reader: AsyncBinaryReader, *, revision: int) -> Block:
     """Decode one block from the reader.
 
     ``revision`` is the connection's negotiated protocol revision —
@@ -133,16 +131,12 @@ async def read_block(
                     f"of type {type_spec!r} carries has_custom={has_custom}"
                 )
         column_data = await codec.read(reader, n_rows)
-        columns.append(
-            ColumnSpec(name=name, type_spec=type_spec, codec=codec)
-        )
+        columns.append(ColumnSpec(name=name, type_spec=type_spec, codec=codec))
         data.append(column_data)
     return Block(info=info, columns=columns, n_rows=n_rows, data=data)
 
 
-def write_block(
-    writer: BinaryWriter, block: Block, *, revision: int
-) -> None:
+def write_block(writer: BinaryWriter, block: Block, *, revision: int) -> None:
     """Encode one block to the writer.
 
     Caller is responsible for ``len(block.data) == len(block.columns)``
@@ -181,4 +175,6 @@ def make_column(
     """Build a (spec, values) pair from a type-spec string. Convenience
     for tests and for users assembling INSERT blocks by hand."""
 
-    return ColumnSpec(name=name, type_spec=type_spec, codec=parse_type(type_spec)), list(values)
+    return ColumnSpec(
+        name=name, type_spec=type_spec, codec=parse_type(type_spec)
+    ), list(values)

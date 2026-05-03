@@ -35,18 +35,14 @@ class Nullable:
         self.inner = inner
         self.name = f"Nullable({inner.name})"
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
-    ) -> list[Any]:
+    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[Any]:
         if n_rows == 0:
             return []
         mask = await reader.read_exact(n_rows)
         values = await self.inner.read(reader, n_rows)
         return [None if mask[i] else values[i] for i in range(n_rows)]
 
-    def write(
-        self, writer: BinaryWriter, values: Sequence[Any]
-    ) -> None:
+    def write(self, writer: BinaryWriter, values: Sequence[Any]) -> None:
         n = len(values)
         if n == 0:
             return
@@ -74,9 +70,7 @@ class Array:
         self.name = f"Array({inner.name})"
         self.null_value = []
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
-    ) -> list[list[Any]]:
+    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[list[Any]]:
         if n_rows == 0:
             return []
         # Cumulative offsets — one UInt64 per row.
@@ -94,9 +88,7 @@ class Array:
             prev = end
         return out
 
-    def write(
-        self, writer: BinaryWriter, values: Sequence[Sequence[Any]]
-    ) -> None:
+    def write(self, writer: BinaryWriter, values: Sequence[Sequence[Any]]) -> None:
         n = len(values)
         if n == 0:
             return
@@ -142,9 +134,7 @@ class Tuple:
             for i in range(n_rows)
         ]
 
-    def write(
-        self, writer: BinaryWriter, values: Sequence[Sequence[Any]]
-    ) -> None:
+    def write(self, writer: BinaryWriter, values: Sequence[Sequence[Any]]) -> None:
         n = len(values)
         if n == 0:
             return
@@ -176,9 +166,7 @@ class Map:
         rows = await self._inner.read(reader, n_rows)
         return [dict(row) for row in rows]
 
-    def write(
-        self, writer: BinaryWriter, values: Sequence[dict[Any, Any]]
-    ) -> None:
+    def write(self, writer: BinaryWriter, values: Sequence[dict[Any, Any]]) -> None:
         rows = [list(d.items()) for d in values]
         self._inner.write(writer, rows)
 
@@ -238,22 +226,16 @@ class LowCardinality:
     def _byte_width_for_tag(tag: int) -> int:
         return {0: 1, 1: 2, 2: 4, 3: 8}[tag]
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
-    ) -> list[Any]:
+    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[Any]:
         if n_rows == 0:
             return []
         version = await reader.read_int(8, signed=False)
         if version != self._VERSION:
-            raise ProtocolError(
-                f"unsupported LowCardinality version: {version}"
-            )
+            raise ProtocolError(f"unsupported LowCardinality version: {version}")
         sertype = await reader.read_int(8, signed=False)
         index_tag = sertype & 0xFF
         if index_tag not in (0, 1, 2, 3):
-            raise ProtocolError(
-                f"invalid LowCardinality index tag: {index_tag}"
-            )
+            raise ProtocolError(f"invalid LowCardinality index tag: {index_tag}")
         index_size = self._byte_width_for_tag(index_tag)
 
         dict_size = await reader.read_int(8, signed=False)
@@ -276,9 +258,7 @@ class LowCardinality:
             for i in range(n_rows)
         ]
 
-    def write(
-        self, writer: BinaryWriter, values: Sequence[Any]
-    ) -> None:
+    def write(self, writer: BinaryWriter, values: Sequence[Any]) -> None:
         n = len(values)
         if n == 0:
             return

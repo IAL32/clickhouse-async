@@ -36,9 +36,7 @@ class _DecimalCodec:
         self._scale_factor = PyDecimal(10) ** scale
         self.name = f"Decimal{self._size * 8}({scale})"
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
-    ) -> list[PyDecimal]:
+    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[PyDecimal]:
         if n_rows == 0:
             return []
         size = self._size
@@ -46,15 +44,11 @@ class _DecimalCodec:
         data = await reader.read_exact(size * n_rows)
         out: list[PyDecimal] = []
         for i in range(n_rows):
-            raw = int.from_bytes(
-                data[i * size : (i + 1) * size], "little", signed=True
-            )
+            raw = int.from_bytes(data[i * size : (i + 1) * size], "little", signed=True)
             out.append(PyDecimal(raw) / scale_factor)
         return out
 
-    def write(
-        self, writer: BinaryWriter, values: Sequence[PyDecimal]
-    ) -> None:
+    def write(self, writer: BinaryWriter, values: Sequence[PyDecimal]) -> None:
         if not values:
             return
         size = self._size
@@ -92,9 +86,7 @@ def make_decimal(precision: int, scale: int) -> _DecimalCodec:
     """
 
     if precision < 1 or precision > 76:
-        raise ValueError(
-            f"Decimal precision out of range [1, 76], got {precision}"
-        )
+        raise ValueError(f"Decimal precision out of range [1, 76], got {precision}")
     if precision <= 9:
         codec: _DecimalCodec = Decimal32(scale)
     elif precision <= 18:

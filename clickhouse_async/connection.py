@@ -154,9 +154,7 @@ class Connection:
         ssl_context: _ssl_module.SSLContext | None = None,
         compression: CompressionMethod = CompressionMethod.NONE,
         transport_factory: TransportFactory | None = None,
-        on_host_attempt: Callable[
-            [tuple[str, int], BaseException | None], None
-        ]
+        on_host_attempt: Callable[[tuple[str, int], BaseException | None], None]
         | None = None,
     ) -> None:
         if not hosts:
@@ -279,9 +277,7 @@ class Connection:
         ``CancelledError`` without converting to ``ConnectError``.
         """
         if self._state != State.IDLE:
-            raise RuntimeError(
-                f"open() requires IDLE state, got {self._state.name}"
-            )
+            raise RuntimeError(f"open() requires IDLE state, got {self._state.name}")
         self._user = user
         self._transition(State.CONNECTING, "open()")
 
@@ -337,13 +333,9 @@ class Connection:
         )
         # Multi-host: wrap so the message names every attempted candidate
         # and the per-host exceptions are preserved on ``host_errors``.
-        raise ConnectError(
-            [(h, p, e) for (h, p, _stage, e) in host_errors]
-        )
+        raise ConnectError([(h, p, e) for (h, p, _stage, e) in host_errors])
 
-    async def _do_handshake(
-        self, *, user: str, password: str, database: str
-    ) -> None:
+    async def _do_handshake(self, *, user: str, password: str, database: str) -> None:
         assert self._reader is not None and self._writer is not None
         # Send client Hello as one buffered write — the protocol expects
         # the whole packet to arrive together.
@@ -411,10 +403,7 @@ class Connection:
 
         formatted_params: dict[str, str] | None = None
         if params:
-            if (
-                self._negotiated_revision
-                < DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS
-            ):
+            if self._negotiated_revision < DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS:
                 raise UnsupportedFeatureError(
                     f"server-side query parameters require revision "
                     f"{DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS}; the "
@@ -486,9 +475,7 @@ class Connection:
         marks the connection ``BROKEN`` and raises.
         """
         if self._state != State.READY:
-            raise RuntimeError(
-                f"ping() requires READY state, got {self._state.name}"
-            )
+            raise RuntimeError(f"ping() requires READY state, got {self._state.name}")
         assert self._reader is not None and self._writer is not None
 
         out = BinaryWriter()
@@ -561,9 +548,7 @@ class Connection:
                 self._writer.write(out.getvalue())
                 await self._writer.drain()
             except BaseException as exc:
-                self._transition(
-                    State.BROKEN, f"cancel send failed: {exc!r}"
-                )
+                self._transition(State.BROKEN, f"cancel send failed: {exc!r}")
                 await self._cleanup_writer()
                 raise
 
@@ -654,36 +639,26 @@ class Connection:
                 return
             elif packet_id == ServerPacket.EXCEPTION:
                 err = await read_exception_body(self._reader)
-                self._transition(
-                    State.READY, f"server exception: {err.name}"
-                )
+                self._transition(State.READY, f"server exception: {err.name}")
                 raise err
             elif packet_id == ServerPacket.PROGRESS:
                 progress = await read_progress(self._reader, revision=revision)
                 if self.on_progress is not None:
                     self.on_progress(progress)
             elif packet_id == ServerPacket.PROFILE_INFO:
-                pinfo = await read_profile_info(
-                    self._reader, revision=revision
-                )
+                pinfo = await read_profile_info(self._reader, revision=revision)
                 if self.on_profile_info is not None:
                     self.on_profile_info(pinfo)
             elif packet_id == ServerPacket.PROFILE_EVENTS:
-                _, block = await read_block_packet_body(
-                    self._reader, revision=revision
-                )
+                _, block = await read_block_packet_body(self._reader, revision=revision)
                 if self.on_profile_events is not None:
                     self.on_profile_events(block)
             elif packet_id == ServerPacket.LOG:
-                _, block = await read_block_packet_body(
-                    self._reader, revision=revision
-                )
+                _, block = await read_block_packet_body(self._reader, revision=revision)
                 if self.on_log is not None:
                     self.on_log(block)
             elif packet_id == ServerPacket.TABLE_COLUMNS:
-                default_table_name, columns = await read_table_columns(
-                    self._reader
-                )
+                default_table_name, columns = await read_table_columns(self._reader)
                 if self.on_table_columns is not None:
                     self.on_table_columns(default_table_name, columns)
             elif packet_id == ServerPacket.TIMEZONE_UPDATE:
@@ -691,9 +666,7 @@ class Connection:
                 if self.on_timezone_update is not None:
                     self.on_timezone_update(tz)
             else:
-                self._transition(
-                    State.BROKEN, f"unexpected packet id {packet_id}"
-                )
+                self._transition(State.BROKEN, f"unexpected packet id {packet_id}")
                 raise ProtocolError(
                     f"unexpected packet id {packet_id} during query "
                     f"(distributed-read packets PART_UUIDS / "
@@ -716,10 +689,7 @@ class Connection:
             return
         assert self._writer is not None
         out = BinaryWriter()
-        if (
-            self._negotiated_revision
-            >= DBMS_MIN_PROTOCOL_VERSION_WITH_QUOTA_KEY
-        ):
+        if self._negotiated_revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_QUOTA_KEY:
             out.write_string("")  # empty quota_key — we don't use quotas
         if len(out) == 0:
             return

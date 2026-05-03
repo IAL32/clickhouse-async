@@ -29,17 +29,13 @@ class _StructCodec:
     _format: str = ""
     _size: int = 0
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
-    ) -> list[Any]:
+    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[Any]:
         if n_rows == 0:
             return []
         data = await reader.read_exact(self._size * n_rows)
         return list(struct.unpack(f"<{n_rows}{self._format}", data))
 
-    def write(
-        self, writer: BinaryWriter, values: Sequence[Any]
-    ) -> None:
+    def write(self, writer: BinaryWriter, values: Sequence[Any]) -> None:
         n = len(values)
         if n == 0:
             return
@@ -137,24 +133,18 @@ class _BigIntCodec:
     _size: int = 0
     _signed: bool = False
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
-    ) -> list[int]:
+    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[int]:
         if n_rows == 0:
             return []
         size = self._size
         signed = self._signed
         data = await reader.read_exact(size * n_rows)
         return [
-            int.from_bytes(
-                data[i * size : (i + 1) * size], "little", signed=signed
-            )
+            int.from_bytes(data[i * size : (i + 1) * size], "little", signed=signed)
             for i in range(n_rows)
         ]
 
-    def write(
-        self, writer: BinaryWriter, values: Sequence[int]
-    ) -> None:
+    def write(self, writer: BinaryWriter, values: Sequence[int]) -> None:
         if not values:
             return
         size = self._size
@@ -201,17 +191,13 @@ class Bool:
     name = "Bool"
     null_value: bool = False
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
-    ) -> list[bool]:
+    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[bool]:
         if n_rows == 0:
             return []
         data = await reader.read_exact(n_rows)
         return [b != 0 for b in data]
 
-    def write(
-        self, writer: BinaryWriter, values: Sequence[bool]
-    ) -> None:
+    def write(self, writer: BinaryWriter, values: Sequence[bool]) -> None:
         if not values:
             return
         writer.write_raw(bytes(1 if v else 0 for v in values))

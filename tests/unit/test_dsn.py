@@ -57,9 +57,7 @@ def test_user_only_no_password() -> None:
 
 def test_canonical_localhost_dsn_round_trips() -> None:
     # BEGIN / WHEN: the canonical default DSN from CLAUDE.md
-    dsn = parse_dsn(
-        "clickhouse://clickhouse:clickhouse@localhost:9000/clickhouse"
-    )
+    dsn = parse_dsn("clickhouse://clickhouse:clickhouse@localhost:9000/clickhouse")
 
     # THEN: it parses to the values we expect for the test container
     assert dsn.host == "localhost"
@@ -244,9 +242,7 @@ def test_single_host_yields_one_element_hosts_tuple() -> None:
 
 def test_two_hosts_with_explicit_ports() -> None:
     # BEGIN / WHEN: a DSN naming two hosts with explicit ports
-    dsn = parse_dsn(
-        "clickhouse://alice:secret@h1:9000,h2:9001/db?compression=lz4"
-    )
+    dsn = parse_dsn("clickhouse://alice:secret@h1:9000,h2:9001/db?compression=lz4")
 
     # THEN: both hosts are parsed in order; userinfo / database / query
     #       parameters still apply across the candidate list

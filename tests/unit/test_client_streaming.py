@@ -45,10 +45,7 @@ async def test_iter_blocks_yields_each_data_block_skipping_header() -> None:
     async with connect(
         "clickhouse://default:@host/db", transport_factory=transport
     ) as client:
-        blocks = [
-            b
-            async for b in client.iter_blocks("SELECT n FROM t")
-        ]
+        blocks = [b async for b in client.iter_blocks("SELECT n FROM t")]
 
     # THEN: header is filtered out; the three data blocks come back in
     #       arrival order with their original n_rows
@@ -133,9 +130,7 @@ async def test_breaking_out_with_aclosing_cancels_and_returns_to_ready() -> None
     async with connect(
         "clickhouse://default:@host/db", transport_factory=transport
     ) as client:
-        async with aclosing(
-            client.iter_blocks("SELECT n FROM t")
-        ) as blocks:
+        async with aclosing(client.iter_blocks("SELECT n FROM t")) as blocks:
             seen_first = False
             async for _ in blocks:
                 seen_first = True

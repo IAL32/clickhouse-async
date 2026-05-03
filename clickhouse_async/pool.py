@@ -77,17 +77,14 @@ class Pool:
                 f"with max_size={max_size}"
             )
         if max_lifetime <= 0:
-            raise ValueError(
-                f"max_lifetime must be positive, got {max_lifetime}"
-            )
+            raise ValueError(f"max_lifetime must be positive, got {max_lifetime}")
         if health_check_after < 0:
             raise ValueError(
                 f"health_check_after must be ≥ 0, got {health_check_after}"
             )
         if host_failover_cooldown < 0:
             raise ValueError(
-                f"host_failover_cooldown must be ≥ 0, got "
-                f"{host_failover_cooldown}"
+                f"host_failover_cooldown must be ≥ 0, got {host_failover_cooldown}"
             )
         self._dsn: DSN = dsn if isinstance(dsn, DSN) else parse_dsn(dsn)
         self._min_size = min_size
@@ -97,9 +94,7 @@ class Pool:
         self._health_check_after = health_check_after
         self._ssl_context = ssl_context
         self._transport_factory = transport_factory
-        self._rotation = _HostRotation(
-            self._dsn.hosts, cooldown=host_failover_cooldown
-        )
+        self._rotation = _HostRotation(self._dsn.hosts, cooldown=host_failover_cooldown)
 
         # Free queue's FIFO semantics give us per-waiter fairness for free.
         self._free: asyncio.Queue[_PoolEntry] = asyncio.Queue(maxsize=max_size)
@@ -294,9 +289,7 @@ class Pool:
         candidates = self._rotation.next_candidates()
         per_open_dsn = dataclasses.replace(self._dsn, hosts=candidates)
 
-        def _on_attempt(
-            host: tuple[str, int], exc: BaseException | None
-        ) -> None:
+        def _on_attempt(host: tuple[str, int], exc: BaseException | None) -> None:
             if exc is None:
                 self._rotation.record_success(host)
             else:

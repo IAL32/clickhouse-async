@@ -186,9 +186,7 @@ async def test_log_callback_receives_block() -> None:
     conn.on_log = received.append
     spec, _ = make_column("event_time", "Int64", [])
     log_block = Block(info=BlockInfo(), columns=[spec], n_rows=0, data=[[]])
-    transport.feed(
-        encode_server_block_packet(ServerPacket.LOG, log_block)
-    )
+    transport.feed(encode_server_block_packet(ServerPacket.LOG, log_block))
     transport.feed(encode_server_end_of_stream())
 
     # WHEN: draining
@@ -208,9 +206,7 @@ async def test_profile_events_callback_receives_block() -> None:
     conn.on_profile_events = received.append
     spec, _ = make_column("name", "String", [])
     pe_block = Block(info=BlockInfo(), columns=[spec], n_rows=0, data=[[]])
-    transport.feed(
-        encode_server_block_packet(ServerPacket.PROFILE_EVENTS, pe_block)
-    )
+    transport.feed(encode_server_block_packet(ServerPacket.PROFILE_EVENTS, pe_block))
     transport.feed(encode_server_end_of_stream())
 
     # WHEN: draining
@@ -277,12 +273,8 @@ async def test_totals_and_extremes_yield_streamed_blocks_with_their_kind() -> No
     totals_block = Block(info=BlockInfo(), columns=[spec], n_rows=1, data=[[42]])
     extremes_block = Block(info=BlockInfo(), columns=[spec], n_rows=2, data=[[0, 99]])
     transport.feed(encode_server_data(data_block))
-    transport.feed(
-        encode_server_block_packet(ServerPacket.TOTALS, totals_block)
-    )
-    transport.feed(
-        encode_server_block_packet(ServerPacket.EXTREMES, extremes_block)
-    )
+    transport.feed(encode_server_block_packet(ServerPacket.TOTALS, totals_block))
+    transport.feed(encode_server_block_packet(ServerPacket.EXTREMES, extremes_block))
     transport.feed(encode_server_end_of_stream())
 
     # WHEN: draining

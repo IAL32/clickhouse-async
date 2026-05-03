@@ -39,14 +39,14 @@ async def _drain_client_hello(rdr: AsyncBinaryReader) -> None:
     """Walk past the bytes ``write_client_hello`` writes plus the
     post-Hello addendum so subsequent reads land at the next packet."""
     assert await rdr.read_varuint() == ClientPacket.HELLO
-    await rdr.read_string()    # client_name
-    await rdr.read_varuint()   # version major
-    await rdr.read_varuint()   # version minor
-    await rdr.read_varuint()   # revision
-    await rdr.read_string()    # database
-    await rdr.read_string()    # user
-    await rdr.read_string()    # password
-    await rdr.read_string()    # addendum: quota_key (empty)
+    await rdr.read_string()  # client_name
+    await rdr.read_varuint()  # version major
+    await rdr.read_varuint()  # version minor
+    await rdr.read_varuint()  # revision
+    await rdr.read_string()  # database
+    await rdr.read_string()  # user
+    await rdr.read_string()  # password
+    await rdr.read_string()  # addendum: quota_key (empty)
 
 
 async def _drain_query_through_sql(
@@ -57,25 +57,25 @@ async def _drain_query_through_sql(
     assert await rdr.read_varuint() == ClientPacket.QUERY
     await rdr.read_string()  # query_id
     # ClientInfo block at OUR_REVISION
-    assert await rdr.read_byte() == 1                # query_kind
+    assert await rdr.read_byte() == 1  # query_kind
     assert await rdr.read_string() == expected_user  # initial_user
-    await rdr.read_string()                          # initial_query_id
-    await rdr.read_string()                          # initial_address
-    await rdr.read_int(8, signed=True)               # initial_query_start_time
-    assert await rdr.read_byte() == 1                # interface = TCP
-    await rdr.read_string()                          # os_user
-    await rdr.read_string()                          # hostname
-    await rdr.read_string()                          # client_name
-    await rdr.read_varuint()                         # version major
-    await rdr.read_varuint()                         # version minor
-    await rdr.read_varuint()                         # revision
-    await rdr.read_string()                          # quota_key
-    await rdr.read_varuint()                         # distributed_depth
-    await rdr.read_varuint()                         # client_version_patch
-    await rdr.read_byte()                            # has_otel
-    await rdr.read_varuint()                         # parallel_replicas: collaborate
-    await rdr.read_varuint()                         # parallel_replicas: count
-    await rdr.read_varuint()                         # parallel_replicas: replica idx
+    await rdr.read_string()  # initial_query_id
+    await rdr.read_string()  # initial_address
+    await rdr.read_int(8, signed=True)  # initial_query_start_time
+    assert await rdr.read_byte() == 1  # interface = TCP
+    await rdr.read_string()  # os_user
+    await rdr.read_string()  # hostname
+    await rdr.read_string()  # client_name
+    await rdr.read_varuint()  # version major
+    await rdr.read_varuint()  # version minor
+    await rdr.read_varuint()  # revision
+    await rdr.read_string()  # quota_key
+    await rdr.read_varuint()  # distributed_depth
+    await rdr.read_varuint()  # client_version_patch
+    await rdr.read_byte()  # has_otel
+    await rdr.read_varuint()  # parallel_replicas: collaborate
+    await rdr.read_varuint()  # parallel_replicas: count
+    await rdr.read_varuint()  # parallel_replicas: replica idx
     # settings terminator + interserver_secret + stage + compression + sql
     await rdr.read_string()  # settings terminator
     await rdr.read_string()  # interserver_secret
@@ -84,7 +84,9 @@ async def _drain_query_through_sql(
     await rdr.read_string()  # sql
 
 
-async def _connect(transport: ScriptedTransport, *, revision: int | None = None) -> Connection:
+async def _connect(
+    transport: ScriptedTransport, *, revision: int | None = None
+) -> Connection:
     transport.feed(
         encode_server_hello(revision=revision)
         if revision is not None

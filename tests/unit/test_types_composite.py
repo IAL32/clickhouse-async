@@ -33,11 +33,11 @@ async def _round_trip(codec: ColumnCodec, values: Sequence[Any]) -> list[Any]:
     "values",
     [
         [],
-        [[]],                              # one empty array
+        [[]],  # one empty array
         [[1]],
         [[1, 2, 3]],
-        [[1], [2, 3], [], [4, 5, 6]],      # mixed lengths incl. empty
-        [list(range(50))],                 # one big array
+        [[1], [2, 3], [], [4, 5, 6]],  # mixed lengths incl. empty
+        [list(range(50))],  # one big array
     ],
 )
 async def test_array_int32_round_trip(values: list[list[int]]) -> None:

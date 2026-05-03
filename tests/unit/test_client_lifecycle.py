@@ -81,10 +81,10 @@ async def test_async_with_passes_dsn_credentials_to_handshake() -> None:
     s.feed_eof()
     rdr = AsyncBinaryReader(s)
     assert await rdr.read_varuint() == ClientPacket.HELLO
-    await rdr.read_string()                  # client name
-    await rdr.read_varuint()                 # version major
-    await rdr.read_varuint()                 # version minor
-    await rdr.read_varuint()                 # revision
+    await rdr.read_string()  # client name
+    await rdr.read_varuint()  # version major
+    await rdr.read_varuint()  # version minor
+    await rdr.read_varuint()  # revision
     assert await rdr.read_string() == "analytics"
     assert await rdr.read_string() == "alice"
     assert await rdr.read_string() == "secret"
@@ -96,9 +96,7 @@ async def test_async_with_close_releases_transport() -> None:
     transport.feed(encode_server_hello())
 
     # WHEN: exiting the async-with block
-    async with connect(
-        "clickhouse://default:@host/db", transport_factory=transport
-    ):
+    async with connect("clickhouse://default:@host/db", transport_factory=transport):
         pass
 
     # THEN: the underlying writer was closed
@@ -153,9 +151,7 @@ async def test_ping_against_non_pong_response_breaks_connection() -> None:
 async def test_server_info_raises_before_open() -> None:
     # BEGIN: a Client that hasn't entered the async-with block
     transport = ScriptedTransport()
-    client = connect(
-        "clickhouse://default:@host/db", transport_factory=transport
-    )
+    client = connect("clickhouse://default:@host/db", transport_factory=transport)
 
     # WHEN / THEN: accessing server_info before open() raises
     with pytest.raises(RuntimeError, match="IDLE"):

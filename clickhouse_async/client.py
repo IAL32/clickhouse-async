@@ -79,9 +79,7 @@ class Client:
         *,
         ssl_context: _ssl_module.SSLContext | None = None,
         transport_factory: TransportFactory | None = None,
-        on_host_attempt: Callable[
-            [tuple[str, int], BaseException | None], None
-        ]
+        on_host_attempt: Callable[[tuple[str, int], BaseException | None], None]
         | None = None,
     ) -> None:
         parsed = dsn if isinstance(dsn, DSN) else parse_dsn(dsn)
@@ -342,9 +340,7 @@ class Client:
         header raises ``ValueError`` after cancelling the query
         cleanly; the connection remains reusable.
         """
-        await self._conn.send_query(
-            sql, query_id=query_id, settings=settings
-        )
+        await self._conn.send_query(sql, query_id=query_id, settings=settings)
 
         # Drain server packets until the header DATA arrives. The server
         # may emit Progress / Log / TimezoneUpdate before the header in
@@ -498,6 +494,4 @@ def connect(
     ``transport_factory`` is a test-only injection point for the
     underlying socket pair; production callers should leave it unset.
     """
-    return Client(
-        dsn, ssl_context=ssl_context, transport_factory=transport_factory
-    )
+    return Client(dsn, ssl_context=ssl_context, transport_factory=transport_factory)

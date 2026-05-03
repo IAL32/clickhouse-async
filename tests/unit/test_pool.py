@@ -428,9 +428,7 @@ async def test_close_drains_idle_clients_and_blocks_new_acquires() -> None:
 async def test_close_via_async_with_exit() -> None:
     # BEGIN: a pool with one idle client
     factory = _FreshTransports()
-    pool = create_pool(
-        "clickhouse://default:@host/db", transport_factory=factory
-    )
+    pool = create_pool("clickhouse://default:@host/db", transport_factory=factory)
     async with pool:
         async with pool.acquire():
             pass

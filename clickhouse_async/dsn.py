@@ -125,9 +125,7 @@ def parse_dsn(dsn: str) -> DSN:
             f"invalid connect_timeout {connect_timeout_str!r}: {exc}"
         ) from exc
     if connect_timeout <= 0:
-        raise ValueError(
-            f"connect_timeout must be positive, got {connect_timeout}"
-        )
+        raise ValueError(f"connect_timeout must be positive, got {connect_timeout}")
 
     consumed = {"secure", "compression", "connect_timeout"}
     settings = {k: v[-1] for k, v in query.items() if k not in consumed}

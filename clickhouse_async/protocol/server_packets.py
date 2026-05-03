@@ -68,9 +68,7 @@ class ProfileInfo:
 # ---- Progress / ProfileInfo ----------------------------------------------
 
 
-async def read_progress(
-    reader: AsyncBinaryReader, *, revision: int
-) -> ProgressInfo:
+async def read_progress(reader: AsyncBinaryReader, *, revision: int) -> ProgressInfo:
     read_rows = await reader.read_varuint()
     read_bytes = await reader.read_varuint()
     total_rows_to_read = await reader.read_varuint()
@@ -100,9 +98,7 @@ async def read_progress(
     )
 
 
-async def read_profile_info(
-    reader: AsyncBinaryReader, *, revision: int
-) -> ProfileInfo:
+async def read_profile_info(reader: AsyncBinaryReader, *, revision: int) -> ProfileInfo:
     rows = await reader.read_varuint()
     blocks = await reader.read_varuint()
     bytes_ = await reader.read_varuint()
@@ -150,9 +146,7 @@ async def read_block_packet_body(
     """
 
     table_name = await reader.read_string()
-    block = await read_block_framed(
-        reader, revision=revision, compression=compression
-    )
+    block = await read_block_framed(reader, revision=revision, compression=compression)
     return table_name, block
 
 

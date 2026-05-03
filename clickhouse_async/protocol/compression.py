@@ -87,9 +87,7 @@ def _decompress(
 ) -> bytes:
     if method == CompressionMethod.LZ4:
         mod = _require("lz4", "lz4.block")
-        return mod.decompress(
-            payload, uncompressed_size=decompressed_size
-        )
+        return mod.decompress(payload, uncompressed_size=decompressed_size)
     if method == CompressionMethod.ZSTD:
         mod = _require("zstd", "zstandard")
         return mod.ZstdDecompressor().decompress(
@@ -156,9 +154,7 @@ class CompressedBlockWriter:
 
     __slots__ = ("_method", "_writer")
 
-    def __init__(
-        self, writer: BinaryWriter, method: CompressionMethod
-    ) -> None:
+    def __init__(self, writer: BinaryWriter, method: CompressionMethod) -> None:
         self._writer = writer
         self._method = method
 
@@ -189,9 +185,7 @@ async def read_block_framed(
     if compression == CompressionMethod.NONE:
         return await read_block(reader, revision=revision)
     payload = await CompressedBlockReader(reader).read_payload()
-    return await read_block(
-        AsyncBinaryReader.from_bytes(payload), revision=revision
-    )
+    return await read_block(AsyncBinaryReader.from_bytes(payload), revision=revision)
 
 
 def write_block_framed(
@@ -208,6 +202,4 @@ def write_block_framed(
         return
     inner = BinaryWriter()
     write_block(inner, block, revision=revision)
-    CompressedBlockWriter(writer, method=compression).write_payload(
-        inner.getvalue()
-    )
+    CompressedBlockWriter(writer, method=compression).write_payload(inner.getvalue())

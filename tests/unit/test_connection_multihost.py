@@ -94,9 +94,7 @@ async def test_open_stops_after_first_success() -> None:
     transport = _PerHostTransport()
     transport.arm(("a", 9000), encode_server_hello())
     transport.arm(("b", 9000), ConnectionRefusedError("never reached"))
-    conn = Connection(
-        [("a", 9000), ("b", 9000)], transport_factory=transport
-    )
+    conn = Connection([("a", 9000), ("b", 9000)], transport_factory=transport)
 
     # WHEN: opening the connection
     await conn.open()
@@ -165,9 +163,7 @@ async def test_mixed_failure_then_success_reports_winner() -> None:
     transport = _PerHostTransport()
     transport.arm(("a", 9000), bytes([0x05]) + b"\x00" * 64)  # bad packet id
     transport.arm(("b", 9000), encode_server_hello())
-    conn = Connection(
-        [("a", 9000), ("b", 9000)], transport_factory=transport
-    )
+    conn = Connection([("a", 9000), ("b", 9000)], transport_factory=transport)
 
     # WHEN: opening
     await conn.open()
@@ -228,9 +224,7 @@ async def test_all_protocol_errors_still_wrapped_as_connect_error() -> None:
     transport = _PerHostTransport()
     transport.arm(("a", 9000), bytes([0x05]) + b"\x00" * 64)
     transport.arm(("b", 9000), bytes([0x05]) + b"\x00" * 64)
-    conn = Connection(
-        [("a", 9000), ("b", 9000)], transport_factory=transport
-    )
+    conn = Connection([("a", 9000), ("b", 9000)], transport_factory=transport)
 
     # WHEN / THEN: ConnectError surfaces with both ProtocolErrors attached
     with pytest.raises(ConnectError) as exc_info:

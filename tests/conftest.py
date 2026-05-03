@@ -18,9 +18,7 @@ from tests.containers.clickhouse import ClickHouseContainer
 
 # Canonical default — kept in sync with CLAUDE.md and
 # scripts/clickhouse.sh. Bumping in one place needs a bump in all.
-DEFAULT_LOCAL_DSN = (
-    "clickhouse://clickhouse:clickhouse@localhost:9000/clickhouse"
-)
+DEFAULT_LOCAL_DSN = "clickhouse://clickhouse:clickhouse@localhost:9000/clickhouse"
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:

@@ -50,14 +50,14 @@ async def _drain_client_hello(rdr: AsyncBinaryReader) -> None:
     """Walk past the bytes ``write_client_hello`` writes plus the
     post-Hello addendum so subsequent reads land at the next packet."""
     assert await rdr.read_varuint() == ClientPacket.HELLO
-    await rdr.read_string()   # client name
+    await rdr.read_string()  # client name
     await rdr.read_varuint()  # version major
     await rdr.read_varuint()  # version minor
     await rdr.read_varuint()  # revision
-    await rdr.read_string()   # database
-    await rdr.read_string()   # user
-    await rdr.read_string()   # password
-    await rdr.read_string()   # addendum: quota_key (empty)
+    await rdr.read_string()  # database
+    await rdr.read_string()  # user
+    await rdr.read_string()  # password
+    await rdr.read_string()  # addendum: quota_key (empty)
 
 
 # ---- send_query bytes ---------------------------------------------------
@@ -93,34 +93,34 @@ async def test_send_query_emits_documented_field_order_through_sql() -> None:
 
     # ClientInfo block — query_kind=InitialQuery(1), initial_user/qid/addr
     assert await rdr.read_byte() == 1
-    assert await rdr.read_string() == "alice"   # initial_user (the open() user)
-    assert await rdr.read_string() == ""        # initial_query_id
+    assert await rdr.read_string() == "alice"  # initial_user (the open() user)
+    assert await rdr.read_string() == ""  # initial_query_id
     assert await rdr.read_string() == "0.0.0.0:0"  # initial_address
-    await rdr.read_int(8, signed=True)          # initial_query_start_time microseconds
-    assert await rdr.read_byte() == 1           # interface = TCP
-    await rdr.read_string()                     # os_user (env-dependent)
-    await rdr.read_string()                     # hostname (env-dependent)
-    await rdr.read_string()                     # client_name
-    await rdr.read_varuint()                    # client version major
-    await rdr.read_varuint()                    # client version minor
+    await rdr.read_int(8, signed=True)  # initial_query_start_time microseconds
+    assert await rdr.read_byte() == 1  # interface = TCP
+    await rdr.read_string()  # os_user (env-dependent)
+    await rdr.read_string()  # hostname (env-dependent)
+    await rdr.read_string()  # client_name
+    await rdr.read_varuint()  # client version major
+    await rdr.read_varuint()  # client version minor
     assert await rdr.read_varuint() == OUR_REVISION
-    await rdr.read_string()                     # quota_key (empty)
-    await rdr.read_varuint()                    # distributed_depth (0)
-    await rdr.read_varuint()                    # client_version_patch (0)
-    assert await rdr.read_byte() == 0           # OTel has-otel flag (0)
-    assert await rdr.read_varuint() == 0        # parallel_replicas: collaborate
-    assert await rdr.read_varuint() == 0        # parallel_replicas: count
-    assert await rdr.read_varuint() == 0        # parallel_replicas: replica idx
+    await rdr.read_string()  # quota_key (empty)
+    await rdr.read_varuint()  # distributed_depth (0)
+    await rdr.read_varuint()  # client_version_patch (0)
+    assert await rdr.read_byte() == 0  # OTel has-otel flag (0)
+    assert await rdr.read_varuint() == 0  # parallel_replicas: collaborate
+    assert await rdr.read_varuint() == 0  # parallel_replicas: count
+    assert await rdr.read_varuint() == 0  # parallel_replicas: replica idx
 
     # THEN: the rest of the Query packet matches the documented layout —
     #       empty settings + empty interserver secret + Complete stage +
     #       compression flag 0 + SQL string + empty parameters terminator
-    assert await rdr.read_string() == ""        # settings terminator
-    assert await rdr.read_string() == ""        # interserver_secret (empty)
+    assert await rdr.read_string() == ""  # settings terminator
+    assert await rdr.read_string() == ""  # interserver_secret (empty)
     assert await rdr.read_varuint() == QueryStage.COMPLETE
-    assert await rdr.read_varuint() == 0        # compression flag
+    assert await rdr.read_varuint() == 0  # compression flag
     assert await rdr.read_string() == "SELECT 1"
-    assert await rdr.read_string() == ""        # parameters terminator
+    assert await rdr.read_string() == ""  # parameters terminator
 
 
 # ---- iter_packets — happy path -----------------------------------------

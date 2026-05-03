@@ -170,9 +170,7 @@ def write_query_packet(
     writer.write_string(query_id)
 
     if revision >= DBMS_MIN_REVISION_WITH_CLIENT_INFO:
-        _write_client_info(
-            writer, revision=revision, query_id=query_id, user=user
-        )
+        _write_client_info(writer, revision=revision, query_id=query_id, user=user)
 
     if settings:
         for name, value in settings.items():

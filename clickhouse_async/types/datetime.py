@@ -58,25 +58,19 @@ class Date:
     name = "Date"
     null_value: date = _EPOCH_DATE
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
-    ) -> list[date]:
+    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[date]:
         if n_rows == 0:
             return []
         data = await reader.read_exact(2 * n_rows)
         return [
             _EPOCH_DATE
             + timedelta(
-                days=int.from_bytes(
-                    data[i * 2 : (i + 1) * 2], "little", signed=False
-                )
+                days=int.from_bytes(data[i * 2 : (i + 1) * 2], "little", signed=False)
             )
             for i in range(n_rows)
         ]
 
-    def write(
-        self, writer: BinaryWriter, values: Sequence[date]
-    ) -> None:
+    def write(self, writer: BinaryWriter, values: Sequence[date]) -> None:
         if not values:
             return
         out = bytearray()
@@ -90,25 +84,19 @@ class Date32:
     name = "Date32"
     null_value: date = _EPOCH_DATE
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
-    ) -> list[date]:
+    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[date]:
         if n_rows == 0:
             return []
         data = await reader.read_exact(4 * n_rows)
         return [
             _EPOCH_DATE
             + timedelta(
-                days=int.from_bytes(
-                    data[i * 4 : (i + 1) * 4], "little", signed=True
-                )
+                days=int.from_bytes(data[i * 4 : (i + 1) * 4], "little", signed=True)
             )
             for i in range(n_rows)
         ]
 
-    def write(
-        self, writer: BinaryWriter, values: Sequence[date]
-    ) -> None:
+    def write(self, writer: BinaryWriter, values: Sequence[date]) -> None:
         if not values:
             return
         out = bytearray()
@@ -134,17 +122,13 @@ class DateTime:
             else datetime(1970, 1, 1)
         )
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
-    ) -> list[datetime]:
+    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[datetime]:
         if n_rows == 0:
             return []
         data = await reader.read_exact(4 * n_rows)
         out: list[datetime] = []
         for i in range(n_rows):
-            ts = int.from_bytes(
-                data[i * 4 : (i + 1) * 4], "little", signed=False
-            )
+            ts = int.from_bytes(data[i * 4 : (i + 1) * 4], "little", signed=False)
             if self._tz is not None:
                 out.append(datetime.fromtimestamp(ts, tz=self._tz))
             else:
@@ -152,9 +136,7 @@ class DateTime:
                 out.append(_naive_utc_from_ts(ts))
         return out
 
-    def write(
-        self, writer: BinaryWriter, values: Sequence[datetime]
-    ) -> None:
+    def write(self, writer: BinaryWriter, values: Sequence[datetime]) -> None:
         if not values:
             return
         out = bytearray()
@@ -174,13 +156,9 @@ class DateTime:
 class DateTime64:
     null_value: datetime
 
-    def __init__(
-        self, precision: int, timezone: str | None = None
-    ) -> None:
+    def __init__(self, precision: int, timezone: str | None = None) -> None:
         if precision < 0 or precision > 9:
-            raise ValueError(
-                f"DateTime64 precision must be in [0, 9], got {precision}"
-            )
+            raise ValueError(f"DateTime64 precision must be in [0, 9], got {precision}")
         self.precision = precision
         self.timezone_name = timezone
         self._tz = _resolve_tz(timezone)
@@ -195,18 +173,14 @@ class DateTime64:
             else datetime(1970, 1, 1)
         )
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
-    ) -> list[datetime]:
+    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[datetime]:
         if n_rows == 0:
             return []
         data = await reader.read_exact(8 * n_rows)
         out: list[datetime] = []
         scale = self._scale
         for i in range(n_rows):
-            ticks = int.from_bytes(
-                data[i * 8 : (i + 1) * 8], "little", signed=True
-            )
+            ticks = int.from_bytes(data[i * 8 : (i + 1) * 8], "little", signed=True)
             seconds, fraction = divmod(ticks, scale)
             # Map fraction (10**-precision seconds) into microseconds (10**-6).
             if self.precision <= 6:
@@ -220,9 +194,7 @@ class DateTime64:
             out.append(base.replace(microsecond=microseconds))
         return out
 
-    def write(
-        self, writer: BinaryWriter, values: Sequence[datetime]
-    ) -> None:
+    def write(self, writer: BinaryWriter, values: Sequence[datetime]) -> None:
         if not values:
             return
         out = bytearray()

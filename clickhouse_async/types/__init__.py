@@ -121,51 +121,41 @@ def _one_type(params: list[ColumnCodec | int | str], where: str) -> ColumnCodec:
 
 
 def _one_int(params: list[ColumnCodec | int | str], where: str) -> int:
-    if len(params) != 1 or not isinstance(params[0], int) or isinstance(
-        params[0], bool
+    if (
+        len(params) != 1
+        or not isinstance(params[0], int)
+        or isinstance(params[0], bool)
     ):
         raise ValueError(f"{where} takes one integer parameter, got {params!r}")
     return params[0]
 
 
-def _one_str(
-    params: list[ColumnCodec | int | str], where: str
-) -> str | None:
+def _one_str(params: list[ColumnCodec | int | str], where: str) -> str | None:
     # DateTime accepts zero or one string parameter (the timezone).
     if not params:
         return None
     if len(params) != 1 or not isinstance(params[0], str):
-        raise ValueError(
-            f"{where} takes zero or one string parameter, got {params!r}"
-        )
+        raise ValueError(f"{where} takes zero or one string parameter, got {params!r}")
     return params[0]
 
 
 def _make_datetime64(params: list[ColumnCodec | int | str]) -> DateTime64:
     if not params or not isinstance(params[0], int):
-        raise ValueError(
-            f"DateTime64 takes (precision[, timezone]); got {params!r}"
-        )
+        raise ValueError(f"DateTime64 takes (precision[, timezone]); got {params!r}")
     precision = params[0]
     tz: str | None = None
     if len(params) == 2:
         if not isinstance(params[1], str):
-            raise ValueError(
-                f"DateTime64 timezone must be a string; got {params!r}"
-            )
+            raise ValueError(f"DateTime64 timezone must be a string; got {params!r}")
         tz = params[1]
     elif len(params) > 2:
-        raise ValueError(
-            f"DateTime64 takes at most two parameters; got {params!r}"
-        )
+        raise ValueError(f"DateTime64 takes at most two parameters; got {params!r}")
     return DateTime64(precision=precision, timezone=tz)
 
 
 def _make_tuple(params: list[ColumnCodec | int | str]) -> Tuple:
     if not params or any(not isinstance(p, ColumnCodec) for p in params):
-        raise ValueError(
-            f"Tuple takes one or more type parameters; got {params!r}"
-        )
+        raise ValueError(f"Tuple takes one or more type parameters; got {params!r}")
     components: list[ColumnCodec] = [p for p in params if isinstance(p, ColumnCodec)]
     return Tuple(*components)
 
@@ -176,9 +166,7 @@ def _make_map(params: list[ColumnCodec | int | str]) -> Map:
         or not isinstance(params[0], ColumnCodec)
         or not isinstance(params[1], ColumnCodec)
     ):
-        raise ValueError(
-            f"Map takes (key_type, value_type); got {params!r}"
-        )
+        raise ValueError(f"Map takes (key_type, value_type); got {params!r}")
     return Map(params[0], params[1])
 
 
@@ -188,9 +176,7 @@ def _make_decimal(params: list[ColumnCodec | int | str]) -> ColumnCodec:
         or not isinstance(params[0], int)
         or not isinstance(params[1], int)
     ):
-        raise ValueError(
-            f"Decimal takes (precision, scale) integers; got {params!r}"
-        )
+        raise ValueError(f"Decimal takes (precision, scale) integers; got {params!r}")
     return make_decimal(precision=params[0], scale=params[1])
 
 
@@ -218,7 +204,7 @@ class _Parser:
         if self.pos != len(self.spec):
             raise ValueError(
                 f"trailing characters in type spec {self.spec!r}: "
-                f"{self.spec[self.pos:]!r}"
+                f"{self.spec[self.pos :]!r}"
             )
         return codec
 
@@ -255,9 +241,7 @@ class _Parser:
             self._skip_ws()
             value = self._read_integer()
             if label in mapping:
-                raise ValueError(
-                    f"duplicate Enum label {label!r} in {self.spec!r}"
-                )
+                raise ValueError(f"duplicate Enum label {label!r} in {self.spec!r}")
             mapping[label] = value
             self._skip_ws()
             if self._peek() == ",":
@@ -329,9 +313,7 @@ class _Parser:
         while self.pos < len(self.spec) and self.spec[self.pos].isdigit():
             self.pos += 1
         if start == self.pos or (start + 1 == self.pos and self.spec[start] == "-"):
-            raise ValueError(
-                f"expected integer at position {start} in {self.spec!r}"
-            )
+            raise ValueError(f"expected integer at position {start} in {self.spec!r}")
         return int(self.spec[start : self.pos])
 
     def _read_quoted_string(self) -> str:

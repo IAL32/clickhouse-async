@@ -22,9 +22,7 @@ class ConnectError(ClickHouseError):
 
     host_errors: tuple[tuple[str, int, BaseException], ...]
 
-    def __init__(
-        self, host_errors: list[tuple[str, int, BaseException]]
-    ) -> None:
+    def __init__(self, host_errors: list[tuple[str, int, BaseException]]) -> None:
         if not host_errors:
             raise ValueError(
                 "ConnectError requires at least one (host, port, exc) tuple"
@@ -33,9 +31,8 @@ class ConnectError(ClickHouseError):
             f"  {host}:{port} → {type(exc).__name__}: {exc}"
             for host, port, exc in host_errors
         ]
-        msg = (
-            f"failed to connect to any of {len(host_errors)} host(s):\n"
-            + "\n".join(parts)
+        msg = f"failed to connect to any of {len(host_errors)} host(s):\n" + "\n".join(
+            parts
         )
         super().__init__(msg)
         self.host_errors = tuple(host_errors)

@@ -133,6 +133,7 @@ async def read_block_packet_body(
     *,
     revision: int,
     compression: CompressionMethod = CompressionMethod.NONE,
+    session_timezone: str | None = None,
 ) -> tuple[str, Block]:
     """Read the body shared by Data / Totals / Extremes / Log / ProfileEvents.
 
@@ -143,10 +144,19 @@ async def read_block_packet_body(
     ``EXTREMES``, and ``CompressionMethod.NONE`` for ``LOG`` /
     ``PROFILE_EVENTS`` (which upstream always sends raw, even when the
     connection has compression on).
+
+    ``session_timezone`` is forwarded to ``read_block_framed`` so
+    naive ``DateTime`` columns in the block honour the connection's
+    session timezone.
     """
 
     table_name = await reader.read_string()
-    block = await read_block_framed(reader, revision=revision, compression=compression)
+    block = await read_block_framed(
+        reader,
+        revision=revision,
+        compression=compression,
+        session_timezone=session_timezone,
+    )
     return table_name, block
 
 

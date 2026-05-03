@@ -10,9 +10,10 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable
-from datetime import date
+from datetime import date, datetime, timedelta
 
 import clickhouse_async as ch
+from clickhouse_async.types.datetime import HighPrecisionTimestamp
 
 
 async def test_handshake_against_real_server_populates_server_info(
@@ -248,6 +249,61 @@ async def test_low_cardinality_nullable_string_round_trips_via_server(
     # THEN: every row round-trips — Nones travel through dictionary
     #       slot 0 and come back as Python None
     assert rows_out == rows_in
+
+
+async def test_datetime64_nanosecond_precision_round_trips(
+    pool: ch.Pool,
+    fresh_table: Callable[[str, str], Awaitable[None]],
+) -> None:
+    # BEGIN: a Memory-engine table with a ``DateTime64(9)`` column —
+    #        nanosecond ticks. Python's ``datetime`` can't hold sub-
+    #        microsecond resolution, so the high_precision codec
+    #        surfaces values as ``HighPrecisionTimestamp`` instead.
+    table = "test_datetime64_nano"
+    await fresh_table(
+        table,
+        "(id UInt64, ts DateTime64(9, 'UTC')) ENGINE = Memory",
+    )
+    rows_in: list[tuple[object, ...]] = [
+        (1, HighPrecisionTimestamp(ticks=1_756_812_345_123_456_789, scale=9)),
+        (2, HighPrecisionTimestamp(ticks=1_756_812_345_999_999_999, scale=9)),
+    ]
+
+    # WHEN: inserting via the pool, then reading back
+    async with pool.acquire() as client:
+        n = await client.insert(
+            f"INSERT INTO {table} VALUES",
+            rows=rows_in,
+            column_names=["id", "ts"],
+        )
+    assert n == 2
+    rows_out = await pool.fetch_all(f"SELECT id, ts FROM {table} ORDER BY id")
+
+    # THEN: the nanosecond ticks survive byte-for-byte — no microsecond
+    #       truncation at the Python boundary
+    assert rows_out == rows_in
+
+
+async def test_datetime_session_timezone_seeded_from_handshake(
+    pool: ch.Pool,
+) -> None:
+    # BEGIN: the Connection's session_timezone is seeded from the
+    #        handshake's ``ServerInfo.timezone``. Naked ``DateTime``
+    #        columns then come back tz-aware in that zone instead of
+    #        as naive ``datetime`` (the v0 behaviour).
+    async with pool.acquire() as client:
+        # The test container reports UTC at handshake, so the seed
+        # value is "UTC".
+        assert client._conn.session_timezone == "UTC"
+
+        # WHEN: a naked ``DateTime`` SELECT
+        rows = await client.fetch_all("SELECT toDateTime('2026-05-02 12:00:00') AS t")
+
+    # THEN: the result is aware in UTC, not naive
+    assert len(rows) == 1
+    t = rows[0][0]
+    assert isinstance(t, datetime)
+    assert t.utcoffset() == timedelta(0)
 
 
 async def test_named_tuple_column_round_trips_via_server(

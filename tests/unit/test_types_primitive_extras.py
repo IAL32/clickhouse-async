@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Sequence
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal as PyDecimal
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -20,7 +20,11 @@ import pytest
 
 from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 from clickhouse_async.types import ColumnCodec, parse_type
-from clickhouse_async.types.datetime import DateTime, DateTime64
+from clickhouse_async.types.datetime import (
+    DateTime,
+    DateTime64,
+    HighPrecisionTimestamp,
+)
 from clickhouse_async.types.decimal import (
     Decimal32,
     Decimal64,
@@ -327,6 +331,129 @@ def test_datetime64_rejects_out_of_range_precision() -> None:
     # THEN: a ValueError surfaces with the offending value
     with pytest.raises(ValueError, match="precision must be in"):
         DateTime64(precision=10)
+
+
+# ---- DateTime64 high precision (p > 6) -----------------------------------
+
+
+@pytest.mark.parametrize("precision", [7, 8, 9])
+async def test_datetime64_high_precision_round_trip_preserves_ticks(
+    precision: int,
+) -> None:
+    # BEGIN: a DateTime64(p) codec at a precision Python's `datetime`
+    #        can't hold — `precision > 6` defaults to high_precision=True
+    codec = parse_type(f"DateTime64({precision})")
+    assert isinstance(codec, DateTime64)
+    assert codec.high_precision is True
+    # A representative tick count with the *full* precision populated
+    # so a lossy datetime conversion would drop digits.
+    ticks = 1_756_812_345_000_000_000 + (1 if precision == 9 else 0)
+    values: list[HighPrecisionTimestamp] = [
+        HighPrecisionTimestamp(ticks=ticks, scale=precision),
+        HighPrecisionTimestamp(ticks=ticks + 7, scale=precision),
+    ]
+
+    # WHEN: round-tripping
+    decoded = await _round_trip(codec, values)
+
+    # THEN: ticks survive byte-for-byte
+    assert decoded == values
+
+
+async def test_datetime64_high_precision_false_falls_back_to_datetime() -> None:
+    # BEGIN: opt out of high_precision at p=9 — the codec returns
+    #        ``datetime`` values (lossy) for callers that prefer the
+    #        v0 shape
+    codec = DateTime64(precision=9, timezone="UTC", high_precision=False)
+    values = [datetime(2026, 5, 2, 12, 0, 0, microsecond=123_456, tzinfo=UTC)]
+
+    # WHEN: round-tripping
+    decoded = await _round_trip(codec, values)
+
+    # THEN: the plain `datetime` round-trips (sub-microsecond zeroed
+    #       since the input had none anyway)
+    assert decoded == values
+
+
+def test_high_precision_timestamp_to_datetime_is_lossy_above_micro() -> None:
+    # BEGIN: a HighPrecisionTimestamp at scale 9 (nanoseconds)
+    ts = HighPrecisionTimestamp(ticks=1_756_812_345_123_456_789, scale=9)
+
+    # WHEN: converting to ``datetime``
+    dt = ts.to_datetime()
+
+    # THEN: the ``datetime`` carries microseconds (123_456) — the bottom
+    #       three nanosecond digits truncate at the Python boundary
+    assert dt.microsecond == 123_456
+    # Round-trip from datetime back to a HighPrecisionTimestamp at the
+    # same scale fills sub-microsecond ticks with zeros.
+    rebuilt = HighPrecisionTimestamp.from_datetime(dt, scale=9)
+    assert rebuilt.ticks == 1_756_812_345_123_456_000
+
+
+def test_datetime64_write_rejects_mismatched_high_precision_scale() -> None:
+    # BEGIN: a HighPrecisionTimestamp at the wrong scale
+    codec = DateTime64(precision=9)
+
+    # WHEN / THEN: the write path refuses rather than silently
+    #              re-scaling
+    with pytest.raises(ValueError, match=r"scale .* does not match"):
+        codec.write(BinaryWriter(), [HighPrecisionTimestamp(ticks=1, scale=6)])
+
+
+# ---- DateTime / DateTime64 session_timezone fallback ---------------------
+
+
+def test_bare_datetime_uses_session_timezone_fallback() -> None:
+    # BEGIN: a bare ``DateTime`` parsed with a session_timezone
+    codec = parse_type("DateTime", session_timezone="Europe/Berlin")
+    assert isinstance(codec, DateTime)
+
+    # WHEN / THEN: the codec carries the session zone in its effective
+    #              tz; ``codec.name`` still round-trips the bare form
+    assert codec.timezone_name == "Europe/Berlin"
+    assert codec.name == "DateTime"
+
+
+def test_explicit_datetime_timezone_beats_session_timezone() -> None:
+    # BEGIN: a parametric DateTime('UTC') with a session tz that differs
+    codec = parse_type("DateTime('UTC')", session_timezone="Europe/Berlin")
+
+    # WHEN / THEN: the explicit tz wins; the type-spec form survives
+    assert isinstance(codec, DateTime)
+    assert codec.timezone_name == "UTC"
+    assert codec.name == "DateTime('UTC')"
+
+
+def test_bare_datetime64_uses_session_timezone_fallback() -> None:
+    # BEGIN: a bare DateTime64(3) parsed with a session_timezone
+    codec = parse_type("DateTime64(3)", session_timezone="Europe/Berlin")
+    assert isinstance(codec, DateTime64)
+
+    # WHEN / THEN: the codec carries the session zone; ``.name`` still
+    #              round-trips the bare form (without timezone)
+    assert codec.timezone_name == "Europe/Berlin"
+    assert codec.name == "DateTime64(3)"
+
+
+async def test_datetime_session_timezone_decodes_aware() -> None:
+    # BEGIN: a bare ``DateTime`` codec with a session zone of Berlin —
+    #        the wire payload is UTC seconds; the decode should land
+    #        in the Berlin offset
+    codec = parse_type("DateTime", session_timezone="Europe/Berlin")
+    assert isinstance(codec, DateTime)
+    # 2026-05-02 12:00:00 UTC = 14:00:00 Berlin (CEST, +02:00 in May)
+    values_in = [datetime(2026, 5, 2, 12, 0, 0, tzinfo=UTC)]
+
+    # WHEN: round-tripping
+    decoded = await _round_trip(codec, values_in)
+
+    # THEN: the read value is aware in Europe/Berlin
+    assert len(decoded) == 1
+    out = decoded[0]
+    assert out.tzinfo is not None
+    assert out.utcoffset() == timedelta(hours=2)
+    assert out.hour == 14
 
 
 # ---- empty-batch invariants for every new codec -------------------------

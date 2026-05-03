@@ -189,6 +189,12 @@ class Connection:
         self.on_log: Callable[[Block], None] | None = None
         self.on_table_columns: Callable[[str, str], None] | None = None
         self.on_timezone_update: Callable[[str], None] | None = None
+        # The server's last-emitted session timezone via the
+        # ``TIMEZONE_UPDATE`` packet (or the handshake's static
+        # ``ServerInfo.timezone`` until that fires). Threaded down to
+        # ``read_block_packet_body`` so naive ``DateTime`` columns
+        # honour the session zone instead of silently UTC.
+        self._session_timezone: str | None = None
         # (from_state, to_state, reason) per transition — load-bearing for
         # tests and a useful debugging breadcrumb in production logs.
         self._transitions: list[tuple[State, State, str]] = []
@@ -246,6 +252,20 @@ class Connection:
         """``min(OUR_REVISION, server_revision)`` — the revision used to
         gate every wire-format decision past the handshake."""
         return self._negotiated_revision
+
+    @property
+    def session_timezone(self) -> str | None:
+        """The server's session timezone — seeded from the handshake's
+        ``ServerInfo.timezone`` and refined by any ``TIMEZONE_UPDATE``
+        packets received mid-query.
+
+        ``None`` until the handshake completes; thereafter usually the
+        IANA zone name the server reports (``"UTC"`` /
+        ``"Europe/Berlin"`` / etc.). ``read_block`` threads this
+        through ``parse_type`` so naive ``DateTime`` reads land in
+        this zone instead of silently UTC.
+        """
+        return self._session_timezone
 
     # ---- lifecycle -------------------------------------------------------
 
@@ -351,6 +371,9 @@ class Connection:
             info = await read_server_hello(self._reader)
             self._server_info = info
             self._negotiated_revision = min(OUR_REVISION, info.revision)
+            # Seed the session timezone from the handshake; the server
+            # may later refine it via a TIMEZONE_UPDATE packet mid-query.
+            self._session_timezone = info.timezone or None
             await self._send_addendum()
             self._transition(
                 State.READY,
@@ -618,20 +641,32 @@ class Connection:
         # layer regardless of the per-query compression flag).
         compression = self._compression
         while True:
+            # Re-read on each iteration so a TIMEZONE_UPDATE packet
+            # mid-query updates the codec's view for subsequent blocks.
+            session_tz = self._session_timezone
             packet_id = await self._reader.read_varuint()
             if packet_id == ServerPacket.DATA:
                 _, block = await read_block_packet_body(
-                    self._reader, revision=revision, compression=compression
+                    self._reader,
+                    revision=revision,
+                    compression=compression,
+                    session_timezone=session_tz,
                 )
                 yield StreamedBlock(kind="data", block=block)
             elif packet_id == ServerPacket.TOTALS:
                 _, block = await read_block_packet_body(
-                    self._reader, revision=revision, compression=compression
+                    self._reader,
+                    revision=revision,
+                    compression=compression,
+                    session_timezone=session_tz,
                 )
                 yield StreamedBlock(kind="totals", block=block)
             elif packet_id == ServerPacket.EXTREMES:
                 _, block = await read_block_packet_body(
-                    self._reader, revision=revision, compression=compression
+                    self._reader,
+                    revision=revision,
+                    compression=compression,
+                    session_timezone=session_tz,
                 )
                 yield StreamedBlock(kind="extremes", block=block)
             elif packet_id == ServerPacket.END_OF_STREAM:
@@ -650,11 +685,19 @@ class Connection:
                 if self.on_profile_info is not None:
                     self.on_profile_info(pinfo)
             elif packet_id == ServerPacket.PROFILE_EVENTS:
-                _, block = await read_block_packet_body(self._reader, revision=revision)
+                _, block = await read_block_packet_body(
+                    self._reader,
+                    revision=revision,
+                    session_timezone=session_tz,
+                )
                 if self.on_profile_events is not None:
                     self.on_profile_events(block)
             elif packet_id == ServerPacket.LOG:
-                _, block = await read_block_packet_body(self._reader, revision=revision)
+                _, block = await read_block_packet_body(
+                    self._reader,
+                    revision=revision,
+                    session_timezone=session_tz,
+                )
                 if self.on_log is not None:
                     self.on_log(block)
             elif packet_id == ServerPacket.TABLE_COLUMNS:
@@ -663,6 +706,10 @@ class Connection:
                     self.on_table_columns(default_table_name, columns)
             elif packet_id == ServerPacket.TIMEZONE_UPDATE:
                 tz = await read_timezone_update(self._reader)
+                # Capture before firing the user callback so a hook
+                # that introspects ``conn.session_timezone`` sees the
+                # new value, not the stale one.
+                self._session_timezone = tz or None
                 if self.on_timezone_update is not None:
                     self.on_timezone_update(tz)
             else:

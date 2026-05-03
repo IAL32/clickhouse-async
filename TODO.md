@@ -19,24 +19,11 @@ codec/module that carries the limitation so a grep finds the on-ramp.
 
 ### Type system (`clickhouse_async/types/`)
 
-- **`DateTime64(p)` for `p > 6` truncates the lowest digits.** Python's
-  `datetime` carries microsecond resolution (10⁻⁶ s). Round-tripping is
-  exact at `p ≤ 6`; `p ∈ {7, 8, 9}` loses precision at the Python
-  boundary. We accept and write at the codec's native scale; the
-  truncation happens when constructing the `datetime`.
-  *Code:* `datetime.py::DateTime64.read/write`.
 - **No `AggregateFunction`, `JSON`, `Variant`, `Dynamic`, `Nested`,
   geo types.** Listed as out-of-scope in `DESIGN.md §7` (deferred). A
   query returning any of these will fail at the type-spec parser
   ("unknown type"). Round-tripping these requires careful work; it's a
   v0.x feature.
-- **Naive `datetime` is interpreted as UTC.** A bare `DateTime` codec
-  (no timezone parameter) returns naive `datetime` objects whose
-  underlying instant is UTC. ClickHouse drives its display via the
-  session's timezone setting; v0 doesn't plumb the session timezone
-  from the connection layer into the codec, so naive ≠ "session
-  timezone". Plumbing this is a connection-layer task.
-  *Code:* `datetime.py::DateTime.read`, `_naive_utc_from_ts`.
 
 ### Protocol primitives
 
@@ -107,22 +94,43 @@ already on `DESIGN.md §13` are repeated here so this file is the single
   — primary-only writes, replica-fanout reads.
 - **Read-receipt for `INSERT`.** Surface server-confirmed
   `written_rows` separately from "we sent N rows".
+- **Column-major retrieval surface (v0.3).** ClickHouse blocks
+  arrive column-major on the wire, but `Client.execute` /
+  `fetch_all` / `iter_rows` transpose into row-major tuples for
+  every block. For wide / numeric SELECTs the transpose dominates
+  decode time and allocates one Python tuple per row needlessly.
+  Plan: keep the row-major surface as the default for ergonomics,
+  add a parallel `Client.fetch_columns(sql, …) -> ColumnarResult`
+  that returns the columns as a list of per-column lists (already
+  the `Block.data` shape under the hood) and an
+  `iter_column_blocks(...)` for streaming. Doubles as the
+  zero-copy entry point for the `pyarrow` / `polars` adapters
+  below — those wrap `iter_column_blocks` and convert each block
+  to an Arrow `RecordBatch` / Polars `DataFrame` without ever
+  materialising row tuples.
+  *Code:* `client.py::Client.execute` is the only place rows get
+  transposed today; `Block.data` already holds column-major
+  values, so the new surface is mostly plumbing.
 
 ### Adapters / extras
 
 - **`pyarrow` zero-copy adapter** as a separate extras package
   (`clickhouse-async-arrow`). Not in core to keep the bare install
-  small.
+  small. Builds on the column-major retrieval surface above —
+  each `iter_column_blocks` block becomes an Arrow `RecordBatch`
+  with no row-tuple intermediate.
 - **`polars` adapter.** Same shape.
 - **C/Cython hot path** for the int/float/string codecs *only if*
   profiling shows pure-Python encoders are the bottleneck on large
   inserts. Don't pre-optimise.
 
-### Observability
+### Observability (v1)
 
 - **OpenTelemetry spans** around `execute` / `acquire` / packet
   send/receive. Optional dep; instrumented via a hook so users
-  without OTel pay nothing.
+  without OTel pay nothing. Pencilled in for v1 once the type system
+  is complete and the API surface is stable enough that span shapes
+  won't churn.
 
 ---
 

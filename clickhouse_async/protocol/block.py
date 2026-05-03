@@ -106,12 +106,23 @@ def write_block_info(writer: BinaryWriter, info: BlockInfo) -> None:
 # ---- Block -----------------------------------------------------------------
 
 
-async def read_block(reader: AsyncBinaryReader, *, revision: int) -> Block:
+async def read_block(
+    reader: AsyncBinaryReader,
+    *,
+    revision: int,
+    session_timezone: str | None = None,
+) -> Block:
     """Decode one block from the reader.
 
     ``revision`` is the connection's negotiated protocol revision —
     ``min(OUR_REVISION, server_revision)`` from the handshake — and
     governs which optional fields are on the wire.
+
+    ``session_timezone`` (when set) becomes the fallback timezone for
+    any bare ``DateTime`` / ``DateTime64(p)`` codec parsed from this
+    block's column specs. The Connection plumbs it down from the
+    ``TIMEZONE_UPDATE`` packet so naive datetimes land in the
+    server's negotiated session zone instead of silently UTC.
     """
 
     info = await read_block_info(reader)
@@ -122,7 +133,7 @@ async def read_block(reader: AsyncBinaryReader, *, revision: int) -> Block:
     for _ in range(n_columns):
         name = await reader.read_string()
         type_spec = await reader.read_string()
-        codec = parse_type(type_spec)
+        codec = parse_type(type_spec, session_timezone=session_timezone)
         if revision >= DBMS_MIN_REVISION_WITH_CUSTOM_SERIALIZATION:
             has_custom = await reader.read_byte()
             if has_custom != 0:

@@ -97,10 +97,11 @@ _NULLARY: dict[str, Callable[[], ColumnCodec]] = {
 # Each factory takes the heterogeneous params list and either returns a codec
 # or raises ValueError for the wrong shape.
 _Param = "ColumnCodec | int | str"
+# ``DateTime`` / ``DateTime64`` are not in this registry — the parser
+# special-cases them in ``_parse_one`` so it can thread the connection's
+# session timezone in as a fallback for bare specs.
 _PARAMETRIC: dict[str, Callable[[list[ColumnCodec | int | str]], ColumnCodec]] = {
     "Array": lambda p: Array(_one_type(p, "Array")),
-    "DateTime": lambda p: DateTime(timezone=_one_str(p, "DateTime")),
-    "DateTime64": lambda p: _make_datetime64(p),
     "Decimal": lambda p: _make_decimal(p),
     "Decimal32": lambda p: Decimal32(_one_int(p, "Decimal32")),
     "Decimal64": lambda p: Decimal64(_one_int(p, "Decimal64")),
@@ -137,20 +138,6 @@ def _one_str(params: list[ColumnCodec | int | str], where: str) -> str | None:
     if len(params) != 1 or not isinstance(params[0], str):
         raise ValueError(f"{where} takes zero or one string parameter, got {params!r}")
     return params[0]
-
-
-def _make_datetime64(params: list[ColumnCodec | int | str]) -> DateTime64:
-    if not params or not isinstance(params[0], int):
-        raise ValueError(f"DateTime64 takes (precision[, timezone]); got {params!r}")
-    precision = params[0]
-    tz: str | None = None
-    if len(params) == 2:
-        if not isinstance(params[1], str):
-            raise ValueError(f"DateTime64 timezone must be a string; got {params!r}")
-        tz = params[1]
-    elif len(params) > 2:
-        raise ValueError(f"DateTime64 takes at most two parameters; got {params!r}")
-    return DateTime64(precision=precision, timezone=tz)
 
 
 def _make_tuple(params: list[ColumnCodec | int | str]) -> Tuple:
@@ -208,20 +195,27 @@ def _make_decimal(params: list[ColumnCodec | int | str]) -> ColumnCodec:
 # ---- parser ---------------------------------------------------------------
 
 
-def parse_type(spec: str) -> ColumnCodec:
+def parse_type(spec: str, *, session_timezone: str | None = None) -> ColumnCodec:
     """Parse a ClickHouse type spec into a column codec.
+
+    ``session_timezone`` (when given) is used as the fallback timezone
+    for any bare ``DateTime`` / ``DateTime64(p)`` codec that doesn't
+    carry an explicit timezone in its type spec. Threaded down by
+    ``read_block`` so naive ``DateTime`` reads land in the server's
+    negotiated session timezone rather than silently UTC.
 
     Raises ``ValueError`` for unknown type names or malformed specs.
     """
-    return _Parser(spec).parse_top()
+    return _Parser(spec, session_timezone=session_timezone).parse_top()
 
 
 class _Parser:
-    __slots__ = ("pos", "spec")
+    __slots__ = ("pos", "session_timezone", "spec")
 
-    def __init__(self, spec: str) -> None:
+    def __init__(self, spec: str, *, session_timezone: str | None = None) -> None:
         self.spec = spec
         self.pos = 0
+        self.session_timezone = session_timezone
 
     def parse_top(self) -> ColumnCodec:
         codec = self._parse_one()
@@ -255,14 +249,51 @@ class _Parser:
                 return _make_named_tuple(names, components)
             params = self._parse_params()
             self._consume(")")
+            # ``DateTime`` / ``DateTime64`` need ``session_timezone``
+            # threaded in as a fallback for bare specs (no explicit tz
+            # parameter in the type spec). Other parametric types route
+            # through the static registry.
+            if name == "DateTime":
+                return self._make_datetime(params)
+            if name == "DateTime64":
+                return self._make_datetime64(params)
             factory_p = _PARAMETRIC.get(name)
             if factory_p is None:
                 raise ValueError(f"unknown parametric type: {name!r}")
             return factory_p(params)
+        if name == "DateTime":
+            # Bare ``DateTime`` (no parens) — still wants the session
+            # timezone fallback when one is plumbed in.
+            return DateTime(session_timezone=self.session_timezone)
         factory_n = _NULLARY.get(name)
         if factory_n is None:
             raise ValueError(f"unknown type: {name!r}")
         return factory_n()
+
+    def _make_datetime(self, params: list[ColumnCodec | int | str]) -> DateTime:
+        explicit = _one_str(params, "DateTime")
+        return DateTime(timezone=explicit, session_timezone=self.session_timezone)
+
+    def _make_datetime64(self, params: list[ColumnCodec | int | str]) -> DateTime64:
+        if not params or not isinstance(params[0], int):
+            raise ValueError(
+                f"DateTime64 takes (precision[, timezone]); got {params!r}"
+            )
+        precision = params[0]
+        explicit_tz: str | None = None
+        if len(params) == 2:
+            if not isinstance(params[1], str):
+                raise ValueError(
+                    f"DateTime64 timezone must be a string; got {params!r}"
+                )
+            explicit_tz = params[1]
+        elif len(params) > 2:
+            raise ValueError(f"DateTime64 takes at most two parameters; got {params!r}")
+        return DateTime64(
+            precision=precision,
+            timezone=explicit_tz,
+            session_timezone=self.session_timezone,
+        )
 
     def _parse_tuple_params(
         self,

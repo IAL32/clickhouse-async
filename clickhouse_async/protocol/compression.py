@@ -178,14 +178,26 @@ async def read_block_framed(
     *,
     revision: int,
     compression: CompressionMethod,
+    session_timezone: str | None = None,
 ) -> Block:
     """Read a Block — framed-and-compressed when compression is on,
     raw otherwise. Used for the DATA / TOTALS / EXTREMES packet bodies
-    on a connection that negotiated compression."""
+    on a connection that negotiated compression.
+
+    ``session_timezone`` flows through to the inner ``read_block`` so
+    bare ``DateTime`` codecs in the block's column specs honour the
+    Connection's session timezone fallback.
+    """
     if compression == CompressionMethod.NONE:
-        return await read_block(reader, revision=revision)
+        return await read_block(
+            reader, revision=revision, session_timezone=session_timezone
+        )
     payload = await CompressedBlockReader(reader).read_payload()
-    return await read_block(AsyncBinaryReader.from_bytes(payload), revision=revision)
+    return await read_block(
+        AsyncBinaryReader.from_bytes(payload),
+        revision=revision,
+        session_timezone=session_timezone,
+    )
 
 
 def write_block_framed(

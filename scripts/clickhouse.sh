@@ -102,10 +102,30 @@ up() {
         "clickhouse/clickhouse-server:${version}" >/dev/null
 
     printf 'Waiting for server'
+    local in_container_ready=0
     for _ in $(seq 1 30); do
         if docker exec "$CONTAINER_NAME" \
                 clickhouse-client --user clickhouse --password clickhouse \
                 --query "SELECT 1" >/dev/null 2>&1; then
+            in_container_ready=1
+            break
+        fi
+        printf '.'
+        sleep 1
+    done
+    if [[ "$in_container_ready" -eq 0 ]]; then
+        printf '\n'
+        echo "error: server did not become ready within 30s" >&2
+        echo "       check logs with: $(basename "$0") logs" >&2
+        return 1
+    fi
+
+    # Docker's published port mapping on the host can lag the in-container
+    # readiness check by a few hundred ms on Linux runners. Probe the host
+    # side too so the first client connection in CI doesn't race the
+    # forwarder and get a TCP RST.
+    for _ in $(seq 1 30); do
+        if (echo > "/dev/tcp/localhost/${NATIVE_PORT}") 2>/dev/null; then
             printf '\nReady. DSN: %s\n' "$(dsn)"
             return 0
         fi
@@ -113,7 +133,7 @@ up() {
         sleep 1
     done
     printf '\n'
-    echo "error: server did not become ready within 30s" >&2
+    echo "error: host port :${NATIVE_PORT} did not accept connections within 30s" >&2
     echo "       check logs with: $(basename "$0") logs" >&2
     return 1
 }

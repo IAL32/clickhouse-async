@@ -13,7 +13,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, cast
 
 from clickhouse_async.errors import ProtocolError
 from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
@@ -176,39 +176,57 @@ class LowCardinality:
 
     Wire layout (per upstream ``SerializationLowCardinality``):
 
-    1. ``UInt64`` version key (always ``0`` for v0).
+    1. ``UInt64`` key version. Currently always ``1``
+       (``SharedDictionariesWithAdditionalKeys``) — the only key
+       version ClickHouse currently accepts.
     2. ``UInt64`` serialization-type bitfield. Low byte is the index
        width tag (``0``=UInt8, ``1``=UInt16, ``2``=UInt32, ``3``=UInt64);
-       bits ``0x600`` are flags ``HasAdditionalKeysBit | NeedUpdateDictionary``
-       which we always set.
+       bits ``0x600`` are ``HasAdditionalKeysBit | NeedUpdateDictionary``
+       which we always set on writes.
     3. ``UInt64`` dictionary size.
-    4. Dictionary body — ``dict_size`` rows via the inner codec.
+    4. Dictionary body — ``dict_size`` rows.
     5. ``UInt64`` indices count (must equal ``n_rows``).
     6. Indices body — ``n_rows`` little-endian unsigned ints at the
        declared width.
 
-    **v0 limitation:** ``LowCardinality(Nullable(T))`` is rejected at
-    construction. ClickHouse reserves dictionary index 0 for the null
-    placeholder when the inner is ``Nullable``, with all data indices
-    shifted by +1; we don't implement that yet. Use
-    ``Nullable(LowCardinality(T))`` instead, or wait for a follow-up.
+    ``LowCardinality(Nullable(T))`` reuses the same wire skeleton with
+    a single twist: dictionary index 0 is **reserved for null** and the
+    dictionary body is encoded at the *unwrapped* ``T`` (not at
+    ``Nullable(T)``). Indices in the data stream point at 0 for null
+    rows and 1+ for the corresponding ``T`` value. The dictionary block
+    therefore prepends a placeholder (the unwrapped codec's
+    ``null_value``) at slot 0; that slot is never referenced by
+    non-null rows, so the placeholder's exact byte representation is
+    irrelevant — only its presence matters for offset accounting.
     """
 
     null_value: Any
 
-    _VERSION = 0
-    # HasAdditionalKeysBit (0x200) | NeedUpdateDictionary (0x400)
+    # Per upstream ``KeysSerializationVersion``, ``1`` =
+    # ``SharedDictionariesWithAdditionalKeys`` — the only version
+    # ClickHouse currently accepts.
+    _VERSION = 1
+    # Bit 9 (``HasAdditionalKeysBit``, 0x200) + bit 10
+    # (``NeedUpdateDictionary``, 0x400). These bit positions come
+    # from upstream ``IndexesSerializationType``: bit 8 is the
+    # global-dict flag (server-only), bit 9 is HasAdditionalKeys,
+    # bit 10 is NeedUpdateDictionary. The low byte is the index-width
+    # tag and gets OR'd in per write.
     _SERIALIZATION_BASE = 0x0000_0000_0000_0600
 
     def __init__(self, inner: ColumnCodec) -> None:
-        if isinstance(inner, Nullable):
-            raise ValueError(
-                "LowCardinality(Nullable(...)) is not supported in v0; "
-                "use Nullable(LowCardinality(...)) instead"
-            )
         self.inner = inner
+        # Detect Nullable inner so the read/write paths can switch to
+        # the null-at-index-0 layout. Flag is load-bearing for both
+        # branches; we never inspect ``isinstance(inner, Nullable)``
+        # again past construction.
+        self._inner_is_nullable: bool = isinstance(inner, Nullable)
         self.name = f"LowCardinality({inner.name})"
-        self.null_value = inner.null_value
+        # When the inner is Nullable, the column's null sentinel is the
+        # Python ``None`` (matches the wire's index-0 mapping). Otherwise
+        # we surface the inner type's own null_value so callers that
+        # default-fill a column see something type-correct.
+        self.null_value = None if self._inner_is_nullable else inner.null_value
 
     @staticmethod
     def _index_tag_for_size(dict_size: int) -> tuple[int, int]:
@@ -226,6 +244,19 @@ class LowCardinality:
     def _byte_width_for_tag(tag: int) -> int:
         return {0: 1, 1: 2, 2: 4, 3: 8}[tag]
 
+    def _dictionary_codec(self) -> ColumnCodec:
+        """Codec used for the dictionary body on the wire.
+
+        For ``LowCardinality(Nullable(T))`` the dictionary stores the
+        unwrapped ``T`` — the null mapping is implicit at index 0 and
+        not encoded in the body itself.
+        """
+        if self._inner_is_nullable:
+            # mypy / ty know self.inner is a ColumnCodec; the inner of
+            # a Nullable is itself a ColumnCodec. Cast keeps types tight.
+            return cast("Nullable", self.inner).inner
+        return self.inner
+
     async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[Any]:
         if n_rows == 0:
             return []
@@ -239,7 +270,13 @@ class LowCardinality:
         index_size = self._byte_width_for_tag(index_tag)
 
         dict_size = await reader.read_int(8, signed=False)
-        dictionary = await self.inner.read(reader, dict_size)
+        dict_body = await self._dictionary_codec().read(reader, dict_size)
+        # Map slot 0 to None so a downstream lookup with index 0 yields
+        # null. The placeholder bytes the server wrote at slot 0 are
+        # ignored — we never expose them.
+        dictionary: list[Any] = (
+            [None, *dict_body[1:]] if self._inner_is_nullable else dict_body
+        )
 
         idx_count = await reader.read_int(8, signed=False)
         if idx_count != n_rows:
@@ -262,17 +299,8 @@ class LowCardinality:
         n = len(values)
         if n == 0:
             return
-        # Build the dictionary preserving first-seen order, plus per-row indices.
-        seen: dict[Any, int] = {}
-        dictionary: list[Any] = []
-        indices: list[int] = []
-        for v in values:
-            idx = seen.get(v)
-            if idx is None:
-                idx = len(dictionary)
-                seen[v] = idx
-                dictionary.append(v)
-            indices.append(idx)
+
+        dictionary, indices = self._build_dictionary(values)
 
         index_tag, index_size = self._index_tag_for_size(len(dictionary))
         sertype = self._SERIALIZATION_BASE | index_tag
@@ -280,9 +308,49 @@ class LowCardinality:
         writer.write_int(self._VERSION, 8, signed=False)
         writer.write_int(sertype, 8, signed=False)
         writer.write_int(len(dictionary), 8, signed=False)
-        self.inner.write(writer, dictionary)
+        self._dictionary_codec().write(writer, dictionary)
         writer.write_int(n, 8, signed=False)
         idx_buf = bytearray()
         for i in indices:
             idx_buf.extend(i.to_bytes(index_size, "little", signed=False))
         writer.write_raw(bytes(idx_buf))
+
+    def _build_dictionary(self, values: Sequence[Any]) -> tuple[list[Any], list[int]]:
+        """Deduplicate ``values`` in first-seen order and return
+        ``(dictionary, per_row_indices)`` for the wire encoding.
+
+        For ``LowCardinality(Nullable(T))``, dictionary slot 0 is
+        reserved for null: ``None`` rows map to index 0, non-null
+        values dedupe into ``[1, 1+k)``. The slot-0 placeholder is the
+        unwrapped codec's ``null_value`` — it travels through the
+        wire to keep offsets aligned but is never indexed by a non-null
+        row.
+        """
+        if self._inner_is_nullable:
+            placeholder = self._dictionary_codec().null_value
+            seen: dict[Any, int] = {}
+            dictionary: list[Any] = [placeholder]
+            indices: list[int] = []
+            for v in values:
+                if v is None:
+                    indices.append(0)
+                    continue
+                idx = seen.get(v)
+                if idx is None:
+                    idx = len(dictionary)
+                    seen[v] = idx
+                    dictionary.append(v)
+                indices.append(idx)
+            return dictionary, indices
+
+        seen = {}
+        dictionary = []
+        indices = []
+        for v in values:
+            idx = seen.get(v)
+            if idx is None:
+                idx = len(dictionary)
+                seen[v] = idx
+                dictionary.append(v)
+            indices.append(idx)
+        return dictionary, indices

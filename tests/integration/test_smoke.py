@@ -184,6 +184,72 @@ async def test_kill_query_cancels_query_running_on_another_connection(
     )
 
 
+async def test_low_cardinality_string_round_trips_via_server(
+    pool: ch.Pool,
+    fresh_table: Callable[[str, str], Awaitable[None]],
+) -> None:
+    # BEGIN: a Memory-engine table with a plain LowCardinality(String) column
+    table = "test_low_cardinality_string"
+    await fresh_table(
+        table,
+        "(id UInt64, label LowCardinality(String)) ENGINE = Memory",
+    )
+    rows_in: list[tuple[object, ...]] = [
+        (1, "alpha"),
+        (2, "beta"),
+        (3, "alpha"),
+        (4, "gamma"),
+    ]
+
+    # WHEN: inserting via the pool, then reading back
+    async with pool.acquire() as client:
+        n = await client.insert(
+            f"INSERT INTO {table} VALUES",
+            rows=rows_in,
+            column_names=["id", "label"],
+        )
+    assert n == 4
+    rows_out = await pool.fetch_all(f"SELECT id, label FROM {table} ORDER BY id")
+
+    # THEN: every row round-trips
+    assert rows_out == rows_in
+
+
+async def test_low_cardinality_nullable_string_round_trips_via_server(
+    pool: ch.Pool,
+    fresh_table: Callable[[str, str], Awaitable[None]],
+) -> None:
+    # BEGIN: a Memory-engine table with a LowCardinality(Nullable(String))
+    #        column — the most common shape in real ClickHouse schemas
+    table = "test_low_cardinality_nullable_string"
+    await fresh_table(
+        table,
+        "(id UInt64, label LowCardinality(Nullable(String))) ENGINE = Memory",
+    )
+    rows_in: list[tuple[object, ...]] = [
+        (1, "alpha"),
+        (2, None),
+        (3, "beta"),
+        (4, "alpha"),
+        (5, None),
+        (6, "gamma"),
+    ]
+
+    # WHEN: inserting via the pool, then reading back
+    async with pool.acquire() as client:
+        n = await client.insert(
+            f"INSERT INTO {table} VALUES",
+            rows=rows_in,
+            column_names=["id", "label"],
+        )
+    assert n == 6
+    rows_out = await pool.fetch_all(f"SELECT id, label FROM {table} ORDER BY id")
+
+    # THEN: every row round-trips — Nones travel through dictionary
+    #       slot 0 and come back as Python None
+    assert rows_out == rows_in
+
+
 async def test_multi_host_dsn_falls_through_dead_first_host(dsn: str) -> None:
     # BEGIN: a multi-host DSN whose first candidate is unreachable
     #        (a port nothing's listening on) and second candidate is

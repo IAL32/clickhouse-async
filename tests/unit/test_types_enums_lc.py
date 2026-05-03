@@ -154,11 +154,82 @@ async def test_low_cardinality_round_trip_int_values() -> None:
     assert decoded == values
 
 
-def test_low_cardinality_rejects_nullable_inner_in_v0() -> None:
-    # BEGIN / WHEN / THEN: constructing LowCardinality(Nullable(...)) raises
-    #     since the v0 codec doesn't implement the dictionary-with-null layout
-    with pytest.raises(ValueError, match="Nullable"):
-        parse_type("LowCardinality(Nullable(String))")
+async def test_low_cardinality_nullable_string_round_trips_mixed_values() -> None:
+    # BEGIN: a LowCardinality(Nullable(String)) codec
+    codec = parse_type("LowCardinality(Nullable(String))")
+    assert codec.name == "LowCardinality(Nullable(String))"
+    values: list[str | None] = [
+        "alpha",
+        None,
+        "beta",
+        "alpha",
+        None,
+        "gamma",
+    ]
+
+    # WHEN: round-tripping through the codec
+    decoded = await _round_trip(codec, values)
+
+    # THEN: every row comes back identically — Nones map to dictionary
+    #       slot 0, deduped non-null values to slots 1+
+    assert decoded == values
+
+
+async def test_low_cardinality_nullable_all_null_round_trips() -> None:
+    # BEGIN: an all-null column
+    codec = parse_type("LowCardinality(Nullable(String))")
+    values: list[str | None] = [None] * 5
+
+    # WHEN: round-tripping
+    decoded = await _round_trip(codec, values)
+
+    # THEN: every row decodes back to None — index 0 mapped, dictionary
+    #       holds only the placeholder
+    assert decoded == values
+
+
+async def test_low_cardinality_nullable_all_non_null_round_trips() -> None:
+    # BEGIN: a column with no nulls; the placeholder at index 0 still
+    #        travels on the wire but is never indexed
+    codec = parse_type("LowCardinality(Nullable(Int32))")
+    values: list[int | None] = [1, 2, 3, 1, 2]
+
+    # WHEN: round-tripping
+    decoded = await _round_trip(codec, values)
+
+    # THEN: integers come back unchanged
+    assert decoded == values
+
+
+async def test_low_cardinality_nullable_wire_format_pin() -> None:
+    # BEGIN / WHEN: hand-encode a known mixed-values column then decode
+    #     the captured bytes — pins the wire layout so a future codec
+    #     change can't silently desync
+    codec = parse_type("LowCardinality(Nullable(String))")
+    values: list[str | None] = ["x", None, "y", "x"]
+
+    writer = BinaryWriter()
+    codec.write(writer, values)
+    written = writer.getvalue()
+
+    # First 24 bytes are version + sertype + dict_size — all UInt64 LE.
+    version = int.from_bytes(written[:8], "little")
+    sertype = int.from_bytes(written[8:16], "little")
+    dict_size = int.from_bytes(written[16:24], "little")
+    # THEN: key_version is 1 (SharedDictionariesWithAdditionalKeys);
+    #       sertype carries HasAdditionalKeys | NeedGlobalDictionary |
+    #       NeedUpdateDictionary plus the UInt8 index-width tag (0);
+    #       the dictionary holds the placeholder + 2 distinct strings.
+    assert version == 1
+    assert sertype == 0x0000_0000_0000_0600
+    assert dict_size == 3
+
+    # And the body decodes back to the same values
+    stream = asyncio.StreamReader()
+    stream.feed_data(written)
+    stream.feed_eof()
+    decoded = await codec.read(AsyncBinaryReader(stream), len(values))
+    assert decoded == values
 
 
 @pytest.mark.parametrize(

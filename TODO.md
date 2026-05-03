@@ -19,12 +19,6 @@ codec/module that carries the limitation so a grep finds the on-ramp.
 
 ### Type system (`clickhouse_async/types/`)
 
-- **`LowCardinality(Nullable(T))` rejected at construction.** ClickHouse
-  reserves dictionary index 0 for the null placeholder, with all data
-  indices shifted by +1, when the inner is `Nullable`. We don't
-  implement that yet — the codec raises `ValueError` with a hint to use
-  `Nullable(LowCardinality(T))` instead.
-  *Code:* `composite.py::LowCardinality.__init__`.
 - **`DateTime64(p)` for `p > 6` truncates the lowest digits.** Python's
   `datetime` carries microsecond resolution (10⁻⁶ s). Round-tripping is
   exact at `p ≤ 6`; `p ∈ {7, 8, 9}` loses precision at the Python
@@ -98,8 +92,6 @@ already on `DESIGN.md §13` are repeated here so this file is the single
 
 ### Type system
 
-- **`LowCardinality(Nullable(T))`.** Implement the null-at-index-0
-  layout with shifted indices.
 - **`AggregateFunction(...)` state columns.** Used by materialised
   views; needed for any non-trivial analytics workload.
 - **`JSON` type** (the new ClickHouse 24.x JSON, not the deprecated

@@ -102,29 +102,37 @@ up() {
         -p "${HTTP_PORT}:8123" \
         "clickhouse/clickhouse-server:${version}" >/dev/null
 
+    # Wait for the *real* server to log "Ready for connections". The
+    # Docker entrypoint runs a short-lived init phase first (creates
+    # users / databases via a temporary server bound to 127.0.0.1:9000)
+    # and then exits before the real server starts. A naive
+    # ``clickhouse-client SELECT 1`` probe can succeed against the init
+    # server and return ready before the real one has even bound its
+    # ports — tests then race the gap and see ConnectionResetError.
+    # The "Ready for connections" log line only appears once per real
+    # server lifecycle, after every listener is up.
     printf 'Waiting for server'
-    local in_container_ready=0
-    for _ in $(seq 1 30); do
-        if docker exec "$CONTAINER_NAME" \
-                clickhouse-client --user clickhouse --password clickhouse \
-                --query "SELECT 1" >/dev/null 2>&1; then
-            in_container_ready=1
+    local server_ready=0
+    for _ in $(seq 1 60); do
+        if docker logs "$CONTAINER_NAME" 2>&1 |
+                grep -q "Ready for connections"; then
+            server_ready=1
             break
         fi
         printf '.'
         sleep 1
     done
-    if [[ "$in_container_ready" -eq 0 ]]; then
+    if [[ "$server_ready" -eq 0 ]]; then
         printf '\n'
-        echo "error: server did not become ready within 30s" >&2
+        echo "error: server did not become ready within 60s" >&2
         echo "       check logs with: $(basename "$0") logs" >&2
         return 1
     fi
 
-    # Docker's published port mapping on the host can lag the in-container
-    # readiness check by a few hundred ms on Linux runners. Probe the host
-    # side too so the first client connection in CI doesn't race the
-    # forwarder and get a TCP RST.
+    # Docker's published port mapping on the host can still lag the
+    # in-container readiness signal by a few hundred ms on Linux
+    # runners. Probe the host side too so the first client connection
+    # in CI doesn't race the forwarder and get a TCP RST.
     for _ in $(seq 1 30); do
         if (echo > "/dev/tcp/localhost/${NATIVE_PORT}") 2>/dev/null; then
             printf '\nReady. DSN: %s\n' "$(dsn)"

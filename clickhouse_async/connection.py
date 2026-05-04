@@ -53,6 +53,7 @@ from clickhouse_async.errors import (
 from clickhouse_async.protocol.block import Block, BlockInfo
 from clickhouse_async.protocol.compression import (
     CompressionMethod,
+    _MultiFrameReader,
     write_block_framed,
 )
 from clickhouse_async.protocol.exception_packet import read_exception_body
@@ -787,7 +788,21 @@ class Connection:
                     if self.on_log is not None:
                         self.on_log(block)
                 elif packet_id == ServerPacket.TABLE_COLUMNS:
-                    default_table_name, columns = await read_table_columns(self._reader)
+                    # At revision 54481+, the TABLE_COLUMNS body is wrapped in
+                    # a compressed frame when compression is active (same gate
+                    # as LOG / PROFILE_EVENTS, per Protocol.h).
+                    if (
+                        revision
+                        >= DBMS_MIN_REVISION_WITH_COMPRESSED_LOGS_PROFILE_EVENTS_COLUMNS
+                        and compression != CompressionMethod.NONE
+                    ):
+                        default_table_name, columns = await read_table_columns(
+                            _MultiFrameReader(self._reader)
+                        )
+                    else:
+                        default_table_name, columns = await read_table_columns(
+                            self._reader
+                        )
                     if self.on_table_columns is not None:
                         self.on_table_columns(default_table_name, columns)
                 elif packet_id == ServerPacket.TIMEZONE_UPDATE:

@@ -130,9 +130,19 @@ jobs:
         env:
           PYTHONUNBUFFERED: "1"
         run: |
+          echo "=== connectivity check ==="
+          uv run python -c "
+          import asyncio, clickhouse_async as ch
+          async def main():
+              async with ch.connect('clickhouse://clickhouse:clickhouse@127.0.0.1:9000/clickhouse', connect_timeout=5.0) as c:
+                  r = await c.fetch_all('SELECT 1')
+                  print('OK:', r)
+          asyncio.run(main())
+          "
+          echo "=== running tests ==="
           uv run pytest tests/integration \
             --localdb=clickhouse://clickhouse:clickhouse@127.0.0.1:9000/clickhouse \
-            -m integration -q --timeout=60
+            -m integration -v --timeout=30
 
       - name: ClickHouse logs on failure
         if: failure()

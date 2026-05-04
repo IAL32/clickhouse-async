@@ -106,7 +106,7 @@ def parse_dsn(dsn: str) -> DSN:
         if not piece.strip():
             raise ValueError(f"DSN has an empty host entry: {dsn!r}")
         hosts.append(_parse_host_piece(piece, default_port=default_port))
-    if not hosts:
+    if not hosts:  # pragma: no cover — _split_host_pieces always produces ≥1 piece
         raise ValueError(f"DSN missing host: {dsn!r}")
 
     user = unquote(parsed.username) if parsed.username else DEFAULT_USER

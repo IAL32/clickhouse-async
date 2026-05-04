@@ -120,15 +120,30 @@ This project uses Ruff for code formatting and linting, which enforces PEP 8 sty
 ## Running Tests
 
 ```bash
-# Run all tests
+# Unit tests only (default)
 uv run pytest
 
-# Run tests with coverage
-uv run pytest --cov=clickhouse_async
+# Unit tests with coverage — opens HTML report when done
+./scripts/coverage.sh
 
-# Run specific tests
-uv run pytest tests/test_specific_file.py
+# Pass extra pytest flags through the script
+./scripts/coverage.sh -k test_pool
+
+# Integration tests (requires a running ClickHouse server)
+uv run pytest tests/integration -m integration --localdb
+
+# Specific file
+uv run pytest tests/unit/test_pool.py
 ```
+
+### Coverage
+
+Branch coverage is measured on the bare install (`uv sync --frozen`, no extras) so
+that optional-dependency code paths don't inflate the number. The minimum threshold is
+set in `[tool.coverage.report] fail_under` in `pyproject.toml`; CI enforces it on every
+push. Before opening a PR, run `./scripts/coverage.sh` and check the HTML report for any
+newly uncovered lines. If a line is genuinely unreachable on the bare install (e.g. a
+compression codec branch), add `# pragma: no cover — <one-line reason>` to suppress it.
 
 ## Building Documentation
 

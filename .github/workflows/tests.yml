@@ -75,7 +75,15 @@ jobs:
           uv run python -c "import clickhouse_async; print('version:', clickhouse_async.__version__)"
 
       - name: Unit tests
-        run: uv run pytest tests/unit -q --timeout=10
+        run: uv run pytest tests/unit -q --timeout=10 --cov --cov-branch --cov-report=term-missing --cov-report=html
+
+      - name: Upload coverage report
+        if: matrix.python == '3.11'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: htmlcov/
+          retention-days: 14
 
   # Full suite — unit + integration — with the compression extra
   # installed and a real ClickHouse server (started via the project's

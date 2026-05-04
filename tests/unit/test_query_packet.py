@@ -1,0 +1,153 @@
+"""Unit tests for ``write_query_packet`` and its helpers.
+
+Exercises the revision-gated branches and OS-error fallback paths that
+the connection-level tests (which always use ``OUR_REVISION``) don't reach.
+"""
+
+from __future__ import annotations
+
+import getpass
+import socket
+
+import pytest
+
+from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+from clickhouse_async.protocol.packets import (
+    DBMS_MIN_REVISION_WITH_CLIENT_INFO,
+    DBMS_MIN_REVISION_WITH_QUOTA_KEY_IN_CLIENT_INFO,
+    DBMS_MIN_REVISION_WITH_VERSION_PATCH,
+    OUR_REVISION,
+    ClientPacket,
+)
+from clickhouse_async.protocol.query_packet import (
+    _safe_hostname,
+    _safe_os_user,
+    write_query_packet,
+)
+
+
+def _make_reader(writer: BinaryWriter) -> AsyncBinaryReader:
+    return AsyncBinaryReader.from_bytes(writer.getvalue())
+
+
+# ---- OS-error fallback paths --------------------------------------------
+
+
+@pytest.mark.parametrize("exc_type", [OSError, KeyError])
+def test_safe_os_user_returns_empty_string_on_getuser_error(
+    monkeypatch: pytest.MonkeyPatch,
+    exc_type: type[Exception],
+) -> None:
+    # BEGIN: an environment where getpass.getuser raises an OS-level error
+    monkeypatch.setattr(getpass, "getuser", lambda: (_ for _ in ()).throw(exc_type()))
+
+    # WHEN: _safe_os_user is called
+    result = _safe_os_user()
+
+    # THEN: falls back to empty string
+    assert result == ""
+
+
+def test_safe_hostname_returns_empty_string_on_os_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # BEGIN: an environment where socket.gethostname raises OSError
+    monkeypatch.setattr(socket, "gethostname", lambda: (_ for _ in ()).throw(OSError()))
+
+    # WHEN: _safe_hostname is called
+    result = _safe_hostname()
+
+    # THEN: falls back to empty string
+    assert result == ""
+
+
+# ---- revision-gated branches in write_query_packet ----------------------
+
+
+async def test_write_query_packet_omits_client_info_below_threshold() -> None:
+    # BEGIN: a very old revision that predates ClientInfo
+    old_revision = DBMS_MIN_REVISION_WITH_CLIENT_INFO - 1
+    writer = BinaryWriter()
+
+    # WHEN: writing a query packet at the old revision
+    write_query_packet(
+        writer, sql="SELECT 1", query_id="q", user="u", revision=old_revision
+    )
+
+    # THEN: packet type + query_id written; next field is settings terminator
+    #       (no ClientInfo block)
+    rdr = _make_reader(writer)
+    assert await rdr.read_varuint() == ClientPacket.QUERY
+    assert await rdr.read_string() == "q"
+    assert (
+        await rdr.read_string() == ""
+    )  # settings terminator (no ClientInfo => no settings block)
+
+
+@pytest.mark.parametrize(
+    "old_revision",
+    [
+        DBMS_MIN_REVISION_WITH_QUOTA_KEY_IN_CLIENT_INFO - 1,
+        DBMS_MIN_REVISION_WITH_VERSION_PATCH - 1,
+    ],
+    ids=["below_quota_key", "below_version_patch"],
+)
+async def test_write_client_info_omits_optional_field_below_threshold(
+    old_revision: int,
+) -> None:
+    # BEGIN: a revision just below a protocol gate
+    writer = BinaryWriter()
+
+    # WHEN: writing a query packet at that revision
+    write_query_packet(
+        writer, sql="SELECT 1", query_id="q", user="u", revision=old_revision
+    )
+
+    # THEN: packet is written without error (the gated field is skipped)
+    assert len(writer.getvalue()) > 0
+
+
+# ---- settings write path ------------------------------------------------
+
+
+async def test_write_query_packet_encodes_settings_in_wire_format() -> None:
+    # BEGIN: a modern-revision connection with query settings
+    writer = BinaryWriter()
+
+    # WHEN: writing a query with settings
+    write_query_packet(
+        writer,
+        sql="SELECT 1",
+        query_id="q",
+        user="u",
+        revision=OUR_REVISION,
+        settings={"max_threads": "4"},
+    )
+
+    # THEN: packet is written; spot-check packet type and query id
+    rdr = _make_reader(writer)
+    assert await rdr.read_varuint() == ClientPacket.QUERY
+    assert await rdr.read_string() == "q"
+    assert rdr.position > 0
+
+
+async def test_write_query_packet_with_compression_flag() -> None:
+    # BEGIN: write_query_packet with compression=True
+    writer_plain = BinaryWriter()
+    writer_comp = BinaryWriter()
+
+    write_query_packet(
+        writer_plain, sql="SELECT 1", query_id="q", user="u", revision=OUR_REVISION
+    )
+    write_query_packet(
+        writer_comp,
+        sql="SELECT 1",
+        query_id="q",
+        user="u",
+        revision=OUR_REVISION,
+        compression=True,
+    )
+
+    # THEN: both are non-empty and differ (the compression flag byte differs)
+    assert writer_plain.getvalue() != writer_comp.getvalue()
+    assert len(writer_comp.getvalue()) == len(writer_plain.getvalue())

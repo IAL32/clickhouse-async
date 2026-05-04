@@ -10,6 +10,26 @@ import pytest
 
 from clickhouse_async._host_rotation import _HostRotation
 
+# ---- property accessors -------------------------------------------------
+
+
+def test_hosts_property_returns_configured_candidate_list() -> None:
+    # BEGIN: a rotation with two hosts
+    hosts = [("a", 9000), ("b", 9001)]
+    rot = _HostRotation(hosts, cooldown=5.0)
+
+    # WHEN / THEN: .hosts reflects what was passed in, as a tuple
+    assert rot.hosts == (("a", 9000), ("b", 9001))
+
+
+def test_cooldown_property_returns_configured_cooldown() -> None:
+    # BEGIN: a rotation with a custom cooldown
+    rot = _HostRotation([("a", 9000)], cooldown=30.0)
+
+    # WHEN / THEN: .cooldown reflects the constructor argument
+    assert rot.cooldown == 30.0
+
+
 # ---- rotation pointer advances ------------------------------------------
 
 

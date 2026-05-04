@@ -64,7 +64,9 @@ def _require(extra: str, module: str) -> ModuleType:
         ) from exc
 
 
-def _cityhash_128(data: bytes) -> bytes:
+def _cityhash_128(
+    data: bytes,
+) -> bytes:  # pragma: no cover — requires clickhouse-cityhash extra
     """CityHash128 over ``data``, packed as 16 LE bytes (low64 first,
     matching upstream ``writeBinaryLittleEndian(checksum.low64);
     writeBinaryLittleEndian(checksum.high64)``)."""
@@ -74,31 +76,35 @@ def _cityhash_128(data: bytes) -> bytes:
 
 
 def _compress(method: CompressionMethod, payload: bytes) -> bytes:
-    if method == CompressionMethod.LZ4:
+    if method == CompressionMethod.LZ4:  # pragma: no cover — requires lz4 extra
         mod = _require("lz4", "lz4.block")
         return mod.compress(payload, store_size=False)
-    if method == CompressionMethod.ZSTD:
+    if method == CompressionMethod.ZSTD:  # pragma: no cover — requires zstd extra
         mod = _require("zstd", "zstandard")
         return mod.ZstdCompressor().compress(payload)
     if method == CompressionMethod.NONE:
         return payload
-    raise ValueError(f"unsupported compression method: {method!r}")
+    raise ValueError(
+        f"unsupported compression method: {method!r}"
+    )  # pragma: no cover — defensive
 
 
 def _decompress(
     method: CompressionMethod, payload: bytes, decompressed_size: int
 ) -> bytes:
-    if method == CompressionMethod.LZ4:
+    if method == CompressionMethod.LZ4:  # pragma: no cover — requires lz4 extra
         mod = _require("lz4", "lz4.block")
         return mod.decompress(payload, uncompressed_size=decompressed_size)
-    if method == CompressionMethod.ZSTD:
+    if method == CompressionMethod.ZSTD:  # pragma: no cover — requires zstd extra
         mod = _require("zstd", "zstandard")
         return mod.ZstdDecompressor().decompress(
             payload, max_output_size=decompressed_size
         )
     if method == CompressionMethod.NONE:
         return payload
-    raise ProtocolError(f"unknown compression method byte: 0x{int(method):02x}")
+    raise ProtocolError(
+        f"unknown compression method byte: 0x{int(method):02x}"
+    )  # pragma: no cover — defensive
 
 
 class CompressedBlockReader:
@@ -108,10 +114,12 @@ class CompressedBlockReader:
 
     __slots__ = ("_reader",)
 
-    def __init__(self, reader: AsyncBinaryReader) -> None:
+    def __init__(
+        self, reader: AsyncBinaryReader
+    ) -> None:  # pragma: no cover — requires cityhash extra
         self._reader = reader
 
-    async def read_payload(self) -> bytes:
+    async def read_payload(self) -> bytes:  # pragma: no cover — requires cityhash extra
         expected_hash = await self._reader.read_exact(_HASH_BYTES)
         method_byte = await self._reader.read_byte()
         compressed_size = await self._reader.read_int(4, signed=False)
@@ -161,7 +169,9 @@ class CompressedBlockWriter:
         self._writer = writer
         self._method = method
 
-    def write_payload(self, payload: bytes) -> None:
+    def write_payload(
+        self, payload: bytes
+    ) -> None:  # pragma: no cover — requires lz4/zstd extra
         compressed = _compress(self._method, payload)
         compressed_size = _HEADER_BYTES + len(compressed)
         framed = (
@@ -195,8 +205,10 @@ async def read_block_framed(
         return await read_block(
             reader, revision=revision, session_timezone=session_timezone
         )
-    payload = await CompressedBlockReader(reader).read_payload()
-    return await read_block(
+    payload = await CompressedBlockReader(
+        reader
+    ).read_payload()  # pragma: no cover — requires extras
+    return await read_block(  # pragma: no cover — requires extras
         AsyncBinaryReader.from_bytes(payload),
         revision=revision,
         session_timezone=session_timezone,
@@ -215,6 +227,10 @@ def write_block_framed(
     if compression == CompressionMethod.NONE:
         write_block(writer, block, revision=revision)
         return
-    inner = BinaryWriter()
-    write_block(inner, block, revision=revision)
-    CompressedBlockWriter(writer, method=compression).write_payload(inner.getvalue())
+    inner = BinaryWriter()  # pragma: no cover — requires lz4/zstd extra
+    write_block(
+        inner, block, revision=revision
+    )  # pragma: no cover — requires lz4/zstd extra
+    CompressedBlockWriter(writer, method=compression).write_payload(
+        inner.getvalue()
+    )  # pragma: no cover — requires lz4/zstd extra

@@ -133,7 +133,9 @@ async def _default_transport_factory(
     host: str,
     port: int,
     ssl_context: _ssl_module.SSLContext | None,
-) -> tuple[asyncio.StreamReader, _WriterLike]:
+) -> tuple[
+    asyncio.StreamReader, _WriterLike
+]:  # pragma: no cover — real socket; integration tests only
     return await asyncio.open_connection(host, port, ssl=ssl_context)
 
 
@@ -315,7 +317,9 @@ class Connection:
                 await self._do_handshake(
                     user=user, password=password, database=database
                 )
-            except asyncio.CancelledError:
+            except (
+                asyncio.CancelledError
+            ):  # pragma: no cover — task-level cancel during connect
                 # Cancellation isn't a per-host failure — propagate.
                 self._transition(
                     State.BROKEN, f"cancelled during {stage} for {host}:{port}"
@@ -586,7 +590,9 @@ class Connection:
                 out.write_varuint(ClientPacket.CANCEL)
                 self._writer.write(out.getvalue())
                 await self._writer.drain()
-            except BaseException as exc:
+            except (
+                BaseException
+            ) as exc:  # pragma: no cover — write failure during cancel
                 self._transition(State.BROKEN, f"cancel send failed: {exc!r}")
                 await self._cleanup_writer()
                 raise

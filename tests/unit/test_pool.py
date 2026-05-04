@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import asyncio
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -444,6 +444,150 @@ async def test_close_via_async_with_exit() -> None:
 
 
 # ---- public re-exports -------------------------------------------------
+
+
+# ---- constructor validation (timing arguments) -------------------------
+
+
+@pytest.mark.parametrize(
+    "kwargs,match",
+    [
+        ({"max_lifetime": 0}, "max_lifetime"),
+        ({"max_idle_time": 0}, "max_idle_time"),
+        ({"idle_check_interval": 0}, "idle_check_interval"),
+        ({"health_check_after": -1}, "health_check_after"),
+        ({"host_failover_cooldown": -1}, "host_failover_cooldown"),
+    ],
+)
+def test_create_pool_validates_timing_arguments(
+    kwargs: dict[str, Any], match: str
+) -> None:
+    # WHEN: / THEN: negative or zero timing argument raises ValueError
+    with pytest.raises(ValueError, match=match):
+        create_pool("clickhouse://host", **kwargs)
+
+
+# ---- pool closed while waiter is blocked --------------------------------
+
+
+async def test_acquire_raises_pool_closed_error_when_pool_closed_while_waiting() -> (
+    None
+):
+    # BEGIN: a pool sized 1 with its only connection in use, and a
+    #        second task blocked waiting for a free slot
+    async with _fresh_pool(max_size=1, acquire_timeout=5.0) as (pool, _):
+        cm = pool.acquire()
+        await cm.__aenter__()
+
+        waiter_task = asyncio.create_task(pool._acquire())
+        # Let the waiter task reach its wait inside _acquire
+        await asyncio.sleep(0)
+        assert not waiter_task.done()
+
+        # WHEN: the pool is closed while the waiter is blocked
+        await pool.close()
+
+        # THEN: the waiter surfaces PoolClosedError
+        with pytest.raises(PoolClosedError):
+            await waiter_task
+
+        # Release the borrowed connection (pool is already closed, so it discards)
+        await cm.__aexit__(None, None, None)
+
+
+# ---- acquire timeout fires immediately when deadline already passed ----
+
+
+async def test_acquire_raises_pool_timeout_immediately_when_deadline_expired() -> None:
+    # BEGIN: a full pool (max_size=1) with acquire_timeout=0 so the
+    #        deadline is already at-or-before the first remaining check
+    async with _fresh_pool(max_size=1, acquire_timeout=0.0) as (pool, _):
+        async with pool.acquire():
+            # WHEN: acquiring while full with no timeout budget
+            # THEN: PoolTimeoutError fires on the remaining <= 0 check
+            with pytest.raises(PoolTimeoutError):
+                async with pool.acquire():
+                    pass
+
+
+# ---- open-client failure decrements size --------------------------------
+
+
+async def test_acquire_decrements_size_when_open_client_fails() -> None:
+    # BEGIN: a transport factory that always refuses connections
+
+    class _RefusingTransport:
+        async def __call__(
+            self,
+            _host: str,
+            _port: int,
+            _ssl_context: ssl.SSLContext | None,
+        ) -> tuple[asyncio.StreamReader, _WriterLike]:
+            raise ConnectionRefusedError("nothing listening")
+
+    pool = create_pool(
+        "clickhouse://host",
+        max_size=2,
+        transport_factory=_RefusingTransport(),
+    )
+    async with pool:
+        # WHEN: acquire tries to open a client but the transport fails
+        # THEN: the exception propagates and the pool size is decremented
+        with pytest.raises(ConnectionRefusedError):
+            async with pool.acquire():
+                pass
+
+        # THEN: size was decremented back after the open failure
+        assert pool.size == 0
+
+
+# ---- max_lifetime check in verify_or_discard (acquire path) ------------
+
+
+async def test_acquire_discards_connection_past_max_lifetime_in_verify() -> None:
+    # BEGIN: a pool with a short max_lifetime; a connection is released
+    #        quickly (before max_lifetime expires) and lands in the free queue
+    factory = _FreshTransports()
+    pool = create_pool(
+        "clickhouse://default:@host/db",
+        max_size=1,
+        max_lifetime=0.05,
+        health_check_after=999.0,
+        transport_factory=factory,
+    )
+    async with pool:
+        async with pool.acquire():
+            pass  # immediate release — within 50 ms → goes into the free queue
+        assert pool.free_size == 1
+
+        # Wait until the entry is past max_lifetime
+        await asyncio.sleep(0.1)
+
+        # WHEN: acquiring again (verify_or_discard hits the max_lifetime branch)
+        async with pool.acquire():
+            # THEN: a new transport was minted (the stale connection was discarded)
+            assert len(factory.transports) == 2
+
+
+# ---- pool closed while a client is in use ------------------------------
+
+
+async def test_release_discards_connection_when_pool_was_closed_while_in_use() -> None:
+    # BEGIN: a connection is borrowed from the pool; the pool is then
+    #        closed while the connection is still checked out
+    async with _fresh_pool() as (pool, _):
+        cm = pool.acquire()
+        client = await cm.__aenter__()
+        assert pool.size == 1
+
+        # WHEN: pool closes while the client is still in use
+        await pool.close()
+        assert pool.is_closed
+
+        # THEN: releasing the connection discards it (pool was closed)
+        await cm.__aexit__(None, None, None)
+        assert pool.size == 0
+        assert not client.is_alive
 
 
 def test_pool_re_exported_from_top_level() -> None:

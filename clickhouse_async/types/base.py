@@ -33,6 +33,10 @@ class ColumnCodec(Protocol):
     name: str
     null_value: Any
 
-    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[Any]: ...
+    async def read(
+        self, reader: AsyncBinaryReader, n_rows: int
+    ) -> list[Any]: ...  # pragma: no cover — Protocol stub
 
-    def write(self, writer: BinaryWriter, values: Sequence[Any]) -> None: ...
+    def write(
+        self, writer: BinaryWriter, values: Sequence[Any]
+    ) -> None: ...  # pragma: no cover — Protocol stub

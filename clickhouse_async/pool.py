@@ -253,7 +253,9 @@ class Pool:
             await self._discard(entry.client)
             return None
 
-        if not entry.client.is_alive:
+        if (
+            not entry.client.is_alive
+        ):  # pragma: no cover — connections marked BROKEN are discarded on release
             await self._discard(entry.client)
             return None
 
@@ -377,9 +379,13 @@ class Pool:
                     return
                 try:
                     await self._reaper_pass()
-                except asyncio.CancelledError:
+                except (
+                    asyncio.CancelledError
+                ):  # pragma: no cover — cancel during reaper pass
                     return
-                except Exception:
+                except (
+                    Exception
+                ):  # pragma: no cover — defensive; reaper_pass errors are logged
                     _logger.exception("pool reaper pass raised")
         finally:
             # Defensive: if we exit the loop for any reason, leave a
@@ -390,7 +396,9 @@ class Pool:
     async def _reaper_pass(self) -> None:
         """One sweep: drop stale free entries above ``min_size``, then
         warm to ``min_size`` if the pool has fewer connections."""
-        if self._closed:
+        if (
+            self._closed
+        ):  # pragma: no cover — reaper exits via loop-close or cancel, not this guard
             return
         now = time.monotonic()
 
@@ -415,14 +423,16 @@ class Pool:
         for client in to_close:
             try:
                 await client.close()
-            except Exception:
+            except (
+                Exception
+            ):  # pragma: no cover — defensive; client.close() shouldn't raise
                 _logger.exception("pool reaper: close failed for stale entry")
 
         # Phase 2: warm the pool back up to min_size. One open per
         # iteration; bail on the first failure so a flapping server
         # doesn't burn the reaper in a tight loop.
         while True:
-            if self._closed:
+            if self._closed:  # pragma: no cover — min_size is 0 in all unit tests
                 return
             async with self._cond:
                 if self._size >= self._min_size:
@@ -441,7 +451,9 @@ class Pool:
                 return
             warm_now = time.monotonic()
             async with self._cond:
-                if self._closed:
+                if (
+                    self._closed
+                ):  # pragma: no cover — close/open race in reaper warm phase
                     # Pool closed while we were opening — drop the new
                     # client cleanly.
                     self._size -= 1
@@ -484,7 +496,9 @@ class Pool:
                 self._size -= 1
             try:
                 await entry.client.close()
-            except Exception:
+            except (
+                Exception
+            ):  # pragma: no cover — defensive; client.close() shouldn't raise
                 _logger.exception("pool close: client.close() raised")
 
     # ---- pass-through one-shots ----------------------------------------

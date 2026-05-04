@@ -11,6 +11,8 @@ from clickhouse_async.dsn import (
     DEFAULT_PORT,
     DEFAULT_SECURE_PORT,
     DEFAULT_USER,
+    _parse_host_piece,
+    _split_host_pieces,
     parse_dsn,
 )
 from clickhouse_async.protocol.compression import CompressionMethod
@@ -300,3 +302,58 @@ def test_empty_host_in_list_raises() -> None:
     #                     rejected so callers don't silently lose a host
     with pytest.raises(ValueError, match="empty"):
         parse_dsn("clickhouse://h1:9000,,h2:9001/db")
+
+
+def test_invalid_connect_timeout_non_float_raises() -> None:
+    # WHEN: / THEN: a non-numeric connect_timeout raises ValueError
+    with pytest.raises(ValueError, match="invalid connect_timeout"):
+        parse_dsn("clickhouse://host?connect_timeout=fast")
+
+
+@pytest.mark.parametrize(
+    "host_string",
+    ["h1]:9000", "[h1:9000"],
+    ids=["closing_without_open", "open_without_close"],
+)
+def test_unbalanced_bracket_in_host_list_raises(host_string: str) -> None:
+    # BEGIN: raw host strings with mismatched '[' / ']' — urlparse catches
+    #        these at the URL level, so we test the helper directly
+    # WHEN: / THEN: _split_host_pieces raises on any bracket imbalance
+    with pytest.raises(ValueError, match="unbalanced"):
+        _split_host_pieces(host_string)
+
+
+def test_unterminated_ipv6_literal_raises() -> None:
+    # BEGIN: a host piece that looks like an IPv6 literal but lacks ']'
+    # WHEN: / THEN: _parse_host_piece raises on unterminated literal
+    with pytest.raises(ValueError, match="unterminated"):
+        _parse_host_piece("[::1", default_port=9000)
+
+
+def test_ipv6_host_without_port_uses_scheme_default() -> None:
+    # BEGIN: an IPv6 literal with no port suffix
+    dsn = parse_dsn("clickhouse://[::1]/db")
+
+    # WHEN / THEN: the scheme's plain default port is used
+    assert dsn.host == "::1"
+    assert dsn.port == DEFAULT_PORT
+
+
+def test_unexpected_text_after_ipv6_closing_bracket_raises() -> None:
+    # BEGIN: a host piece with ']' followed by text that isn't ':port'
+    # WHEN: / THEN: _parse_host_piece raises on the garbage suffix
+    with pytest.raises(ValueError, match="unexpected text"):
+        _parse_host_piece("[::1]garbage", default_port=9000)
+
+
+def test_port_out_of_range_raises() -> None:
+    # WHEN: / THEN: a port number above the TCP maximum raises ValueError
+    with pytest.raises(ValueError, match="port out of range"):
+        parse_dsn("clickhouse://host:99999/db")
+
+
+def test_whitespace_only_host_piece_raises() -> None:
+    # BEGIN: a host piece that is only whitespace after strip
+    # WHEN: / THEN: _parse_host_piece raises on an empty host
+    with pytest.raises(ValueError, match="empty"):
+        _parse_host_piece("   ", default_port=9000)

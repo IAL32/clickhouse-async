@@ -234,3 +234,12 @@ async def test_all_protocol_errors_still_wrapped_as_connect_error() -> None:
         await conn.open()
     types = {type(e) for _h, _p, e in exc_info.value.host_errors}
     assert types == {ProtocolError}
+
+
+# ---- ConnectError constructor validation --------------------------------
+
+
+def test_connect_error_empty_list_raises_value_error() -> None:
+    # WHEN: / THEN: ConnectError requires at least one failure entry
+    with pytest.raises(ValueError, match="at least one"):
+        ConnectError([])

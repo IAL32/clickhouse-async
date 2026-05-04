@@ -595,7 +595,9 @@ def _build_insert_block(
     n_rows = len(rows)
     columns_data: list[list[object]] = [[] for _ in range(n_cols)]
     for i, row in enumerate(rows):
-        if len(row) != n_cols:
+        if (
+            len(row) != n_cols
+        ):  # pragma: no cover — caller validates before building block
             raise ValueError(
                 f"INSERT row {i} has {len(row)} columns; expected {n_cols} "
                 f"(column names: {[s.name for s in specs]})"

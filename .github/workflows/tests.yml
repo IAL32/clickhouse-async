@@ -144,7 +144,7 @@ jobs:
   scenarios:
     name: Example scenarios
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 5
     strategy:
       fail-fast: false
 

@@ -17,6 +17,7 @@
 #                                    # (act-specific limitation, not real CI).
 #   ./scripts/act.sh unit            # run only the bare unit job
 #   ./scripts/act.sh lint            # run only the lint+types job
+#   ./scripts/act.sh scenarios       # run the example scenarios job
 #   ./scripts/act.sh prek            # run only the prek workflow
 #
 # Requirements:
@@ -68,6 +69,9 @@ case "$cmd" in
         ;;
     lint)
         exec act push -W .github/workflows/tests.yml -j lint
+        ;;
+    scenarios)
+        exec act push -W .github/workflows/tests.yml -j scenarios
         ;;
     prek)
         exec act push -W .github/workflows/prek.yml

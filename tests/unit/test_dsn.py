@@ -176,12 +176,11 @@ def test_connect_timeout_query_param_is_a_float() -> None:
     assert dsn.connect_timeout == 2.5
 
 
-def test_connect_timeout_zero_or_negative_rejected() -> None:
-    # BEGIN / WHEN / THEN: zero or negative timeout raises ValueError
+@pytest.mark.parametrize("value", ["0", "-1"], ids=["zero", "negative"])
+def test_connect_timeout_zero_or_negative_rejected(value: str) -> None:
+    # WHEN: / THEN: zero or negative timeout raises ValueError
     with pytest.raises(ValueError, match="must be positive"):
-        parse_dsn("clickhouse://host?connect_timeout=0")
-    with pytest.raises(ValueError, match="must be positive"):
-        parse_dsn("clickhouse://host?connect_timeout=-1")
+        parse_dsn(f"clickhouse://host?connect_timeout={value}")
 
 
 # ---- settings passthrough -----------------------------------------------
@@ -202,12 +201,15 @@ def test_unknown_query_params_become_settings() -> None:
 # ---- error paths --------------------------------------------------------
 
 
-def test_unsupported_scheme_raises() -> None:
-    # BEGIN / WHEN / THEN: any non-clickhouse[s] scheme is rejected
+@pytest.mark.parametrize(
+    "dsn",
+    ["http://host", "postgres://host"],
+    ids=["http", "postgres"],
+)
+def test_unsupported_scheme_raises(dsn: str) -> None:
+    # WHEN: / THEN: any non-clickhouse[s] scheme is rejected
     with pytest.raises(ValueError, match="unsupported DSN scheme"):
-        parse_dsn("http://host")
-    with pytest.raises(ValueError, match="unsupported DSN scheme"):
-        parse_dsn("postgres://host")
+        parse_dsn(dsn)
 
 
 def test_missing_host_raises() -> None:
@@ -323,11 +325,20 @@ def test_unbalanced_bracket_in_host_list_raises(host_string: str) -> None:
         _split_host_pieces(host_string)
 
 
-def test_unterminated_ipv6_literal_raises() -> None:
-    # BEGIN: a host piece that looks like an IPv6 literal but lacks ']'
-    # WHEN: / THEN: _parse_host_piece raises on unterminated literal
-    with pytest.raises(ValueError, match="unterminated"):
-        _parse_host_piece("[::1", default_port=9000)
+@pytest.mark.parametrize(
+    "piece,match",
+    [
+        ("[::1", "unterminated"),
+        ("[::1]garbage", "unexpected text"),
+        ("   ", "empty"),
+    ],
+    ids=["unterminated_ipv6", "garbage_after_bracket", "whitespace_only"],
+)
+def test_parse_host_piece_invalid_input_raises(piece: str, match: str) -> None:
+    # BEGIN: host pieces that urlparse catches before our helpers run
+    # WHEN: / THEN: _parse_host_piece raises ValueError with a descriptive message
+    with pytest.raises(ValueError, match=match):
+        _parse_host_piece(piece, default_port=9000)
 
 
 def test_ipv6_host_without_port_uses_scheme_default() -> None:
@@ -339,21 +350,7 @@ def test_ipv6_host_without_port_uses_scheme_default() -> None:
     assert dsn.port == DEFAULT_PORT
 
 
-def test_unexpected_text_after_ipv6_closing_bracket_raises() -> None:
-    # BEGIN: a host piece with ']' followed by text that isn't ':port'
-    # WHEN: / THEN: _parse_host_piece raises on the garbage suffix
-    with pytest.raises(ValueError, match="unexpected text"):
-        _parse_host_piece("[::1]garbage", default_port=9000)
-
-
 def test_port_out_of_range_raises() -> None:
     # WHEN: / THEN: a port number above the TCP maximum raises ValueError
     with pytest.raises(ValueError, match="port out of range"):
         parse_dsn("clickhouse://host:99999/db")
-
-
-def test_whitespace_only_host_piece_raises() -> None:
-    # BEGIN: a host piece that is only whitespace after strip
-    # WHEN: / THEN: _parse_host_piece raises on an empty host
-    with pytest.raises(ValueError, match="empty"):
-        _parse_host_piece("   ", default_port=9000)

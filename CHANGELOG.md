@@ -4,6 +4,85 @@ All notable changes to `clickhouse-async`. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project
 adheres to [SemVer](https://semver.org/).
 
+## [0.2.0] — 2026-05-04
+
+Theme: **type-system completeness + production polish.** After this
+release a `SELECT * FROM system.columns` on a stock ClickHouse 24.8
+install parses every column type without an `"unknown type"` error.
+
+### Added
+
+- **`DateTime64` full sub-second precision.** Precisions 7–9 now
+  round-trip at the correct nanosecond / 100-nanosecond scale instead
+  of silently truncating to microseconds. `DateTime` respects the
+  connection's session timezone for encode/decode rather than pinning
+  to UTC.
+- **INSERT header validation.** `Client.insert` verifies the
+  column-name list against the header `DATA` block the server echoes
+  back and surfaces a clear `ValueError` on mismatch. The server's
+  `Progress.written_rows` counter is now returned as
+  `QueryResult.written_rows` (previously always zero).
+- **`Nested(name T, …)` type.** Reads and writes as a
+  `list[dict[str, Any]]` — each dict is one nested row. De-sugars
+  to `Array(Tuple(…))` on the wire.
+- **Geo type aliases.** `Point`, `Ring`, `Polygon`, and
+  `MultiPolygon` are now registered codec aliases on top of the
+  existing tuple/array codecs. A `SELECT * FROM system.columns` no
+  longer raises on any of the four geo shapes.
+- **`AggregateFunction` state columns.** `AggregateFunction(fn, T)`
+  round-trips the opaque state bytes. Per-row state readers ship for
+  `avg` and `count`; other functions pass bytes through and raise
+  `NotImplementedError` on state access (adding a function is a
+  one-line registration).
+- **`Variant(T1, T2, …)` and `Dynamic`.** `Variant` decodes each
+  row to the matching Python type for its discriminator; `Dynamic`
+  reads the type tag per value and delegates to the appropriate codec.
+  Writes are supported (Python value → best-fit variant slot).
+- **`JSON` read/write.** Full round-trip against ClickHouse 24.8:
+  reads produce `dict[str, Any]` keyed by dotted path; writes accept
+  the same shape. The shared-data substream is read but its values are
+  merged into the per-row dict at the codec level (paths that spill
+  past `max_dynamic_paths` are silently dropped on write — see
+  `TODO.md`).
+
+### Changed
+
+- **Connection transport hardening.** `Connection` now propagates
+  OS-level socket errors (broken pipe, connection reset) as structured
+  `BROKEN` state transitions instead of propagating raw `OSError`
+  through the packet loop. The pool's `verify_or_discard` path
+  correctly disposes of stale connections opened before a server
+  restart.
+
+### Tooling
+
+- **Coverage floor.** `pytest-cov` is now a dev dependency.
+  `[tool.coverage.run]` enables branch coverage; `[tool.coverage.report]`
+  sets `fail_under = 94`. The `unit-bare` CI job enforces the floor on
+  every push and uploads an HTML artifact on Python 3.11.
+  `./scripts/coverage.sh` runs the same check locally and opens the
+  HTML report.
+- **Integration resilience tests.** `tests/integration/test_resilience.py`
+  uses a TCP proxy to simulate FIN (graceful close) and RST (hard
+  reset) mid-query and post-query; verifies the pool reconnects cleanly.
+
+### Fixed
+
+- `DateTime` codec no longer pins to UTC when the server negotiates a
+  session timezone via `TimezoneUpdate` — the connection now threads
+  `session_timezone` through every block read path.
+- `LowCardinality(Nullable(T))` null entries no longer corrupt the
+  index on subsequent rows in the same block.
+
+### Documentation
+
+- `TODO.md` §1 drops the DateTime64 precision and naive-UTC entries;
+  §2 drops the type-system entries for `Nested`, geo aliases,
+  `AggregateFunction`, `Variant`, `Dynamic`, `JSON`, and the INSERT
+  read-receipt entry — all landed.
+- `CONTRIBUTING.md` gains a "Coverage" section.
+- `.plans/` index marks all eight v0.2 plans as landed.
+
 ## [0.1.0] — 2026-05-03
 
 The first tagged release. Picks up everything that landed during the v0

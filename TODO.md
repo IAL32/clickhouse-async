@@ -25,6 +25,14 @@ codec/module that carries the limitation so a grep finds the on-ramp.
   ``NotImplementedError`` on read/write. Adding a function is a
   one-line registration in ``types/aggregate.py::_READERS``.
 
+- **`JSON` shared-data substream on write.** Reads decode the
+  ``Array(Tuple(String, String))`` shared-data substream and merge
+  values into the per-row dict, but writes always emit an empty
+  substream — paths that spill past ``max_dynamic_paths`` are silently
+  dropped. Wire it up so the per-row dict picks up shared paths on
+  write.
+  *Code:* ``types/json_type.py``.
+
 ### Protocol primitives
 
 - **Single-quoted strings in type specs don't support escapes.** The
@@ -41,18 +49,15 @@ codec/module that carries the limitation so a grep finds the on-ramp.
   exit, so the recommended user-facing pattern is
   `async with aclosing(client.iter_blocks(...))`. Direct callers of
   `Connection.iter_packets` still need to invoke `conn.cancel()`
-  themselves; the higher-level Pool (08) will own this orchestration
-  for the rare cases where users hold a raw Connection.
+  themselves.
   *Code:* `connection.py::Connection.iter_packets`,
   `client.py::Client.iter_blocks`.
 
 ---
 
-## 2. Roadmap (post-v0)
+## 2. Roadmap (post-v0.2)
 
-Things we haven't written yet, ordered by approximate priority. Items
-already on `DESIGN.md §13` are repeated here so this file is the single
-"what's next" reference.
+Things we haven't written yet, ordered by approximate priority.
 
 ### Connection / protocol
 
@@ -67,15 +72,8 @@ already on `DESIGN.md §13` are repeated here so this file is the single
 
 ### Type system
 
-- **`JSON` shared-data substream.** v0.2 ships ``JSON`` with read +
-  write round-trip against a real 24.8 server, but the shared-data
-  ``Array(Tuple(String, String))`` substream is only emitted as
-  empty on writes (we never spill paths past ``max_dynamic_paths``).
-  Reads decode the substream but discard the values; rare paths
-  silently drop out of the per-row dict. Wire it up so the per-row
-  dict picks up shared paths.
-- **`JSON` nested dict ergonomics.** Today ``codec`` reads/writes
-  ``dict[str, Any]`` keyed by dotted path (``user.id``). Add a
+- **`JSON` nested dict ergonomics.** Today the codec reads/writes
+  ``dict[str, Any]`` keyed by dotted path (``"user.id"``). Add a
   thin wrapper that auto-nests on read (``{"user": {"id": 7}}``)
   and auto-flattens on write — keep the codec layer flat.
 - **`JSON` typed paths.** ``JSON(SKIP path)`` and
@@ -91,35 +89,26 @@ already on `DESIGN.md §13` are repeated here so this file is the single
 
 - **No automatic query retry.** Documented as a deliberate
   non-feature in `DESIGN.md §5`; surfaced here because users will
-  ask. Connection-level reconnect on `acquire()` is fine and lands
-  with the pool. Query-level retry is the caller's problem.
+  ask. Connection-level reconnect on `acquire()` is fine. Query-level
+  retry is the caller's problem.
 - **Read-only / write-only pool variants.** Multi-host opens this up
   — primary-only writes, replica-fanout reads.
-- **Column-major retrieval surface (v0.3).** ClickHouse blocks
-  arrive column-major on the wire, but `Client.execute` /
-  `fetch_all` / `iter_rows` transpose into row-major tuples for
-  every block. For wide / numeric SELECTs the transpose dominates
-  decode time and allocates one Python tuple per row needlessly.
-  Plan: keep the row-major surface as the default for ergonomics,
-  add a parallel `Client.fetch_columns(sql, …) -> ColumnarResult`
-  that returns the columns as a list of per-column lists (already
-  the `Block.data` shape under the hood) and an
-  `iter_column_blocks(...)` for streaming. Doubles as the
-  zero-copy entry point for the `pyarrow` / `polars` adapters
-  below — those wrap `iter_column_blocks` and convert each block
-  to an Arrow `RecordBatch` / Polars `DataFrame` without ever
-  materialising row tuples.
+- **Column-major retrieval surface (v0.3).** ClickHouse blocks arrive
+  column-major on the wire, but `Client.execute` / `fetch_all` /
+  `iter_rows` transpose into row-major tuples for every block. Plan:
+  keep the row-major surface as the default, add a parallel
+  `Client.fetch_columns(sql, …) -> ColumnarResult` and
+  `iter_column_blocks(...)` for streaming. Doubles as the zero-copy
+  entry point for the `pyarrow` / `polars` adapters.
   *Code:* `client.py::Client.execute` is the only place rows get
-  transposed today; `Block.data` already holds column-major
-  values, so the new surface is mostly plumbing.
+  transposed; `Block.data` already holds column-major values.
 
 ### Adapters / extras
 
 - **`pyarrow` zero-copy adapter** as a separate extras package
-  (`clickhouse-async-arrow`). Not in core to keep the bare install
-  small. Builds on the column-major retrieval surface above —
-  each `iter_column_blocks` block becomes an Arrow `RecordBatch`
-  with no row-tuple intermediate.
+  (`clickhouse-async-arrow`). Builds on the column-major surface
+  above — each `iter_column_blocks` block becomes an Arrow
+  `RecordBatch` with no row-tuple intermediate.
 - **`polars` adapter.** Same shape.
 - **C/Cython hot path** for the int/float/string codecs *only if*
   profiling shows pure-Python encoders are the bottleneck on large
@@ -129,20 +118,18 @@ already on `DESIGN.md §13` are repeated here so this file is the single
 
 - **OpenTelemetry spans** around `execute` / `acquire` / packet
   send/receive. Optional dep; instrumented via a hook so users
-  without OTel pay nothing. Pencilled in for v1 once the type system
-  is complete and the API surface is stable enough that span shapes
-  won't churn.
+  without OTel pay nothing. Pencilled in for v1 once the API surface
+  is stable enough that span shapes won't churn.
 
 ---
 
 ## 3. Open design questions
 
 These have no obvious right answer; they need a decision before the
-relevant code lands. Mirrors `DESIGN.md §14`.
+relevant code lands.
 
 - **Parameter-binding fallback for old servers.** Refuse with a clear
   error (current lean) vs. silently substitute. Decision: refuse.
-  Locking it in here means we can stop revisiting.
 - **`Block.to_arrow()` / `.to_polars()` location.** Core vs. extras.
   Decision: extras package, keep core lean.
 - **Default compression on/off.** Currently off. Will revisit once a

@@ -46,6 +46,7 @@ import uuid as _uuid
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from clickhouse_async.errors import ProtocolError
+from clickhouse_async.types._parser import parse_type
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -359,12 +360,6 @@ class Dynamic:
     async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[Any]:
         if n_rows == 0:
             return []
-        # ``parse_type`` lives in ``types/__init__.py`` which already
-        # imports this module — a top-level import here would create a
-        # circular import. Deferring it to first call is intentional;
-        # PLC0415 is silenced for that reason only.
-        from clickhouse_async.types import parse_type  # noqa: PLC0415
-
         version = await reader.read_int(8, signed=False)
         if version not in (_DYNAMIC_VERSION_V1, _DYNAMIC_VERSION_V2):
             raise ProtocolError(
@@ -402,10 +397,6 @@ class Dynamic:
     def write(self, writer: BinaryWriter, values: Sequence[Any]) -> None:
         if not values:
             return
-        # Same circular-import deferral as ``read``; PLC0415 silenced
-        # for that reason only.
-        from clickhouse_async.types import parse_type  # noqa: PLC0415
-
         # Walk values once: pick a type spec per row (explicit tag or
         # inferred from Python type) and remember each row's
         # ``(spec, payload)``. We assign discriminators *after* sorting

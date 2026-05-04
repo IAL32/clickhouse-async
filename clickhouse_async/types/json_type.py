@@ -38,6 +38,19 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from clickhouse_async.errors import ProtocolError
+from clickhouse_async.types._parser import _JSONHint, parse_type
+from clickhouse_async.types.variant import (
+    _DEFAULT_MAX_DYNAMIC_TYPES,
+    _DYNAMIC_VERSION_V1,
+    _DYNAMIC_VERSION_V2,
+    _NULL_DISCRIMINATOR,
+    _SHARED_VARIANT_NAME,
+    _SHARED_VARIANT_TYPE_SPEC,
+    _VARIANT_VERSION_BASIC,
+    Variant,
+    _DynamicTag,
+    _infer_dynamic_type_spec,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -58,26 +71,6 @@ _OBJECT_VERSION_V2 = 2
 # reasonable value works on writes; we mirror upstream's default for
 # wire-trace symmetry.
 _DEFAULT_MAX_DYNAMIC_PATHS = 1024
-
-
-class _JSONHint:
-    """One declared parameter of a ``JSON(...)`` spec.
-
-    The block-header form mixes named-int caps (``max_dynamic_paths=N``,
-    ``max_dynamic_types=N``) with ``SKIP path`` and ``SKIP REGEXP
-    'pattern'`` clauses. We only store the kind + raw token strings
-    needed to round-trip ``codec.name`` — semantic meaning lives
-    server-side.
-    """
-
-    __slots__ = ("text",)
-
-    def __init__(self, text: str) -> None:
-        # The verbatim spec fragment, e.g. ``max_dynamic_paths=512`` or
-        # ``SKIP user.email`` or ``SKIP REGEXP 'tmp_.*'``. Storing the
-        # raw text keeps the renderer trivial — no need to know which
-        # hint kind we have.
-        self.text = text
 
 
 class JSON:
@@ -111,17 +104,6 @@ class JSON:
     ) -> list[dict[str, Any]]:
         if n_rows == 0:
             return []
-        # Local imports — same circular-import deferral as in
-        # ``Dynamic`` (the parser registry imports this module).
-        from clickhouse_async.types import parse_type  # noqa: PLC0415
-        from clickhouse_async.types.variant import (  # noqa: PLC0415
-            _DYNAMIC_VERSION_V1,
-            _DYNAMIC_VERSION_V2,
-            _SHARED_VARIANT_NAME,
-            _SHARED_VARIANT_TYPE_SPEC,
-            _VARIANT_VERSION_BASIC,
-            Variant,
-        )
 
         # 1. ObjectSerializationVersion + (V1) max_dynamic_paths slot.
         version = await reader.read_int(8, signed=False)
@@ -213,18 +195,6 @@ class JSON:
     def write(self, writer: BinaryWriter, values: Sequence[dict[str, Any]]) -> None:
         if not values:
             return
-        from clickhouse_async.types import parse_type  # noqa: PLC0415
-        from clickhouse_async.types.variant import (  # noqa: PLC0415
-            _DEFAULT_MAX_DYNAMIC_TYPES,
-            _DYNAMIC_VERSION_V1,
-            _NULL_DISCRIMINATOR,
-            _SHARED_VARIANT_NAME,
-            _SHARED_VARIANT_TYPE_SPEC,
-            _VARIANT_VERSION_BASIC,
-            Variant,
-            _DynamicTag,
-            _infer_dynamic_type_spec,
-        )
 
         # Walk rows once to discover the union of paths across the block.
         # Sort alphabetically — upstream ``SerializationObject`` sorts

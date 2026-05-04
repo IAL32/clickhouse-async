@@ -38,14 +38,14 @@ def pytest_collection_modifyitems(
 @pytest.fixture
 async def client(dsn: str) -> AsyncIterator[ch.Client]:
     """A freshly-opened, freshly-closed ``Client`` per test."""
-    async with ch.connect(dsn) as c:
+    async with ch.connect(dsn, connect_timeout=10.0) as c:
         yield c
 
 
 @pytest.fixture
 async def pool(dsn: str) -> AsyncIterator[ch.Pool]:
     """A pool tuned to a small size for speed; one per test."""
-    async with ch.create_pool(dsn, min_size=0, max_size=4) as p:
+    async with ch.create_pool(dsn, min_size=0, max_size=4, connect_timeout=10.0) as p:
         yield p
 
 

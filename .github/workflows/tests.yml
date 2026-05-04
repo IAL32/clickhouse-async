@@ -127,6 +127,8 @@ jobs:
         # — that path can connect through Docker's userland proxy and
         # then RST on read, masking the real port-mapping behaviour. The
         # IPv4 literal sidesteps the dual-stack ambiguity entirely.
+        env:
+          PYTHONUNBUFFERED: "1"
         run: |
           uv run pytest tests/integration \
             --localdb=clickhouse://clickhouse:clickhouse@127.0.0.1:9000/clickhouse \

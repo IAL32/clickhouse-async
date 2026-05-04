@@ -135,3 +135,50 @@ jobs:
       - name: Stop ClickHouse
         if: always()
         run: ./scripts/clickhouse.sh down || true
+
+  # Scenario tests against real public ClickHouse example datasets.
+  # Loads three datasets directly from GCS/S3 into an ephemeral
+  # ClickHouse server and runs analytics queries that mirror real-world
+  # usage patterns. Network access is required; data is pulled by the
+  # server via url() / s3() — no Python-side downloads.
+  scenarios:
+    name: Example scenarios
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.11"
+          enable-cache: true
+          cache-dependency-glob: |
+            pyproject.toml
+            uv.lock
+
+      - name: Install (with compression extra)
+        run: uv sync --frozen --extra compression
+
+      - name: Start ClickHouse
+        run: ./scripts/clickhouse.sh up
+
+      - name: Run scenario tests
+        run: |
+          uv run pytest tests/scenarios -m scenarios -v \
+            --timeout=300 \
+            --localdb=clickhouse://clickhouse:clickhouse@127.0.0.1:9000/clickhouse
+        env:
+          # Disable compression during large data loads to avoid compression
+          # overhead on the inbound INSERT path; query tests use the default.
+          CLICKHOUSE_ASYNC_DEFAULT_COMPRESSION: "off"
+
+      - name: ClickHouse logs on failure
+        if: failure()
+        run: ./scripts/clickhouse.sh logs --tail 300 || true
+
+      - name: Stop ClickHouse
+        if: always()
+        run: ./scripts/clickhouse.sh down || true

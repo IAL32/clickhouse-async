@@ -535,7 +535,7 @@ tests/
 5. **Test coverage floor.** `pytest-cov` + `branch=true`; CI enforces
    ≥ 94 % branch coverage; current suite sits at 95.1 %.
 
-### v0.3 (in progress)
+### v0.3 (shipped — 2026-05-04)
 
 1. **Column-major retrieval surface.** `Client.fetch_columns(sql) ->
    ColumnarResult` and `Client.iter_column_blocks(sql)` avoid the
@@ -552,7 +552,7 @@ tests/
    `[compression]` extra is installed; `CLICKHOUSE_ASYNC_DEFAULT_COMPRESSION=off`
    env var and `compression=None` kwarg opt out.
 
-### v0.4 (planned)
+### v0.4 (shipped — 2026-05-04)
 
 1. **Example scenario tests.** Three public ClickHouse datasets
    (COVID-19 epidemiology, OpenCelliD cell towers, Hacker News) loaded

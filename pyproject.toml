@@ -170,12 +170,13 @@ version_files = [
 update_changelog_on_bump = true
 
 [tool.pytest.ini_options]
-addopts = "--random-order -m 'not integration'"
+addopts = "--random-order -m 'not integration and not scenarios'"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
 markers = [
     "integration: tests that require a running ClickHouse server",
+    "scenarios: end-to-end tests against real example datasets (requires network + Docker)",
     "requires_lz4: tests that require the [lz4] extra",
     "requires_zstd: tests that require the [zstd] extra",
 ]

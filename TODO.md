@@ -59,27 +59,11 @@ codec/module that carries the limitation so a grep finds the on-ramp.
 
 Things we haven't written yet, ordered by approximate priority.
 
-### v0.3 — Columnar surface + JSON completeness + compression on
+### v0.3 — Columnar surface + JSON completeness + compression on (shipped)
 
-*See `.plans/README.md` for the full dependency-ordered plan list.*
+All four items landed in v0.3 — see `DESIGN.md §13`.
 
-- **Column-major retrieval surface.** `Client.fetch_columns(sql) ->
-  ColumnarResult` and `Client.iter_column_blocks(sql)` avoid the
-  per-row tuple transpose. `Pool` gets the same pass-throughs.
-  *Code:* `client.py::Client.execute` is the only place rows get
-  transposed; `Block.data` already holds column-major values.
-- **`column_factories` hook.** `column_factories: dict[str, Callable]`
-  kwarg on `connect()` / `create_pool()` lets callers replace the
-  default `list` with any type (numpy, polars, pyarrow) per column.
-  Depends on the columnar surface above.
-- **`JSON` nested dict ergonomics.** `json_nested=True` mode reconstructs
-  nested dicts from dotted-path keys on read; write accepts either flat
-  or nested input. Shared-data write substream correctly populated for
-  overflow paths beyond `max_dynamic_paths`.
-  *Code:* `types/json_type.py`.
-- **Compression default on.** `_default_compression()` helper auto-enables
-  LZ4 when the `[compression]` extra is installed; `CLICKHOUSE_ASYNC_DEFAULT_COMPRESSION=off`
-  opts out globally; `compression=None` opts out per-connection.
+### v0.4 — Example scenarios (shipped)
 
 ### Pre-v1 production requirements
 
@@ -146,17 +130,7 @@ version advances to 1.0.
   into `settings` automatically.
   *Code:* `client.py`.
 
-### v0.4 — Example scenarios
-
-- **Real-workload scenario tests.** Three public ClickHouse datasets
-  (COVID-19 epidemiology, OpenCelliD cell towers, Hacker News) loaded
-  into an ephemeral server in a new `scenarios` CI job. Proves the client
-  works against realistic schemas and query patterns — multi-block
-  responses, `Enum8`, `Float64`, `DateTime`, `Array(UInt32)`, aggregation,
-  ordering, date math. No production code changes; tests only.
-  *See:* `.plans/05-example-scenarios.md`.
-
-### v0.4+ — Adapters and extended type support
+### v0.5+ — Adapters and extended type support
 
 - **`JSON` typed paths.** `JSON(SKIP path)` and `JSON(SKIP REGEXP 'rx')`
   parse but the codec doesn't reflect typed-path columns yet.

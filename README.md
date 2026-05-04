@@ -192,20 +192,6 @@ uv run pytest tests/integration --localdb
 uv run pytest tests/integration --localdb=clickhouse://user:pass@host:9000/db
 ```
 
-### Project conventions
-
-A few rules for v0:
-
-- **Type checker is `ty`.** No `mypy`, no parallel mypy config.
-- **Integration tests go through a project-local
-  `ClickHouseContainer(DockerContainer)`** at `tests/containers/clickhouse.py`.
-  No hand-rolled `docker run`, no `docker-compose.yml`. The subclass owns
-  image pinning, port exposure, default credentials, and debug helpers.
-- **`asyncio` end-to-end.** No threads on the hot path.
-- **Canonical default DSN:**
-  `clickhouse://clickhouse:clickhouse@localhost:9000/clickhouse` — used by
-  both the test container and `--localdb` defaults.
-
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md).

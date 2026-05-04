@@ -28,7 +28,7 @@ from collections.abc import (
     Sequence,
 )
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from clickhouse_async.connection import Connection, State, TransportFactory
 from clickhouse_async.dsn import DSN, parse_dsn
@@ -79,6 +79,38 @@ class QueryResult:
     @property
     def row_count(self) -> int:
         return len(self.rows)
+
+
+@dataclass(frozen=True)
+class ColumnarBlock:
+    """One server block yielded by ``iter_column_blocks``, column-major.
+
+    ``data[col_idx]`` is the decoded value list for that column — the
+    native shape the wire delivers, with no row-tuple transpose.
+    """
+
+    columns: tuple[ColumnSpec, ...]
+    data: list[list[Any]]  # data[col_idx][row_idx]
+    n_rows: int
+
+
+@dataclass(frozen=True)
+class ColumnarResult:
+    """Full query result from ``fetch_columns``, column-major.
+
+    ``data[col_idx]`` is the complete value list for that column
+    concatenated across all server blocks. ``rows`` is the total row
+    count (``len(data[0])`` when at least one column is present).
+    ``bytes_read`` and ``rows_read`` come from the last Progress packet.
+    """
+
+    columns: tuple[ColumnSpec, ...]
+    data: list[list[Any]]  # data[col_idx][row_idx]
+    rows: int
+    written_rows: int
+    elapsed: float
+    bytes_read: int
+    rows_read: int
 
 
 class Client:
@@ -333,6 +365,114 @@ class Client:
             # so the connection is reusable for the next operation.
             # ``cancel()`` always raises ``QueryCancellationError`` with a
             # reason — we only need its side effects here.
+            if self._conn.state == State.IN_FLIGHT:
+                with contextlib.suppress(QueryCancellationError):
+                    await self._conn.cancel()
+
+    # ---- columnar surface -----------------------------------------------
+
+    async def fetch_columns(
+        self,
+        sql: str,
+        *,
+        params: Mapping[str, object] | None = None,
+        settings: Mapping[str, str] | None = None,
+        query_id: str = "",
+    ) -> ColumnarResult:
+        """Run ``sql`` and return the result in column-major order.
+
+        Unlike ``execute``, no row-tuple transpose is performed —
+        ``ColumnarResult.data[i]`` is the decoded list for column ``i``,
+        exactly as the codec produced it across all server blocks.
+        Useful for analytics workloads that pass columns directly to
+        numpy / polars / pyarrow without an intermediate row representation.
+        """
+        start = time.monotonic()
+        await self._conn.send_query(
+            sql, query_id=query_id, settings=settings, params=params
+        )
+
+        columns: list[ColumnSpec] = []
+        accum: list[list[Any]] = []
+        total_rows = 0
+        total_written_rows = 0
+        captured_progress: ProgressInfo | None = None
+
+        prior_progress = self._conn.on_progress
+
+        def _on_progress(p: ProgressInfo) -> None:
+            nonlocal captured_progress, total_written_rows
+            captured_progress = p
+            total_written_rows += p.written_rows
+            if prior_progress is not None:
+                prior_progress(p)
+
+        self._conn.on_progress = _on_progress
+        try:
+            async for streamed in self._conn.iter_packets():
+                if streamed.kind != "data":
+                    continue
+                block = streamed.block
+                if not columns and block.columns:
+                    columns = list(block.columns)
+                    accum = [[] for _ in columns]
+                if block.n_rows == 0:
+                    continue
+                for i, col_data in enumerate(block.data):
+                    accum[i].extend(col_data)
+                total_rows += block.n_rows
+        finally:
+            self._conn.on_progress = prior_progress
+
+        elapsed = time.monotonic() - start
+        # Materialise once so ty's flow analysis doesn't over-narrow the
+        # inline conditional (the callback runs inside the async-for loop,
+        # which ty doesn't track for closure mutation).
+        final_progress: ProgressInfo = captured_progress or ProgressInfo(
+            read_rows=0, read_bytes=0, total_rows_to_read=0
+        )
+        return ColumnarResult(
+            columns=tuple(columns),
+            data=accum,
+            rows=total_rows,
+            written_rows=total_written_rows,
+            elapsed=elapsed,
+            bytes_read=final_progress.read_bytes,
+            rows_read=final_progress.read_rows,
+        )
+
+    async def iter_column_blocks(
+        self,
+        sql: str,
+        *,
+        params: Mapping[str, object] | None = None,
+        settings: Mapping[str, str] | None = None,
+        query_id: str = "",
+    ) -> AsyncGenerator[ColumnarBlock, None]:
+        """Async-iterate the result of ``sql`` as ``ColumnarBlock`` values.
+
+        Each block is yielded column-major with no row-tuple transpose.
+        Header-only blocks (``n_rows == 0``) are filtered out.
+
+        The same ``contextlib.aclosing`` recommendation from ``iter_blocks``
+        applies: wrap with ``aclosing`` for deterministic cleanup on early exit.
+        """
+        await self._conn.send_query(
+            sql, query_id=query_id, settings=settings, params=params
+        )
+        try:
+            async for streamed in self._conn.iter_packets():
+                if streamed.kind != "data":
+                    continue
+                block = streamed.block
+                if block.n_rows == 0:
+                    continue
+                yield ColumnarBlock(
+                    columns=tuple(block.columns),
+                    data=block.data,
+                    n_rows=block.n_rows,
+                )
+        finally:
             if self._conn.state == State.IN_FLIGHT:
                 with contextlib.suppress(QueryCancellationError):
                     await self._conn.cancel()

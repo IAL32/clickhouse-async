@@ -6,7 +6,13 @@
 # trigger a circular import that fails attribute lookup.
 __version__ = "0.2.0"
 
-from clickhouse_async.client import Client, QueryResult, connect
+from clickhouse_async.client import (
+    Client,
+    ColumnarBlock,
+    ColumnarResult,
+    QueryResult,
+    connect,
+)
 from clickhouse_async.dsn import DSN, parse_dsn
 from clickhouse_async.errors import (
     ClickHouseError,
@@ -28,6 +34,8 @@ __all__ = [
     "DSN",
     "ClickHouseError",
     "Client",
+    "ColumnarBlock",
+    "ColumnarResult",
     "CompressionMethod",
     "ConcurrentQueryError",
     "ConnectError",

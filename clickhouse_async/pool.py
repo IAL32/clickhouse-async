@@ -34,7 +34,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from clickhouse_async._host_rotation import _HostRotation
-from clickhouse_async.client import Client, QueryResult
+from clickhouse_async.client import Client, ColumnarBlock, ColumnarResult, QueryResult
 from clickhouse_async.dsn import DSN, parse_dsn
 from clickhouse_async.errors import (
     ClickHouseError,
@@ -44,7 +44,7 @@ from clickhouse_async.errors import (
 
 if TYPE_CHECKING:
     import ssl as _ssl_module
-    from collections.abc import Mapping
+    from collections.abc import AsyncGenerator, Mapping
     from types import TracebackType
 
     from clickhouse_async.connection import TransportFactory
@@ -182,9 +182,6 @@ class Pool:
         return _PoolAcquireContext(self)
 
     async def _acquire(self) -> Client:
-        if self._closed:
-            raise PoolClosedError("pool is closed")
-
         self._start_reaper()
         deadline = time.monotonic() + self._acquire_timeout
 
@@ -563,6 +560,35 @@ class Pool:
         """
         async with self.acquire() as client:
             return await client.kill_query(query_id, sync=sync)
+
+    async def fetch_columns(
+        self,
+        sql: str,
+        *,
+        params: Mapping[str, object] | None = None,
+        settings: Mapping[str, str] | None = None,
+        query_id: str = "",
+    ) -> ColumnarResult:
+        """Acquire, run ``sql`` in column-major mode, release."""
+        async with self.acquire() as client:
+            return await client.fetch_columns(
+                sql, params=params, settings=settings, query_id=query_id
+            )
+
+    async def iter_column_blocks(
+        self,
+        sql: str,
+        *,
+        params: Mapping[str, object] | None = None,
+        settings: Mapping[str, str] | None = None,
+        query_id: str = "",
+    ) -> AsyncGenerator[ColumnarBlock, None]:
+        """Acquire a client, stream ``ColumnarBlock`` values, release on exhaustion or close."""
+        async with self.acquire() as client:
+            async for block in client.iter_column_blocks(
+                sql, params=params, settings=settings, query_id=query_id
+            ):
+                yield block
 
 
 class _PoolAcquireContext:

@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 import clickhouse_async as ch
+from clickhouse_async import ColumnarBlock, ColumnarResult
 from clickhouse_async.types.datetime import HighPrecisionTimestamp
 
 if TYPE_CHECKING:
@@ -716,3 +717,37 @@ async def test_multi_host_dsn_falls_through_dead_first_host(dsn: str) -> None:
         )
         # And the connection is fully functional
         assert await client.fetch_all("SELECT 1") == [(1,)]
+
+
+async def test_fetch_columns_round_trip(client: ch.Client) -> None:
+    # BEGIN: a query that returns two typed columns over five rows
+    # WHEN: running fetch_columns instead of execute
+    result = await client.fetch_columns(
+        "SELECT number, toString(number) AS s FROM system.numbers(5)"
+    )
+
+    # THEN: ColumnarResult with column-major data — no row-tuple transpose
+    assert isinstance(result, ColumnarResult)
+    assert [c.name for c in result.columns] == ["number", "s"]
+    assert result.rows == 5
+    assert result.data[0] == [0, 1, 2, 3, 4]
+    assert result.data[1] == ["0", "1", "2", "3", "4"]
+    assert result.elapsed >= 0.0
+
+
+async def test_iter_column_blocks_large_result(client: ch.Client) -> None:
+    # BEGIN: a 100k-row query that forces multiple server blocks
+    # WHEN: streaming via iter_column_blocks
+    total_rows = 0
+    block_count = 0
+    async for block in client.iter_column_blocks(
+        "SELECT number FROM system.numbers(100000)"
+    ):
+        # THEN: each yielded value is a ColumnarBlock with column-major data
+        assert isinstance(block, ColumnarBlock)
+        assert block.n_rows == len(block.data[0])
+        total_rows += block.n_rows
+        block_count += 1
+
+    assert total_rows == 100000
+    assert block_count > 1  # server split into multiple blocks

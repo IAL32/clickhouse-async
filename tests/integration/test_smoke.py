@@ -605,6 +605,97 @@ async def test_variant_column_round_trips_via_server(pool: ch.Pool) -> None:
     assert rows_out == rows_in
 
 
+async def test_dynamic_column_round_trips_via_server(pool: ch.Pool) -> None:
+    # BEGIN: a Memory-engine table with a ``Dynamic`` column.
+    #        ``Dynamic`` is gated behind ``allow_experimental_dynamic_type``
+    #        on 24.x — same per-statement opt-in as Variant. Mixing
+    #        Int64 and String values across rows exercises the
+    #        per-block prefix declaring active types and the implicit
+    #        ``SharedVariant`` (String) tail-arm that ClickHouse always
+    #        carries on the wire for V1 serialization.
+    table = "test_dynamic_column"
+    dynamic_settings = {"allow_experimental_dynamic_type": "1"}
+    async with pool.acquire() as client:
+        await client.execute(f"DROP TABLE IF EXISTS {table}")
+        await client.execute(
+            f"CREATE TABLE {table} (id UInt64, d Dynamic) ENGINE = Memory",
+            settings=dynamic_settings,
+        )
+
+    rows_in: list[tuple[object, ...]] = [
+        (1, 42),
+        (2, "hello"),
+        (3, None),
+        (4, 99),
+    ]
+
+    # WHEN: inserting via the pool, then reading back. Both sides need
+    #       the experimental flag — the type-spec parse fails otherwise.
+    async with pool.acquire() as client:
+        n = await client.insert(
+            f"INSERT INTO {table} VALUES",
+            rows=rows_in,
+            column_names=["id", "d"],
+            settings=dynamic_settings,
+        )
+    assert n == 4
+    rows_out = await pool.fetch_all(
+        f"SELECT id, d FROM {table} ORDER BY id",
+        settings=dynamic_settings,
+    )
+
+    # THEN: every row's value lands in the right discriminator
+    assert rows_out == rows_in
+
+
+async def test_json_column_round_trips_via_server(pool: ch.Pool) -> None:
+    # BEGIN: a Memory-engine table with a ``JSON`` column. ``JSON`` is
+    #        gated behind ``allow_experimental_json_type`` on 24.x.
+    #        Multi-row mixed-path-set INSERT exercises the full
+    #        SerializationObject substream cascade end-to-end:
+    #        ``ObjectStructure`` prefix (V1 + path list) → per-path
+    #        Dynamic body → shared-data ``Array(Tuple(String, String))``
+    #        body. Heterogeneous values per path (Int64 in one row,
+    #        String in another) exercise the per-path Dynamic codec's
+    #        multi-arm support.
+    table = "test_json_column"
+    json_settings = {"allow_experimental_json_type": "1"}
+    async with pool.acquire() as client:
+        await client.execute(f"DROP TABLE IF EXISTS {table}")
+        await client.execute(
+            f"CREATE TABLE {table} (id UInt64, j JSON) ENGINE = Memory",
+            settings=json_settings,
+        )
+
+    rows_in: list[tuple[object, ...]] = [
+        (1, {"a": 42, "b": "hello"}),
+        (2, {"a": 99}),
+        (3, {"b": "world"}),
+        (4, {}),
+    ]
+
+    # WHEN: inserting via the pool, then reading back. Both sides need
+    #       the experimental flag — the type-spec parser succeeds
+    #       without it, but read/write fail at the codec.
+    async with pool.acquire() as client:
+        n = await client.insert(
+            f"INSERT INTO {table} VALUES",
+            rows=rows_in,
+            column_names=["id", "j"],
+            settings=json_settings,
+        )
+    assert n == 4
+    rows_out = await pool.fetch_all(
+        f"SELECT id, j FROM {table} ORDER BY id",
+        settings=json_settings,
+    )
+
+    # THEN: every row's path → value mapping survives end-to-end. The
+    #       server may emit paths in a normalised order so we compare
+    #       per-row dicts, not the raw type spec.
+    assert rows_out == rows_in
+
+
 async def test_multi_host_dsn_falls_through_dead_first_host(dsn: str) -> None:
     # BEGIN: a multi-host DSN whose first candidate is unreachable
     #        (a port nothing's listening on) and second candidate is

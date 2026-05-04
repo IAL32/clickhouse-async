@@ -19,30 +19,6 @@ codec/module that carries the limitation so a grep finds the on-ramp.
 
 ### Type system (`clickhouse_async/types/`)
 
-- **`Dynamic` codec is unit-tested only — not server-verified.** v0.2
-  ships ``Dynamic`` with the V1 wire format from upstream
-  ``SerializationDynamic`` (8B version + ``max_dynamic_types`` varuint
-  + ``num_dynamic_types`` varuint + per-arm type names + 8B variant
-  mode + n_rows discriminators + per-arm bodies + implicit
-  ``SharedVariant`` (String) tail-arm) and the codec round-trips with
-  itself, but a real ClickHouse 24.8.14 server still rejects writes
-  with ``"Unknown type code: 0x68"`` for reasons we haven't pinned
-  down. Use only inside unit tests; real-server ``Dynamic`` writes are
-  blocked until v0.3 sorts out the missing wire-format detail.
-  *Code:* ``types/variant.py::Dynamic``.
-- **`JSON` codec is parser-only.** ``parse_type("JSON")`` and
-  ``parse_type("JSON(max_dynamic_paths=N, max_dynamic_types=N, SKIP
-  path, SKIP REGEXP 'rx')")`` succeed and ``codec.name`` round-trips
-  the spec verbatim, but ``read``/``write`` raise
-  ``NotImplementedError`` with a diagnostic pointing at the v0.3
-  follow-up. The full ClickHouse 24.x ``SerializationObject`` layout
-  (``ObjectStructure`` prefix → typed-path + dynamic-path + shared-data
-  state prefixes → typed-path + dynamic-path + shared-data bodies, all
-  concatenated in one stream, gated by V1/V2) is too involved to ship
-  before ``Dynamic`` is server-verified — JSON is built on Dynamic.
-  Workaround: cast to String server-side
-  (``SELECT toJSONString(j) FROM …``) and parse JSON in Python.
-  *Code:* ``types/json_type.py::JSON``.
 - **`AggregateFunction(...)` only round-trips a small allow-list of
   known aggregates.** v0.2 ships per-row state readers for ``avg``
   and ``count``; everything else parses but raises
@@ -91,21 +67,21 @@ already on `DESIGN.md §13` are repeated here so this file is the single
 
 ### Type system
 
-- **Real-server ``Dynamic`` round-trip.** Dig into the
-  ``"Unknown type code: 0x68"`` rejection — likely a missing
-  per-arm-type-name encoding mode, a SharedVariant body byte we're
-  omitting, or a revision-gated state-prefix detail. Pin the failing
-  byte to a specific offset in the captured wire trace, fix the
-  emitter, add a real-server integration test for ``Dynamic`` alone
-  before tackling JSON.
-- **`JSON` type read/write** (the new ClickHouse 24.x JSON, not the
-  deprecated String-backed Object). Builds on the Dynamic fix above —
-  each dynamic JSON path is a ``SerializationDynamic`` sub-column, so
-  Dynamic must be server-verified first. Then layer on the
-  ``ObjectStructure`` prefix (8B serialization version V1/V2 +
-  varuint num_dynamic_paths + path-name list) and the shared-data
-  ``Array(Tuple(String, String))`` substream that holds rare paths
-  spilled outside ``max_dynamic_paths``.
+- **`JSON` shared-data substream.** v0.2 ships ``JSON`` with read +
+  write round-trip against a real 24.8 server, but the shared-data
+  ``Array(Tuple(String, String))`` substream is only emitted as
+  empty on writes (we never spill paths past ``max_dynamic_paths``).
+  Reads decode the substream but discard the values; rare paths
+  silently drop out of the per-row dict. Wire it up so the per-row
+  dict picks up shared paths.
+- **`JSON` nested dict ergonomics.** Today ``codec`` reads/writes
+  ``dict[str, Any]`` keyed by dotted path (``user.id``). Add a
+  thin wrapper that auto-nests on read (``{"user": {"id": 7}}``)
+  and auto-flattens on write — keep the codec layer flat.
+- **`JSON` typed paths.** ``JSON(SKIP path)`` and
+  ``JSON(SKIP REGEXP 'rx')`` parse but the codec doesn't reflect
+  typed-path columns yet (no real-world tables exercise these on
+  24.8 LTS).
 - **Custom `column_factories` hook.** Per-type override for Python
   representation (e.g. polars/pyarrow/numpy adapters) — the protocol
   is described in `DESIGN.md §7`. Default factories ship in core; the

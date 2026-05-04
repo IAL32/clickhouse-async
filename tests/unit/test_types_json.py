@@ -14,7 +14,7 @@ import asyncio
 import pytest
 
 from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
-from clickhouse_async.types import parse_type
+from clickhouse_async.types import ColumnCodec, parse_type
 from clickhouse_async.types.json_type import JSON
 
 
@@ -74,49 +74,115 @@ def test_json_with_hints_stores_them_verbatim() -> None:
     ]
 
 
-# ---- read / write stubs --------------------------------------------------
+# ---- empty-batch invariants ---------------------------------------------
 
 
-async def test_read_with_zero_rows_returns_empty_list_without_raising() -> None:
-    # BEGIN: a JSON codec
+async def test_read_with_zero_rows_returns_empty_list() -> None:
+    # BEGIN / WHEN: reading zero rows — the codec's empty-block
+    #               short-circuit means no bytes are consumed
     codec = parse_type("JSON")
-
-    # WHEN: reading zero rows — the n_rows == 0 short-circuit applies
-    #       BEFORE the NotImplementedError so empty SELECTs against a
-    #       JSON column don't blow up the parser
     decoded = await codec.read(_reader(b""), 0)
 
     # THEN: an empty list comes back
     assert decoded == []
 
 
-async def test_read_with_rows_raises_not_implemented_with_diagnostic() -> None:
-    # BEGIN: a JSON codec asked to decode at least one row
-    codec = parse_type("JSON")
-
-    # WHEN / THEN: the v0.2 stub raises with a diagnostic pointing at
-    #              the v0.3 follow-up and a workaround
-    with pytest.raises(NotImplementedError, match="JSON column body decoding"):
-        await codec.read(_reader(b""), 1)
-
-
-async def test_write_with_empty_values_returns_without_raising() -> None:
-    # BEGIN / WHEN: writing zero values — the early return fires before
-    #               the NotImplementedError so the writer is left
-    #               untouched
+def test_write_with_empty_values_writes_no_bytes() -> None:
+    # BEGIN / WHEN: writing zero values — the early return fires
+    #               before any bytes are emitted
     codec = parse_type("JSON")
     writer = BinaryWriter()
     codec.write(writer, [])
 
-    # THEN: no bytes were written
+    # THEN: the writer is left untouched
     assert writer.getvalue() == b""
 
 
-def test_write_with_values_raises_not_implemented_with_diagnostic() -> None:
-    # BEGIN: a JSON codec with at least one value
-    codec = parse_type("JSON")
+# ---- round-trip -----------------------------------------------------------
 
-    # WHEN / THEN: the v0.2 stub raises with a diagnostic pointing at
-    #              the v0.3 follow-up and the cast-to-String workaround
-    with pytest.raises(NotImplementedError, match="JSON column body encoding"):
-        codec.write(BinaryWriter(), [{"a": 1}])
+
+async def _round_trip(
+    codec: ColumnCodec, values: list[dict[str, object]]
+) -> list[dict[str, object]]:
+    writer = BinaryWriter()
+    codec.write(writer, values)
+    return await codec.read(_reader(writer.getvalue()), len(values))
+
+
+async def test_flat_dict_round_trip() -> None:
+    # BEGIN: a JSON codec and a 2-row block with two paths "a" and "b"
+    codec = parse_type("JSON")
+    values: list[dict[str, object]] = [
+        {"a": 1, "b": "x"},
+        {"a": 2, "b": "y"},
+    ]
+
+    # WHEN: round-tripping
+    decoded = await _round_trip(codec, values)
+
+    # THEN: every row's path → value mapping survives
+    assert decoded == values
+
+
+async def test_paths_missing_in_some_rows_round_trip() -> None:
+    # BEGIN: a JSON codec where path "b" is absent from some rows
+    codec = parse_type("JSON")
+    values: list[dict[str, object]] = [
+        {"a": 1, "b": "x"},
+        {"a": 2},
+        {"b": "z"},
+    ]
+
+    # WHEN: round-tripping
+    decoded = await _round_trip(codec, values)
+
+    # THEN: missing paths come back as absent keys (not ``{path: None}``)
+    assert decoded == values
+
+
+async def test_dotted_path_keys_round_trip() -> None:
+    # BEGIN: nested input pre-flattened to dotted-path keys —
+    #        upstream stores nested JSON as ``user.id`` etc., so we
+    #        accept that representation
+    codec = parse_type("JSON")
+    values: list[dict[str, object]] = [
+        {"user.id": 7, "user.name": "alice"},
+        {"user.id": 8, "user.name": "bob"},
+    ]
+
+    # WHEN: round-tripping
+    decoded = await _round_trip(codec, values)
+
+    # THEN: dotted-path keys survive verbatim
+    assert decoded == values
+
+
+async def test_heterogeneous_values_per_path_round_trip() -> None:
+    # BEGIN: same path "v" carries an int in one row and a string in
+    #        another — the per-path Dynamic codec must declare both
+    #        arms in the block prefix
+    codec = parse_type("JSON")
+    values: list[dict[str, object]] = [
+        {"v": 1},
+        {"v": "two"},
+        {"v": 3},
+    ]
+
+    # WHEN: round-tripping
+    decoded = await _round_trip(codec, values)
+
+    # THEN: per-path values come back with their original Python types
+    assert decoded == values
+
+
+async def test_all_empty_dicts_round_trip() -> None:
+    # BEGIN: every row is ``{}`` — no paths at all
+    codec = parse_type("JSON")
+    values: list[dict[str, object]] = [{}, {}, {}]
+
+    # WHEN: round-tripping
+    decoded = await _round_trip(codec, values)
+
+    # THEN: every row comes back as an empty dict; the prefix declares
+    #       zero dynamic paths
+    assert decoded == values

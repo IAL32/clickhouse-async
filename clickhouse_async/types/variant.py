@@ -86,15 +86,29 @@ _DYNAMIC_VERSION_V2 = 2
 _DEFAULT_MAX_DYNAMIC_TYPES = 32
 
 # Every ``Dynamic`` column on the wire silently carries one extra
-# variant arm at the end — ``SharedVariant`` (a ``String``) — used
-# server-side to spill values whose type exceeds ``max_dynamic_types``.
-# Upstream omits it from the declared types list (``num_dynamic_types
-# = variant_names.size() - 1``) but always *deserializes* with it
-# appended, so an inner ``Variant`` of a Dynamic actually has
-# ``num_dynamic_types + 1`` arms. We never use SharedVariant on
-# writes (always declare the actual type), so its on-wire body is
-# always 0 rows; we only need it on the read path so the inner
-# ``Variant._read_body`` knows the arm count.
+# variant arm — ``SharedVariant`` (a ``String``) — used server-side
+# to spill values whose type exceeds ``max_dynamic_types``. Upstream
+# omits it from the declared types list (``num_dynamic_types =
+# variant_names.size() - 1``) but always re-appends it on the read
+# path, so an inner ``Variant`` of a Dynamic always has
+# ``num_dynamic_types + 1`` arms.
+#
+# Critically, ``DataTypeVariant`` *sorts* its arms alphabetically by
+# the type's full name in its constructor (see
+# ``src/DataTypes/DataTypeVariant.cpp::DataTypeVariant`` — uses
+# ``std::map<String, DataTypePtr>`` so insertion order is irrelevant).
+# Both sender and receiver therefore agree on the on-wire
+# discriminator → arm mapping by sorting in the same way. Position of
+# ``SharedVariant`` in the sorted list depends on the declared type
+# names: ``"SharedVariant" > "Int64"`` so an Int64-only Dynamic ends
+# up with ``Int64`` at disc 0 and SharedVariant at disc 1, but
+# ``"SharedVariant" < "String"`` so a String-only Dynamic flips the
+# order to SharedVariant at disc 0 and String at disc 1. We must
+# match this to round-trip writes against a real server.
+_SHARED_VARIANT_NAME = "SharedVariant"
+# Wire-format-wise the SharedVariant arm is just a ``String`` (the
+# custom name only changes how upstream addresses the column, not how
+# bytes flow). We use the regular ``String`` codec for its body.
 _SHARED_VARIANT_TYPE_SPEC = "String"
 
 
@@ -304,20 +318,21 @@ class Dynamic:
     the source of truth — but raises on writes if the inferred arm
     count exceeds the cap (when set).
 
-    .. note::
+    Wire format (V1 layout, what ClickHouse 24.8 emits and accepts at
+    our negotiated revision 54469 < ``DBMS_MIN_REVISION_WITH_V2_DYNAMIC``):
 
-        v0.2 caveat: ``Dynamic`` round-trips with itself in unit tests
-        but does not yet pass real-server INSERT round-trips on
-        ClickHouse 24.8 LTS. The wire format (V1 ``8B version + varuint
-        max_dynamic_types + varuint num_dynamic_types + per-arm type
-        names + 8B variant mode + n_rows discriminators + per-arm
-        bodies + implicit ``SharedVariant`` (String) tail-arm`) is
-        believed correct from upstream source-reading but a real
-        24.8.14 server still rejects writes with "Unknown type code:
-        0x68" for reasons we haven't pinned down. Use only inside
-        unit tests that exercise the codec against itself; real-server
-        ``Dynamic`` and ``JSON`` (which is built on Dynamic) round-trips
-        are tracked as v0.3 follow-ups in ``TODO.md``.
+    | Bytes              | Meaning                                              |
+    | ------------------ | ---------------------------------------------------- |
+    | 8                  | structure version (1 = V1)                           |
+    | varuint            | ``max_dynamic_types`` slot (column-policy hint, the  |
+    |                    | reader skips it past)                                |
+    | varuint            | ``num_dynamic_types`` (= number of declared arms,    |
+    |                    | excluding the implicit ``SharedVariant`` tail-arm)   |
+    | n length-prefixed  | declared type-spec names, in any order               |
+    | (then a Variant body — the inner ``Variant`` is built from the declared      |
+    |  arms + an implicit ``SharedVariant`` arm, then sorted alphabetically by    |
+    |  type name to mirror upstream ``DataTypeVariant``'s by-name sort. Both      |
+    |  sender and receiver agree on disc → arm because both apply the same sort.) |
     """
 
     null_value: ClassVar[None] = None
@@ -362,16 +377,19 @@ class Dynamic:
             # ignore the cap (server-side policy, not a wire constraint).
             await reader.read_varuint()
         n_types = await reader.read_varuint()
-        components: list[ColumnCodec] = [
-            parse_type(await reader.read_string()) for _ in range(n_types)
+        declared_specs = [await reader.read_string() for _ in range(n_types)]
+        # Sort the declared specs together with the implicit
+        # ``SharedVariant`` arm to mirror upstream ``DataTypeVariant``'s
+        # by-name sort. The sorted order is what the inner ``Variant``
+        # arms map to discriminators; sender and receiver agree on
+        # discriminator → arm because both apply the same sort.
+        sorted_specs = sorted([*declared_specs, _SHARED_VARIANT_NAME])
+        components = [
+            parse_type(_SHARED_VARIANT_TYPE_SPEC)
+            if spec == _SHARED_VARIANT_NAME
+            else parse_type(spec)
+            for spec in sorted_specs
         ]
-        # Append the implicit ``SharedVariant`` arm before reading the
-        # inner Variant body. Upstream ``ColumnDynamic`` always carries
-        # this arm at the tail (used to spill rare types over
-        # ``max_dynamic_types``); the wire format hides it from the
-        # declared list but the inner Variant *does* count it as an
-        # arm and reserves a discriminator slot for it.
-        components.append(parse_type(_SHARED_VARIANT_TYPE_SPEC))
         # The Variant payload carries its own state-prefix version byte.
         inner_version = await reader.read_int(8, signed=False)
         if inner_version != _VARIANT_VERSION_BASIC:
@@ -389,14 +407,18 @@ class Dynamic:
         from clickhouse_async.types import parse_type  # noqa: PLC0415
 
         # Walk values once: pick a type spec per row (explicit tag or
-        # inferred from Python type), accumulate active specs in
-        # first-seen order, and remember each row's (disc, payload).
+        # inferred from Python type) and remember each row's
+        # ``(spec, payload)``. We assign discriminators *after* sorting
+        # — both sender and receiver agree on the disc→arm mapping by
+        # sorting the declared specs (with the implicit SharedVariant
+        # interleaved) alphabetically, mirroring upstream
+        # ``DataTypeVariant``'s by-name sort.
         type_specs: list[str] = []
-        spec_to_idx: dict[str, int] = {}
-        rows: list[tuple[int, Any]] = []
+        spec_seen: set[str] = set()
+        rows: list[tuple[str | None, Any]] = []
         for v in values:
             if v is None:
-                rows.append((_NULL_DISCRIMINATOR, None))
+                rows.append((None, None))
                 continue
             if isinstance(v, _DynamicTag):
                 spec = v.type_spec
@@ -404,12 +426,10 @@ class Dynamic:
             else:
                 spec = _infer_dynamic_type_spec(v)
                 payload = v
-            idx = spec_to_idx.get(spec)
-            if idx is None:
-                idx = len(type_specs)
-                spec_to_idx[spec] = idx
+            if spec not in spec_seen:
+                spec_seen.add(spec)
                 type_specs.append(spec)
-            rows.append((idx, payload))
+            rows.append((spec, payload))
 
         if self.max_types is not None and len(type_specs) > self.max_types:
             raise ValueError(
@@ -417,6 +437,14 @@ class Dynamic:
                 f"max_types is {self.max_types}; tag values to collapse arms "
                 f"or raise the cap"
             )
+
+        # Compute the sorted variant order including ``SharedVariant``.
+        # ``DataTypeVariant`` sorts its arms by name in the constructor
+        # (uses ``std::map``), so the discriminator → arm mapping the
+        # server applies on read is determined by this sort. Mirror it
+        # exactly here.
+        sorted_names = sorted([*type_specs, _SHARED_VARIANT_NAME])
+        spec_to_disc = {name: i for i, name in enumerate(sorted_names)}
 
         # Write V1: server-side ``DynamicSerializationVersion::checkVersion``
         # accepts both V1 and V2, but ClickHouse 24.8 LTS gates V2 behind
@@ -428,25 +456,33 @@ class Dynamic:
         # ``8B version + varuint max_dynamic_types + varuint
         # num_dynamic_types + n type-spec strings``. The reader skips the
         # ``max_dynamic_types`` slot (it's a column-policy hint, not a
-        # wire constraint), so we just write our cap when the user set
-        # one and the default ``32`` otherwise.
+        # wire constraint).
         writer.write_int(_DYNAMIC_VERSION_V1, 8, signed=False)
         writer.write_varuint(len(type_specs))
         writer.write_varuint(len(type_specs))
         for spec in type_specs:
             writer.write_string(spec)
-        # Append the implicit ``SharedVariant`` arm so the inner
-        # ``Variant._write_body`` reserves a per-arm body slot for it.
-        # Our writes never assign to SharedVariant — its body is always
-        # 0 rows — but the inner Variant still needs to know it exists
-        # to match the discriminator stream the server expects.
-        components = [parse_type(spec) for spec in type_specs]
-        components.append(parse_type(_SHARED_VARIANT_TYPE_SPEC))
+
+        # Build the per-arm components list in *sorted* order so the
+        # per-arm bodies land in the order the server expects on read.
+        components = [
+            parse_type(_SHARED_VARIANT_TYPE_SPEC)
+            if name == _SHARED_VARIANT_NAME
+            else parse_type(name)
+            for name in sorted_names
+        ]
+        # Resolve each row to its discriminator using the sorted index.
+        rows_with_disc: list[tuple[int, Any]] = [
+            (_NULL_DISCRIMINATOR, None)
+            if spec is None
+            else (spec_to_disc[spec], payload)
+            for spec, payload in rows
+        ]
         # The Variant body carries its own version + discriminators +
-        # per-arm bodies. An all-NULL block still emits both versions
-        # plus the n_rows x 0xFF discriminator stream.
+        # per-arm bodies (in sorted order). An all-NULL block still
+        # emits both versions plus the n_rows x 0xFF discriminator stream.
         writer.write_int(_VARIANT_VERSION_BASIC, 8, signed=False)
-        Variant._write_body(writer, components, rows)
+        Variant._write_body(writer, components, rows_with_disc)
 
 
 # ---- Python-type → ClickHouse-type inference for Dynamic writes ---------

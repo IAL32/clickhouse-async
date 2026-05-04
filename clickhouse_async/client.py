@@ -86,11 +86,13 @@ class ColumnarBlock:
     """One server block yielded by ``iter_column_blocks``, column-major.
 
     ``data[col_idx]`` is the decoded value list for that column — the
-    native shape the wire delivers, with no row-tuple transpose.
+    native shape the wire delivers, with no row-tuple transpose. When
+    ``column_factories`` are active, individual elements may not be
+    lists (e.g. ``numpy.ndarray``); the factory owns the element type.
     """
 
     columns: tuple[ColumnSpec, ...]
-    data: list[list[Any]]  # data[col_idx][row_idx]
+    data: list[Any]  # data[col_idx] — list by default; factory output otherwise
     n_rows: int
 
 
@@ -102,10 +104,12 @@ class ColumnarResult:
     concatenated across all server blocks. ``rows`` is the total row
     count (``len(data[0])`` when at least one column is present).
     ``bytes_read`` and ``rows_read`` come from the last Progress packet.
+    When ``column_factories`` are active, individual elements may not
+    be lists; the factory owns the element type.
     """
 
     columns: tuple[ColumnSpec, ...]
-    data: list[list[Any]]  # data[col_idx][row_idx]
+    data: list[Any]  # data[col_idx] — list by default; factory output otherwise
     rows: int
     written_rows: int
     elapsed: float
@@ -126,6 +130,7 @@ class Client:
         transport_factory: TransportFactory | None = None,
         on_host_attempt: Callable[[tuple[str, int], BaseException | None], None]
         | None = None,
+        column_factories: dict[str, Callable[[list[Any]], Any]] | None = None,
     ) -> None:
         parsed = dsn if isinstance(dsn, DSN) else parse_dsn(dsn)
         self._dsn: DSN = parsed
@@ -139,6 +144,7 @@ class Client:
         self._ssl_context = ssl_context
         self._transport_factory = transport_factory
         self._on_host_attempt = on_host_attempt
+        self._column_factories = column_factories
         self._conn = Connection(
             parsed.hosts,
             ssl_context=ssl_context,
@@ -371,6 +377,25 @@ class Client:
 
     # ---- columnar surface -----------------------------------------------
 
+    def _apply_factories(
+        self,
+        columns: tuple[ColumnSpec, ...],
+        raw: list[Any],
+    ) -> list[Any]:
+        """Apply per-column factories (if any) to ``raw`` column data.
+
+        Factories are keyed on ``ColumnSpec.type_spec`` — shallow match,
+        so a factory for ``"UInt64"`` does not fire for ``"Array(UInt64)"``.
+        Columns with no registered factory are returned unchanged.
+        """
+        if not self._column_factories:
+            return raw
+        out: list[Any] = []
+        for col, values in zip(columns, raw, strict=False):
+            factory = self._column_factories.get(col.type_spec)
+            out.append(factory(values) if factory else values)
+        return out
+
     async def fetch_columns(
         self,
         sql: str,
@@ -431,9 +456,10 @@ class Client:
         final_progress: ProgressInfo = captured_progress or ProgressInfo(
             read_rows=0, read_bytes=0, total_rows_to_read=0
         )
+        col_tuple = tuple(columns)
         return ColumnarResult(
-            columns=tuple(columns),
-            data=accum,
+            columns=col_tuple,
+            data=self._apply_factories(col_tuple, accum),
             rows=total_rows,
             written_rows=total_written_rows,
             elapsed=elapsed,
@@ -467,9 +493,10 @@ class Client:
                 block = streamed.block
                 if block.n_rows == 0:
                     continue
+                col_tuple = tuple(block.columns)
                 yield ColumnarBlock(
-                    columns=tuple(block.columns),
-                    data=block.data,
+                    columns=col_tuple,
+                    data=self._apply_factories(col_tuple, block.data),
                     n_rows=block.n_rows,
                 )
         finally:
@@ -757,11 +784,23 @@ def connect(
     *,
     ssl_context: _ssl_module.SSLContext | None = None,
     transport_factory: TransportFactory | None = None,
+    column_factories: dict[str, Callable[[list[Any]], Any]] | None = None,
 ) -> Client:
     """Build an unopened ``Client``. The handshake happens when you
     enter the ``async with`` block (or call ``await client.open()``).
 
+    ``column_factories`` maps ClickHouse type-spec strings (e.g.
+    ``"UInt64"``, ``"Nullable(Float32)"``) to callables that transform
+    a plain ``list`` into any type the caller wants (e.g.
+    ``numpy.array``). Applied in ``fetch_columns`` and
+    ``iter_column_blocks``; row-major paths are unaffected.
+
     ``transport_factory`` is a test-only injection point for the
     underlying socket pair; production callers should leave it unset.
     """
-    return Client(dsn, ssl_context=ssl_context, transport_factory=transport_factory)
+    return Client(
+        dsn,
+        ssl_context=ssl_context,
+        transport_factory=transport_factory,
+        column_factories=column_factories,
+    )

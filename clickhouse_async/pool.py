@@ -44,8 +44,9 @@ from clickhouse_async.errors import (
 
 if TYPE_CHECKING:
     import ssl as _ssl_module
-    from collections.abc import AsyncGenerator, Mapping
+    from collections.abc import AsyncGenerator, Callable, Mapping
     from types import TracebackType
+    from typing import Any
 
     from clickhouse_async.connection import TransportFactory
 
@@ -80,6 +81,7 @@ class Pool:
         host_failover_cooldown: float = 5.0,
         ssl_context: _ssl_module.SSLContext | None = None,
         transport_factory: TransportFactory | None = None,
+        column_factories: dict[str, Callable[[list[Any]], Any]] | None = None,
     ) -> None:
         if max_size < 1:
             raise ValueError(f"max_size must be ≥ 1, got {max_size}")
@@ -124,6 +126,7 @@ class Pool:
         self._health_check_after = health_check_after
         self._ssl_context = ssl_context
         self._transport_factory = transport_factory
+        self._column_factories = column_factories
         self._rotation = _HostRotation(self._dsn.hosts, cooldown=host_failover_cooldown)
 
         # FIFO deque + Condition: the reaper needs to scan entries by
@@ -333,6 +336,7 @@ class Pool:
             ssl_context=self._ssl_context,
             transport_factory=self._transport_factory,
             on_host_attempt=_on_attempt,
+            column_factories=self._column_factories,
         )
         await client.open()
         # Stamp the open timestamp on the client itself so we can read
@@ -633,6 +637,7 @@ def create_pool(
     host_failover_cooldown: float = 5.0,
     ssl_context: _ssl_module.SSLContext | None = None,
     transport_factory: TransportFactory | None = None,
+    column_factories: dict[str, Callable[[list[Any]], Any]] | None = None,
 ) -> Pool:
     """Build an unopened pool. Connections open on first ``acquire()``.
 
@@ -674,4 +679,5 @@ def create_pool(
         host_failover_cooldown=host_failover_cooldown,
         ssl_context=ssl_context,
         transport_factory=transport_factory,
+        column_factories=column_factories,
     )

@@ -3,8 +3,8 @@
 A pure-Python, fully `asyncio`-native client for ClickHouse over the **native TCP
 protocol** (default port `9000` / `9440` for TLS).
 
-This document describes the design through v0.2 (shipped) and v0.3 (in
-progress): the client, the connection pool, the layers underneath, and the
+This document describes the design through v0.2 (shipped), v0.3 (in
+progress), and v0.4 (planned): the client, the connection pool, the layers underneath, and the
 trajectory the type-system buildout is following. It is deliberately scoped —
 the goal is to ship a small, correct, idiomatic async client first, and grow
 features behind a stable surface. Anything tagged "v0" below describes the
@@ -530,15 +530,21 @@ tests/
    `[compression]` extra is installed; `CLICKHOUSE_ASYNC_DEFAULT_COMPRESSION=off`
    env var and `compression=None` kwarg opt out.
 
-### v0.4+
+### v0.4 (planned)
 
-1. **`pyarrow` / `polars` adapter packages** (`clickhouse-async-arrow` /
+1. **Example scenario tests.** Three public ClickHouse datasets
+   (COVID-19 epidemiology, OpenCelliD cell towers, Hacker News) loaded
+   into an ephemeral server in a dedicated `scenarios` CI job. Proves
+   the client works against realistic schemas — `Enum8`, `Float64`,
+   `DateTime`, `Array(UInt32)`, aggregation, date math, multi-block
+   streaming. No production code changes; tests and CI only.
+2. **`pyarrow` / `polars` adapter packages** (`clickhouse-async-arrow` /
    `-polars`). Separate extras; build on the `column_factories` hook
    from v0.3. Each block becomes an Arrow `RecordBatch` / Polars
    `DataFrame` with no row-tuple intermediate.
-2. **Read-only / write-only pool routing.** Primary-only writes,
+3. **Read-only / write-only pool routing.** Primary-only writes,
    replica-fanout reads — builds on multi-host DSN.
-3. **`AggregateFunction` allow-list expansion.** Adding `quantile`,
+4. **`AggregateFunction` allow-list expansion.** Adding `quantile`,
    `uniq`, etc. is a one-line registration in `aggregate.py`; deferred
    until a real workload drives priority.
 

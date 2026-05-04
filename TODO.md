@@ -81,6 +81,16 @@ Things we haven't written yet, ordered by approximate priority.
   LZ4 when the `[compression]` extra is installed; `CLICKHOUSE_ASYNC_DEFAULT_COMPRESSION=off`
   opts out globally; `compression=None` opts out per-connection.
 
+### v0.4 — Example scenarios
+
+- **Real-workload scenario tests.** Three public ClickHouse datasets
+  (COVID-19 epidemiology, OpenCelliD cell towers, Hacker News) loaded
+  into an ephemeral server in a new `scenarios` CI job. Proves the client
+  works against realistic schemas and query patterns — multi-block
+  responses, `Enum8`, `Float64`, `DateTime`, `Array(UInt32)`, aggregation,
+  ordering, date math. No production code changes; tests only.
+  *See:* `.plans/05-example-scenarios.md`.
+
 ### v0.4+ — Adapters and extended type support
 
 - **`JSON` typed paths.** `JSON(SKIP path)` and `JSON(SKIP REGEXP 'rx')`

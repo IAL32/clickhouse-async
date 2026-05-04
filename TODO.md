@@ -55,71 +55,56 @@ codec/module that carries the limitation so a grep finds the on-ramp.
 
 ---
 
-## 2. Roadmap (post-v0.2)
+## 2. Roadmap
 
 Things we haven't written yet, ordered by approximate priority.
 
-### Connection / protocol
+### v0.3 — Columnar surface + JSON completeness + compression on
 
-- **Compression default on.** Currently off. Once we have a benchmark
-  suite and an integration test that exercises multi-block compressed
-  payloads, flip the default for connections opened with the
-  `compression` extra installed.
-- **Parameter-binding fallback policy.** Open question in `DESIGN.md
-  §14`. We currently raise on too-old servers; decide whether to keep
-  raising or silently emit client-side substitution (probably keep
-  raising — silent fallback undermines the safety claim).
+*See `.plans/README.md` for the full dependency-ordered plan list.*
 
-### Type system
-
-- **`JSON` nested dict ergonomics.** Today the codec reads/writes
-  ``dict[str, Any]`` keyed by dotted path (``"user.id"``). Add a
-  thin wrapper that auto-nests on read (``{"user": {"id": 7}}``)
-  and auto-flattens on write — keep the codec layer flat.
-- **`JSON` typed paths.** ``JSON(SKIP path)`` and
-  ``JSON(SKIP REGEXP 'rx')`` parse but the codec doesn't reflect
-  typed-path columns yet (no real-world tables exercise these on
-  24.8 LTS).
-- **Custom `column_factories` hook.** Per-type override for Python
-  representation (e.g. polars/pyarrow/numpy adapters) — the protocol
-  is described in `DESIGN.md §7`. Default factories ship in core; the
-  adapters live in extras.
-
-### Client / pool
-
-- **No automatic query retry.** Documented as a deliberate
-  non-feature in `DESIGN.md §5`; surfaced here because users will
-  ask. Connection-level reconnect on `acquire()` is fine. Query-level
-  retry is the caller's problem.
-- **Read-only / write-only pool variants.** Multi-host opens this up
-  — primary-only writes, replica-fanout reads.
-- **Column-major retrieval surface (v0.3).** ClickHouse blocks arrive
-  column-major on the wire, but `Client.execute` / `fetch_all` /
-  `iter_rows` transpose into row-major tuples for every block. Plan:
-  keep the row-major surface as the default, add a parallel
-  `Client.fetch_columns(sql, …) -> ColumnarResult` and
-  `iter_column_blocks(...)` for streaming. Doubles as the zero-copy
-  entry point for the `pyarrow` / `polars` adapters.
+- **Column-major retrieval surface.** `Client.fetch_columns(sql) ->
+  ColumnarResult` and `Client.iter_column_blocks(sql)` avoid the
+  per-row tuple transpose. `Pool` gets the same pass-throughs.
   *Code:* `client.py::Client.execute` is the only place rows get
   transposed; `Block.data` already holds column-major values.
+- **`column_factories` hook.** `column_factories: dict[str, Callable]`
+  kwarg on `connect()` / `create_pool()` lets callers replace the
+  default `list` with any type (numpy, polars, pyarrow) per column.
+  Depends on the columnar surface above.
+- **`JSON` nested dict ergonomics.** `json_nested=True` mode reconstructs
+  nested dicts from dotted-path keys on read; write accepts either flat
+  or nested input. Shared-data write substream correctly populated for
+  overflow paths beyond `max_dynamic_paths`.
+  *Code:* `types/json_type.py`.
+- **Compression default on.** `_default_compression()` helper auto-enables
+  LZ4 when the `[compression]` extra is installed; `CLICKHOUSE_ASYNC_DEFAULT_COMPRESSION=off`
+  opts out globally; `compression=None` opts out per-connection.
 
-### Adapters / extras
+### v0.4+ — Adapters and extended type support
 
-- **`pyarrow` zero-copy adapter** as a separate extras package
-  (`clickhouse-async-arrow`). Builds on the column-major surface
-  above — each `iter_column_blocks` block becomes an Arrow
-  `RecordBatch` with no row-tuple intermediate.
-- **`polars` adapter.** Same shape.
-- **C/Cython hot path** for the int/float/string codecs *only if*
-  profiling shows pure-Python encoders are the bottleneck on large
-  inserts. Don't pre-optimise.
+- **`JSON` typed paths.** `JSON(SKIP path)` and `JSON(SKIP REGEXP 'rx')`
+  parse but the codec doesn't reflect typed-path columns yet.
+- **`pyarrow` zero-copy adapter** (`clickhouse-async-arrow`). Builds on
+  the columnar surface — each `iter_column_blocks` block becomes an
+  Arrow `RecordBatch` with no row-tuple intermediate.
+- **`polars` adapter.** Same shape as the Arrow adapter.
+- **Read-only / write-only pool variants.** Multi-host opens this up —
+  primary-only writes, replica-fanout reads.
+- **C/Cython hot path** for int/float/string codecs *only if* profiling
+  shows pure-Python encoders are the bottleneck on large inserts.
 
-### Observability (v1)
+### v1 — Observability and API stability
 
 - **OpenTelemetry spans** around `execute` / `acquire` / packet
   send/receive. Optional dep; instrumented via a hook so users
-  without OTel pay nothing. Pencilled in for v1 once the API surface
-  is stable enough that span shapes won't churn.
+  without OTel pay nothing.
+- **Parameter-binding fallback policy.** Currently we raise on too-old
+  servers. Decision stands: refuse — silent fallback undermines the
+  safety claim.
+- **No automatic query retry.** Documented as a deliberate non-feature;
+  surfaced here because users will ask. Connection-level reconnect on
+  `acquire()` is fine. Query-level retry is the caller's problem.
 
 ---
 
@@ -128,9 +113,5 @@ Things we haven't written yet, ordered by approximate priority.
 These have no obvious right answer; they need a decision before the
 relevant code lands.
 
-- **Parameter-binding fallback for old servers.** Refuse with a clear
-  error (current lean) vs. silently substitute. Decision: refuse.
 - **`Block.to_arrow()` / `.to_polars()` location.** Core vs. extras.
   Decision: extras package, keep core lean.
-- **Default compression on/off.** Currently off. Will revisit once a
-  benchmark suite exists.

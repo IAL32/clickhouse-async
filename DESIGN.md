@@ -3,7 +3,7 @@
 A pure-Python, fully `asyncio`-native client for ClickHouse over the **native TCP
 protocol** (default port `9000` / `9440` for TLS).
 
-This document describes the design through v0.1 (shipped) and v0.2 (in
+This document describes the design through v0.2 (shipped) and v0.3 (in
 progress): the client, the connection pool, the layers underneath, and the
 trajectory the type-system buildout is following. It is deliberately scoped —
 the goal is to ship a small, correct, idiomatic async client first, and grow
@@ -333,12 +333,21 @@ buffer given a row count.
   `Map(K, V)`, `Nullable(T)`, `LowCardinality(T)` and
   `LowCardinality(Nullable(T))`, `Enum8/16`.
 
-### Deferred (v0.2 type-system completeness)
-- `AggregateFunction(...)` state columns, `Nested(name T, …)`, the four
-  geo aliases (`Point` / `Ring` / `Polygon` / `MultiPolygon`),
-  `Variant(T1, …)` and `Dynamic(max_types=N)`, the new ClickHouse 24.x
-  `JSON` type. Each needs careful round-tripping; the v0.2 plans break
-  them out into individual landings.
+### Added in v0.2
+- `AggregateFunction(fn, T)` — per-row state bytes; readers for `avg`
+  and `count`; other functions pass through and raise on state access.
+- `Nested(name T, …)` — reads/writes as `list[dict[str, Any]]`.
+- Geo aliases: `Point`, `Ring`, `Polygon`, `MultiPolygon`.
+- `Variant(T1, …)` and `Dynamic(max_types=N)` — tagged-union types.
+- `JSON` (ClickHouse 24.x) — full read/write; flat dotted-path `dict`.
+  Shared-data substream is decoded on read but always written empty
+  (overflow paths are dropped) — fixed in v0.3 plan 03.
+
+### Planned for v0.3
+- **`column_factories` hook.** Per-type override for the Python
+  construction of each column (e.g. `"UInt64": numpy.array`). Applied
+  after codec decode in the columnar retrieval path. Foundations for
+  adapter packages.
 
 ### Python representation
 - Sane defaults: `int`, `float`, `Decimal`, `str`, `bytes`, `datetime`,
@@ -433,28 +442,41 @@ CI matrix: Python 3.11/3.12/3.13, ClickHouse stable + latest LTS.
 ```
 clickhouse_async/
     __init__.py          # connect(), create_pool(), version, public re-exports
-    client.py            # Client
+    client.py            # Client, QueryResult, ColumnarResult (v0.3)
     pool.py              # Pool
     connection.py        # Connection state machine
     dsn.py               # connection-string parsing
     errors.py
+    _host_rotation.py    # round-robin + per-host failure cooldown
     protocol/
-        packets.py       # packet ids, hello/query/data structs
-        reader.py        # async packet reader
-        writer.py        # async packet writer
-        compression.py   # LZ4 / ZSTD frame
+        packets.py       # packet ids, protocol revision constants
+        block.py         # Block, Column, read_block, write_block
+        io.py            # AsyncBinaryReader, BinaryWriter
+        handshake.py     # client Hello / server Hello codec
+        query_packet.py  # Query packet + ClientInfo
+        compression.py   # LZ4 / ZSTD compressed-block framing
+        server_packets.py
+        parameters.py    # {name:Type} parameter formatting
+        exception_packet.py
     types/
-        __init__.py      # registry: name → codec
-        primitive.py
+        __init__.py      # registry: name → codec; parse_type()
+        _parser.py       # type-spec string parser
+        base.py          # ColumnCodec Protocol
+        primitive.py     # Int*, UInt*, Float*, Bool
         decimal.py
-        datetime.py
-        string.py
-        composite.py     # Array, Tuple, Map, Nullable, LowCardinality
+        datetime.py      # Date, Date32, DateTime, DateTime64, HighPrecisionTimestamp
+        string.py        # String, FixedString
+        composite.py     # Array, Tuple, Map, Nullable, LowCardinality, Enum
         net.py           # UUID, IPv4, IPv6
+        aggregate.py     # AggregateFunction
+        enums.py         # Enum8, Enum16
+        geo.py           # Point, Ring, Polygon, MultiPolygon aliases
+        variant.py       # Variant, Dynamic
+        json_type.py     # JSON (ClickHouse 24.x)
 tests/
     unit/
     integration/
-    fixtures/            # hex captures from a real server
+    containers/          # project-local ClickHouseContainer subclass
 ```
 
 ---
@@ -475,38 +497,57 @@ tests/
 4. **`LowCardinality(Nullable(T))` and `Tuple(name T, …)`.** The two
    real-world type shapes v0 rejected; both round-trip end-to-end.
 
-### v0.2 (in progress)
+### v0.2 (shipped — 2026-05-04)
 
-1. **Type-system completeness.** `AggregateFunction(...)`, `Nested`,
-   geo aliases, `Variant` / `Dynamic`, and the new `JSON` type.
-2. **`DateTime64(7..9)` + session timezone.** Landed (plan 01):
-   nanosecond precision via `HighPrecisionTimestamp`; bare
-   `DateTime` honours the session zone the server reports.
-3. **INSERT block-header validation + server-confirmed
-   `written_rows`.** Match what the server emits up front so a
-   schema typo fails fast with a named-column diagnostic.
-4. **Test coverage floor.** `pytest-cov` + `branch=true`; CI gates on
-   ≥ 90 % line / ≥ 80 % branch.
+1. **Type-system completeness.** `AggregateFunction(fn, T)`, `Nested`,
+   geo aliases (`Point`, `Ring`, `Polygon`, `MultiPolygon`),
+   `Variant(T1, …)`, `Dynamic(max_types=N)`, `JSON` (ClickHouse 24.x).
+2. **`DateTime64(7..9)` + session timezone.** Nanosecond precision via
+   `HighPrecisionTimestamp`; bare `DateTime` honours the server's
+   session timezone.
+3. **INSERT block-header validation + server-confirmed `written_rows`.**
+   Schema typo fails fast with a named-column diagnostic.
+4. **Connection transport hardening.** OS-level socket errors propagate
+   as structured `BROKEN` transitions; pool `verify_or_discard` handles
+   stale connections.
+5. **Test coverage floor.** `pytest-cov` + `branch=true`; CI enforces
+   ≥ 94 % branch coverage; current suite sits at 95.1 %.
 
-### v0.3+
+### v0.3 (in progress)
 
-1. Optional `pyarrow` / `polars` zero-copy adapters as separate
-   extras packages (`clickhouse-async-arrow` / `-polars`). Builds on
-   a column-major retrieval surface (`Client.fetch_columns` /
-   `iter_column_blocks`) that avoids the per-row tuple transpose.
-2. Compression default on once a benchmark suite proves the
-   trade-off on multi-block payloads.
-3. A C/Cython hot path for the int/float/string codecs if profiling
-   shows pure-Python encoders are the bottleneck on large inserts.
-4. Read-only / write-only pool variants — multi-host opens this up
-   (primary-only writes, replica-fanout reads).
+1. **Column-major retrieval surface.** `Client.fetch_columns(sql) ->
+   ColumnarResult` and `Client.iter_column_blocks(sql)` avoid the
+   per-row tuple transpose. `Pool` gets the same pass-throughs.
+2. **`column_factories` hook.** `column_factories: dict[str, Callable]`
+   kwarg on `connect()` / `create_pool()` lets callers replace the
+   default `list` with any type (numpy, polars, pyarrow) per column.
+   Applied post-decode in the columnar path; row-major paths unaffected.
+3. **JSON ergonomics.** `json_nested=True` mode reconstructs `{"user":
+   {"id": 7}}` from dotted-path keys; write accepts both flat and
+   nested inputs. Shared-data write substream correctly populated for
+   overflow paths (closes the v0.2 caveat).
+4. **Compression default on.** LZ4 is the default when the
+   `[compression]` extra is installed; `CLICKHOUSE_ASYNC_DEFAULT_COMPRESSION=off`
+   env var and `compression=None` kwarg opt out.
+
+### v0.4+
+
+1. **`pyarrow` / `polars` adapter packages** (`clickhouse-async-arrow` /
+   `-polars`). Separate extras; build on the `column_factories` hook
+   from v0.3. Each block becomes an Arrow `RecordBatch` / Polars
+   `DataFrame` with no row-tuple intermediate.
+2. **Read-only / write-only pool routing.** Primary-only writes,
+   replica-fanout reads — builds on multi-host DSN.
+3. **`AggregateFunction` allow-list expansion.** Adding `quantile`,
+   `uniq`, etc. is a one-line registration in `aggregate.py`; deferred
+   until a real workload drives priority.
 
 ### v1
 
-1. Optional OpenTelemetry instrumentation around `execute` /
-   `acquire` / packet send/receive, gated behind an extra so the
-   bare install stays import-clean. Pinned to v1 so span shapes
-   don't churn while the API is still settling.
+1. **OpenTelemetry instrumentation** around `execute` / `acquire` /
+   packet send/receive, gated behind an extra so the bare install stays
+   import-clean. Pinned to v1 so span shapes don't churn while the API
+   is still settling.
 
 ---
 

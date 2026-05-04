@@ -723,7 +723,7 @@ async def test_fetch_columns_round_trip(client: ch.Client) -> None:
     # BEGIN: a query that returns two typed columns over five rows
     # WHEN: running fetch_columns instead of execute
     result = await client.fetch_columns(
-        "SELECT number, toString(number) AS s FROM system.numbers(5)"
+        "SELECT number, toString(number) AS s FROM system.numbers LIMIT 5"
     )
 
     # THEN: ColumnarResult with column-major data — no row-tuple transpose
@@ -741,7 +741,7 @@ async def test_iter_column_blocks_large_result(client: ch.Client) -> None:
     total_rows = 0
     block_count = 0
     async for block in client.iter_column_blocks(
-        "SELECT number FROM system.numbers(100000)"
+        "SELECT number FROM system.numbers LIMIT 100000"
     ):
         # THEN: each yielded value is a ColumnarBlock with column-major data
         assert isinstance(block, ColumnarBlock)

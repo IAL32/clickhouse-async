@@ -24,11 +24,10 @@ the documented order.
 
 from __future__ import annotations
 
-import getpass
-import socket
 from enum import IntEnum
 from typing import TYPE_CHECKING
 
+from clickhouse_async.protocol._client_env import _safe_hostname, _safe_os_user
 from clickhouse_async.protocol.block import Block, BlockInfo, write_block
 from clickhouse_async.protocol.handshake import (
     CLIENT_NAME,
@@ -82,21 +81,6 @@ class _QueryKind(IntEnum):
 # built-in settings.
 _SETTING_FLAG_IMPORTANT = 0x01
 _PARAM_FLAG_CUSTOM = 0x02
-
-
-def _safe_os_user() -> str:
-    """Best-effort current OS user. ClickHouse just records "" if absent."""
-    try:
-        return getpass.getuser()
-    except (OSError, KeyError):
-        return ""
-
-
-def _safe_hostname() -> str:
-    try:
-        return socket.gethostname()
-    except OSError:
-        return ""
 
 
 def _write_client_info(

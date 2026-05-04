@@ -36,9 +36,10 @@ fall back to UTC interpretation (the v0 behaviour).
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import UTC, date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from typing import TYPE_CHECKING
-from zoneinfo import ZoneInfo
+
+from clickhouse_async.types._datetime_helpers import _naive_utc_from_ts, _resolve_tz
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -109,23 +110,6 @@ class HighPrecisionTimestamp:
                 10 ** (scale - _MICROSECOND_SCALE)
             )
         return cls(ticks=ticks, scale=scale)
-
-
-def _resolve_tz(name: str | None) -> timezone | ZoneInfo | None:
-    if name is None:
-        return None
-    if name == "UTC":
-        return UTC
-    return ZoneInfo(name)
-
-
-def _naive_utc_from_ts(ts: int) -> datetime:
-    """Naive datetime representing the UTC instant at ``ts`` Unix seconds.
-
-    ``datetime.utcfromtimestamp`` is deprecated; we get the same value
-    by resolving in UTC and stripping the tzinfo.
-    """
-    return datetime.fromtimestamp(ts, tz=UTC).replace(tzinfo=None)
 
 
 # ---- Date / Date32 -------------------------------------------------------

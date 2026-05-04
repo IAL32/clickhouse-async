@@ -1,13 +1,10 @@
-"""Unit tests for ``write_query_packet`` and its helpers.
+"""Unit tests for ``write_query_packet`` and its revision-gated branches.
 
-Exercises the revision-gated branches and OS-error fallback paths that
-the connection-level tests (which always use ``OUR_REVISION``) don't reach.
+OS-error fallback tests for ``_safe_os_user`` / ``_safe_hostname`` live
+in ``test_client_env.py`` alongside the helpers themselves.
 """
 
 from __future__ import annotations
-
-import getpass
-import socket
 
 import pytest
 
@@ -19,46 +16,11 @@ from clickhouse_async.protocol.packets import (
     OUR_REVISION,
     ClientPacket,
 )
-from clickhouse_async.protocol.query_packet import (
-    _safe_hostname,
-    _safe_os_user,
-    write_query_packet,
-)
+from clickhouse_async.protocol.query_packet import write_query_packet
 
 
 def _make_reader(writer: BinaryWriter) -> AsyncBinaryReader:
     return AsyncBinaryReader.from_bytes(writer.getvalue())
-
-
-# ---- OS-error fallback paths --------------------------------------------
-
-
-@pytest.mark.parametrize("exc_type", [OSError, KeyError])
-def test_safe_os_user_returns_empty_string_on_getuser_error(
-    monkeypatch: pytest.MonkeyPatch,
-    exc_type: type[Exception],
-) -> None:
-    # BEGIN: an environment where getpass.getuser raises an OS-level error
-    monkeypatch.setattr(getpass, "getuser", lambda: (_ for _ in ()).throw(exc_type()))
-
-    # WHEN: _safe_os_user is called
-    result = _safe_os_user()
-
-    # THEN: falls back to empty string
-    assert result == ""
-
-
-def test_safe_hostname_returns_empty_string_on_os_error(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    # BEGIN: an environment where socket.gethostname raises OSError
-    monkeypatch.setattr(socket, "gethostname", lambda: (_ for _ in ()).throw(OSError()))
-
-    # WHEN: _safe_hostname is called
-    result = _safe_hostname()
-
-    # THEN: falls back to empty string
-    assert result == ""
 
 
 # ---- revision-gated branches in write_query_packet ----------------------

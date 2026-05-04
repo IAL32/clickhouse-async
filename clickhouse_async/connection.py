@@ -450,8 +450,13 @@ class Connection:
             parameters=formatted_params,
             compression=self._compression != CompressionMethod.NONE,
         )
-        self._writer.write(out.getvalue())
-        await self._writer.drain()
+        try:
+            self._writer.write(out.getvalue())
+            await self._writer.drain()
+        except BaseException as exc:
+            self._transition(State.BROKEN, f"send_query write failed: {exc!r}")
+            await self._cleanup_writer()
+            raise
         self._transition(
             State.IN_FLIGHT,
             f"send_query(query_id={query_id!r}, len(sql)={len(sql)})",
@@ -486,8 +491,13 @@ class Connection:
             revision=self._negotiated_revision,
             compression=self._compression,
         )
-        self._writer.write(out.getvalue())
-        await self._writer.drain()
+        try:
+            self._writer.write(out.getvalue())
+            await self._writer.drain()
+        except BaseException as exc:
+            self._transition(State.BROKEN, f"send_data write failed: {exc!r}")
+            await self._cleanup_writer()
+            raise
 
     async def ping(self) -> None:
         """Send a ``Ping`` packet and read the matching ``Pong``.
@@ -512,7 +522,12 @@ class Connection:
             await self._cleanup_writer()
             raise
 
-        packet_id = await self._reader.read_varuint()
+        try:
+            packet_id = await self._reader.read_varuint()
+        except BaseException as exc:
+            self._transition(State.BROKEN, f"ping read failed: {exc!r}")
+            await self._cleanup_writer()
+            raise
         if packet_id != ServerPacket.PONG:
             self._transition(
                 State.BROKEN, f"unexpected packet id {packet_id} after Ping"
@@ -641,86 +656,95 @@ class Connection:
         # (upstream sendLogs / sendProfileEvents bypass the compression
         # layer regardless of the per-query compression flag).
         compression = self._compression
-        while True:
-            # Re-read on each iteration so a TIMEZONE_UPDATE packet
-            # mid-query updates the codec's view for subsequent blocks.
-            session_tz = self._session_timezone
-            packet_id = await self._reader.read_varuint()
-            if packet_id == ServerPacket.DATA:
-                _, block = await read_block_packet_body(
-                    self._reader,
-                    revision=revision,
-                    compression=compression,
-                    session_timezone=session_tz,
-                )
-                yield StreamedBlock(kind="data", block=block)
-            elif packet_id == ServerPacket.TOTALS:
-                _, block = await read_block_packet_body(
-                    self._reader,
-                    revision=revision,
-                    compression=compression,
-                    session_timezone=session_tz,
-                )
-                yield StreamedBlock(kind="totals", block=block)
-            elif packet_id == ServerPacket.EXTREMES:
-                _, block = await read_block_packet_body(
-                    self._reader,
-                    revision=revision,
-                    compression=compression,
-                    session_timezone=session_tz,
-                )
-                yield StreamedBlock(kind="extremes", block=block)
-            elif packet_id == ServerPacket.END_OF_STREAM:
-                self._transition(State.READY, "EndOfStream")
-                return
-            elif packet_id == ServerPacket.EXCEPTION:
-                err = await read_exception_body(self._reader)
-                self._transition(State.READY, f"server exception: {err.name}")
-                raise err
-            elif packet_id == ServerPacket.PROGRESS:
-                progress = await read_progress(self._reader, revision=revision)
-                if self.on_progress is not None:
-                    self.on_progress(progress)
-            elif packet_id == ServerPacket.PROFILE_INFO:
-                pinfo = await read_profile_info(self._reader, revision=revision)
-                if self.on_profile_info is not None:
-                    self.on_profile_info(pinfo)
-            elif packet_id == ServerPacket.PROFILE_EVENTS:
-                _, block = await read_block_packet_body(
-                    self._reader,
-                    revision=revision,
-                    session_timezone=session_tz,
-                )
-                if self.on_profile_events is not None:
-                    self.on_profile_events(block)
-            elif packet_id == ServerPacket.LOG:
-                _, block = await read_block_packet_body(
-                    self._reader,
-                    revision=revision,
-                    session_timezone=session_tz,
-                )
-                if self.on_log is not None:
-                    self.on_log(block)
-            elif packet_id == ServerPacket.TABLE_COLUMNS:
-                default_table_name, columns = await read_table_columns(self._reader)
-                if self.on_table_columns is not None:
-                    self.on_table_columns(default_table_name, columns)
-            elif packet_id == ServerPacket.TIMEZONE_UPDATE:
-                tz = await read_timezone_update(self._reader)
-                # Capture before firing the user callback so a hook
-                # that introspects ``conn.session_timezone`` sees the
-                # new value, not the stale one.
-                self._session_timezone = tz or None
-                if self.on_timezone_update is not None:
-                    self.on_timezone_update(tz)
-            else:
-                self._transition(State.BROKEN, f"unexpected packet id {packet_id}")
-                raise ProtocolError(
-                    f"unexpected packet id {packet_id} during query "
-                    f"(distributed-read packets PART_UUIDS / "
-                    f"READ_TASK_REQUEST / MERGE_TREE_* are not expected on "
-                    f"initial-query connections)"
-                )
+        try:
+            while True:
+                # Re-read on each iteration so a TIMEZONE_UPDATE packet
+                # mid-query updates the codec's view for subsequent blocks.
+                session_tz = self._session_timezone
+                packet_id = await self._reader.read_varuint()
+                if packet_id == ServerPacket.DATA:
+                    _, block = await read_block_packet_body(
+                        self._reader,
+                        revision=revision,
+                        compression=compression,
+                        session_timezone=session_tz,
+                    )
+                    yield StreamedBlock(kind="data", block=block)
+                elif packet_id == ServerPacket.TOTALS:
+                    _, block = await read_block_packet_body(
+                        self._reader,
+                        revision=revision,
+                        compression=compression,
+                        session_timezone=session_tz,
+                    )
+                    yield StreamedBlock(kind="totals", block=block)
+                elif packet_id == ServerPacket.EXTREMES:
+                    _, block = await read_block_packet_body(
+                        self._reader,
+                        revision=revision,
+                        compression=compression,
+                        session_timezone=session_tz,
+                    )
+                    yield StreamedBlock(kind="extremes", block=block)
+                elif packet_id == ServerPacket.END_OF_STREAM:
+                    self._transition(State.READY, "EndOfStream")
+                    return
+                elif packet_id == ServerPacket.EXCEPTION:
+                    err = await read_exception_body(self._reader)
+                    self._transition(State.READY, f"server exception: {err.name}")
+                    raise err
+                elif packet_id == ServerPacket.PROGRESS:
+                    progress = await read_progress(self._reader, revision=revision)
+                    if self.on_progress is not None:
+                        self.on_progress(progress)
+                elif packet_id == ServerPacket.PROFILE_INFO:
+                    pinfo = await read_profile_info(self._reader, revision=revision)
+                    if self.on_profile_info is not None:
+                        self.on_profile_info(pinfo)
+                elif packet_id == ServerPacket.PROFILE_EVENTS:
+                    _, block = await read_block_packet_body(
+                        self._reader,
+                        revision=revision,
+                        session_timezone=session_tz,
+                    )
+                    if self.on_profile_events is not None:
+                        self.on_profile_events(block)
+                elif packet_id == ServerPacket.LOG:
+                    _, block = await read_block_packet_body(
+                        self._reader,
+                        revision=revision,
+                        session_timezone=session_tz,
+                    )
+                    if self.on_log is not None:
+                        self.on_log(block)
+                elif packet_id == ServerPacket.TABLE_COLUMNS:
+                    default_table_name, columns = await read_table_columns(self._reader)
+                    if self.on_table_columns is not None:
+                        self.on_table_columns(default_table_name, columns)
+                elif packet_id == ServerPacket.TIMEZONE_UPDATE:
+                    tz = await read_timezone_update(self._reader)
+                    # Capture before firing the user callback so a hook
+                    # that introspects ``conn.session_timezone`` sees the
+                    # new value, not the stale one.
+                    self._session_timezone = tz or None
+                    if self.on_timezone_update is not None:
+                        self.on_timezone_update(tz)
+                else:
+                    self._transition(State.BROKEN, f"unexpected packet id {packet_id}")
+                    raise ProtocolError(
+                        f"unexpected packet id {packet_id} during query "
+                        f"(distributed-read packets PART_UUIDS / "
+                        f"READ_TASK_REQUEST / MERGE_TREE_* are not expected on "
+                        f"initial-query connections)"
+                    )
+        except (ProtocolError, OSError) as exc:
+            # IO error (EOF, TCP reset, truncated body) — the connection is
+            # unrecoverable. Mark BROKEN unless a prior branch already did
+            # (e.g. the unknown-packet-id path above).
+            if self._state == State.IN_FLIGHT:
+                self._transition(State.BROKEN, f"IO error in iter_packets: {exc!r}")
+                await self._cleanup_writer()
+            raise
 
     async def _send_addendum(self) -> None:
         """Send the post-Hello addendum the server expects from clients

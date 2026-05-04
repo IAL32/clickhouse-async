@@ -159,3 +159,97 @@ build-out plus the v0.1 hardening cycle (plans 01–05).
   `[compression]` extras.
 
 [CONTRIBUTING]: ./CONTRIBUTING.md
+
+## v0.3.1 (2026-05-04)
+
+### Feat
+
+- **connection**: add connect_timeout parameter to Connection, Client, and Pool
+- bump OUR_REVISION to 54483, add ClickHouse 26.3 LTS support
+
+### Fix
+
+- **protocol**: decompress TABLE_COLUMNS body at revision >= 54481
+- **ci**: prevent integration test hang on connect and in Docker asyncio
+- **tests**: replace system.numbers() table-function calls with system.numbers LIMIT n
+
+## v0.3.0 (2026-05-04)
+
+### Feat
+
+- **v0.4-05**: add example scenario tests against real public datasets
+- **v0.3-04**: enable LZ4 compression by default when extra is installed
+- **v0.3-03**: JSON ergonomics — nested-dict mode and shared-data overflow
+- **v0.3-02**: add column_factories hook for columnar surface
+- **v0.3-01**: add columnar retrieval surface
+
+### Refactor
+
+- extract _nest/_flatten to _json_helpers.py
+
+## v0.2.0 (2026-05-04)
+
+### Feat
+
+- full JSON read/write + Dynamic alphabetical-sort fix (v0.2 plan 07)
+- JSON parser-only stub + Dynamic V1 wire format (v0.2 plan 07)
+- Variant + Dynamic types (v0.2 plan 06)
+- AggregateFunction state columns (v0.2 plan 05)
+- geo aliases (Point, Ring, Polygon, MultiPolygon) (v0.2 plan 04)
+- Nested(name T, ...) type (v0.2 plan 03)
+- INSERT header validation + server-confirmed written_rows (v0.2 plan 02)
+- DateTime64 full precision + session timezone plumbing (v0.2 plan 01)
+
+### Fix
+
+- harden Connection against transport-level failures + add resilience tests
+
+### Refactor
+
+- extract parse_type + registry into types/_parser.py
+
+## v0.1.0 (2026-05-03)
+
+### Feat
+
+- Tuple named-field syntax (plan 05) + v0.1 release prep
+- LowCardinality(Nullable(T)) + fix v0 LC wire format (plan 04)
+- cross-connection query cancel via kill_query (v0.1 plan 03)
+- **pool**: make the idle reaper opt-out via enable_reaper
+- **pool**: idle reaper + min_size warm (v0.1 plan 02)
+- multi-host DSN with failover (v0.1 plan 01)
+- **tests**: integration suite + handshake / parameter wire fixes
+- **pool**: health checks, lifetime cap, pass-through one-shots (08b)
+- **pool**: lazy-fill bounded pool with FIFO acquire (08a)
+- **client**: insert with sync + async row sources (07d)
+- **client**: iter_blocks / iter_rows with cancel-on-break (07c)
+- **client**: execute / fetch_all / fetch_one + QueryResult (07b)
+- **client**: DSN parser + Client lifecycle (07a)
+- **connection**: LZ4 / ZSTD compressed-frame support (06h)
+- **connection**: cooperative cancel + bounded drain (06g)
+- **connection**: server-side query parameters (06f)
+- **connection**: send_data for the INSERT data path (06e)
+- **connection**: full packet-loop dispatch + callback hooks (06d)
+- **connection**: Query packet + minimal SELECT round-trip (06c)
+- **connection**: Hello handshake + ServerInfo
+- **connection**: state machine + lifecycle skeleton
+- **protocol**: add Block read/write
+- **types**: add Enum8/Enum16 and LowCardinality(T)
+- **types**: add Array, Tuple, Map composite codecs
+- **types**: add UUID, IPv4, IPv6 codecs
+- **types**: full primitive matrix, decimals, dates, datetimes
+- **types**: scaffold column codec system with Int32, String, Nullable
+- **protocol**: define packet ids and revision gates
+- **protocol**: add async binary I/O primitives
+- migrate to `uv` (#3)
+- Add first protocol implementations and integration tests (#1)
+
+### Fix
+
+- **ci**: drop listen-host hack; wait for real server's Ready line
+- **ci**: grep server log file, not docker logs
+- **ci**: wait for real server's 'Ready for connections' log line
+- **ci**: listen_host=0.0.0.0 + rotation no-failure short-clock fix
+- **ci**: pin integration tests to 127.0.0.1 + dump server logs
+- **scripts**: probe host-side TCP after in-container readiness
+- **ci**: drop nonexistent --no-extras flag from sync invocations

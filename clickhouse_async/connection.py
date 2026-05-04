@@ -64,8 +64,11 @@ from clickhouse_async.protocol.handshake import (
 from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 from clickhouse_async.protocol.packets import (
     DBMS_MIN_PROTOCOL_VERSION_WITH_ADDENDUM,
+    DBMS_MIN_PROTOCOL_VERSION_WITH_CHUNKED_PACKETS,
     DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS,
     DBMS_MIN_PROTOCOL_VERSION_WITH_QUOTA_KEY,
+    DBMS_MIN_REVISION_WITH_COMPRESSED_LOGS_PROFILE_EVENTS_COLUMNS,
+    DBMS_MIN_REVISION_WITH_VERSIONED_PARALLEL_REPLICAS_PROTOCOL,
     OUR_REVISION,
     ClientPacket,
     ServerPacket,
@@ -172,6 +175,10 @@ class Connection:
     first success and raising ``ConnectError`` (with every per-host
     error attached) only if every candidate fails. ``close()`` is
     idempotent and safe from any state, including mid-open.
+
+    ``connect_timeout`` limits how long each per-host TCP connect +
+    handshake may take (seconds). ``None`` means no limit. On timeout
+    the host is treated as a failure and the next candidate is tried.
     """
 
     def __init__(
@@ -184,6 +191,7 @@ class Connection:
         on_host_attempt: Callable[[tuple[str, int], BaseException | None], None]
         | None = None,
         json_nested: bool = False,
+        connect_timeout: float | None = None,
     ) -> None:
         if not hosts:
             raise ValueError("Connection requires at least one host")
@@ -200,6 +208,7 @@ class Connection:
         # Used by the pool's ``_HostRotation`` to track per-host
         # cooldowns without having to peek at private state.
         self._on_host_attempt = on_host_attempt
+        self._connect_timeout = connect_timeout
         self._state: State = State.IDLE
         self._reader: AsyncBinaryReader | None = None
         self._writer: _WriterLike | None = None
@@ -337,28 +346,25 @@ class Connection:
 
         host_errors: list[tuple[str, int, str, BaseException]] = []
         for host, port in self._hosts:
-            stage = "transport open"
             try:
-                reader, writer = await self._transport_factory(
-                    host, port, self._ssl_context
+                coro = self._open_host(
+                    host, port, user=user, password=password, database=database
                 )
-                self._reader = AsyncBinaryReader(reader)
-                self._writer = writer
-                stage = "handshake"
-                await self._do_handshake(
-                    user=user, password=password, database=database
-                )
+                if self._connect_timeout is not None:
+                    await asyncio.wait_for(coro, timeout=self._connect_timeout)
+                else:
+                    await coro
             except (
                 asyncio.CancelledError
             ):  # pragma: no cover — task-level cancel during connect
                 # Cancellation isn't a per-host failure — propagate.
                 self._transition(
-                    State.BROKEN, f"cancelled during {stage} for {host}:{port}"
+                    State.BROKEN, f"cancelled during connect for {host}:{port}"
                 )
                 await self._cleanup_writer()
                 raise
             except BaseException as exc:
-                host_errors.append((host, port, stage, exc))
+                host_errors.append((host, port, "connect", exc))
                 if self._on_host_attempt is not None:
                     self._on_host_attempt((host, port), exc)
                 # Drop the half-opened transport so the next candidate
@@ -390,6 +396,21 @@ class Connection:
         # Multi-host: wrap so the message names every attempted candidate
         # and the per-host exceptions are preserved on ``host_errors``.
         raise ConnectError([(h, p, e) for (h, p, _stage, e) in host_errors])
+
+    async def _open_host(
+        self,
+        host: str,
+        port: int,
+        *,
+        user: str,
+        password: str,
+        database: str,
+    ) -> None:
+        """Open transport to one candidate host and run the Hello handshake."""
+        reader, writer = await self._transport_factory(host, port, self._ssl_context)
+        self._reader = AsyncBinaryReader(reader)
+        self._writer = writer
+        await self._do_handshake(user=user, password=password, database=database)
 
     async def _do_handshake(self, *, user: str, password: str, database: str) -> None:
         assert self._reader is not None and self._writer is not None
@@ -689,10 +710,15 @@ class Connection:
         assert self._reader is not None
         revision = self._negotiated_revision
         # DATA / TOTALS / EXTREMES blocks travel through the connection's
-        # negotiated compression; LOG / PROFILE_EVENTS are always raw
-        # (upstream sendLogs / sendProfileEvents bypass the compression
-        # layer regardless of the per-query compression flag).
+        # negotiated compression. LOG / PROFILE_EVENTS were always raw
+        # before revision 54481; from 54481+ they use the same compression
+        # channel when compression is enabled.
         compression = self._compression
+        aux_compression = (
+            compression
+            if revision >= DBMS_MIN_REVISION_WITH_COMPRESSED_LOGS_PROFILE_EVENTS_COLUMNS
+            else CompressionMethod.NONE
+        )
         try:
             while True:
                 # Re-read on each iteration so a TIMEZONE_UPDATE packet
@@ -746,6 +772,7 @@ class Connection:
                     _, block = await read_block_packet_body(
                         self._reader,
                         revision=revision,
+                        compression=aux_compression,
                         session_timezone=session_tz,
                     )
                     if self.on_profile_events is not None:
@@ -754,6 +781,7 @@ class Connection:
                     _, block = await read_block_packet_body(
                         self._reader,
                         revision=revision,
+                        compression=aux_compression,
                         session_timezone=session_tz,
                     )
                     if self.on_log is not None:
@@ -792,11 +820,8 @@ class Connection:
         whose negotiated revision is at or above
         ``DBMS_MIN_PROTOCOL_VERSION_WITH_ADDENDUM``.
 
-        At ``OUR_REVISION`` the addendum is just one length-prefixed
-        string — the quota key, which we don't use — so we always emit
-        an empty string. Newer revisions add chunked-protocol
-        negotiation and parallel-replicas versioning; both gates sit
-        above ``OUR_REVISION`` and surface as no-ops here.
+        Fields are written in the order ``TCPHandler::receiveAddendum``
+        reads them. Old servers (< 54458) skip the whole addendum.
         """
         if self._negotiated_revision < DBMS_MIN_PROTOCOL_VERSION_WITH_ADDENDUM:
             return
@@ -804,8 +829,14 @@ class Connection:
         out = BinaryWriter()
         if self._negotiated_revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_QUOTA_KEY:
             out.write_string("")  # empty quota_key — we don't use quotas
-        if len(out) == 0:
-            return
+        if self._negotiated_revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_CHUNKED_PACKETS:
+            out.write_string("notchunked")  # proto_send_chunked
+            out.write_string("notchunked")  # proto_recv_chunked
+        if (
+            self._negotiated_revision
+            >= DBMS_MIN_REVISION_WITH_VERSIONED_PARALLEL_REPLICAS_PROTOCOL
+        ):
+            out.write_varuint(0)  # parallel_replicas_protocol_version (unused)
         self._writer.write(out.getvalue())
         await self._writer.drain()
 

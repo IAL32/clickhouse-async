@@ -84,7 +84,7 @@ async def test_transport_factory_failure_marks_connection_broken() -> None:
     last = conn.transitions[-1]
     assert last[0] == State.CONNECTING
     assert last[1] == State.BROKEN
-    assert "transport open failed" in last[2]
+    assert "connect failed" in last[2]
 
 
 # ---- close() ------------------------------------------------------------

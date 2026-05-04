@@ -134,6 +134,7 @@ class Client:
         column_factories: dict[str, Callable[[list[Any]], Any]] | None = None,
         json_nested: bool = False,
         compression: CompressionMethod | None = None,
+        connect_timeout: float | None = None,
     ) -> None:
         parsed = dsn if isinstance(dsn, DSN) else parse_dsn(dsn)
         self._dsn: DSN = parsed
@@ -148,6 +149,7 @@ class Client:
         self._transport_factory = transport_factory
         self._on_host_attempt = on_host_attempt
         self._column_factories = column_factories
+        self._connect_timeout = connect_timeout
         # Explicit kwarg overrides DSN; None in either falls through to
         # _default_compression() inside Connection.__init__.
         effective_compression = (
@@ -160,6 +162,7 @@ class Client:
             transport_factory=transport_factory,
             on_host_attempt=on_host_attempt,
             json_nested=json_nested,
+            connect_timeout=connect_timeout,
         )
 
     # ---- lifecycle -------------------------------------------------------
@@ -714,6 +717,7 @@ class Client:
             ssl_context=self._ssl_context,
             transport_factory=self._transport_factory,
             on_host_attempt=self._on_host_attempt,
+            connect_timeout=self._connect_timeout,
         ) as fresh:
             result = await fresh.execute(sql, params=params)
             return result.row_count
@@ -796,6 +800,7 @@ def connect(
     column_factories: dict[str, Callable[[list[Any]], Any]] | None = None,
     json_nested: bool = False,
     compression: CompressionMethod | None = None,
+    connect_timeout: float | None = None,
 ) -> Client:
     """Build an unopened ``Client``. The handshake happens when you
     enter the ``async with`` block (or call ``await client.open()``).
@@ -816,6 +821,10 @@ def connect(
     ``[compression]`` extra is installed and the DSN omits
     ``?compression=``. Pass ``CompressionMethod.NONE`` to force off.
 
+    ``connect_timeout`` limits how long each per-host TCP connect +
+    Hello handshake may take (seconds). ``None`` means no limit. On
+    timeout the host counts as failed and the next candidate is tried.
+
     ``transport_factory`` is a test-only injection point for the
     underlying socket pair; production callers should leave it unset.
     """
@@ -826,4 +835,5 @@ def connect(
         column_factories=column_factories,
         json_nested=json_nested,
         compression=compression,
+        connect_timeout=connect_timeout,
     )

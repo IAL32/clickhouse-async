@@ -243,3 +243,57 @@ def test_connect_error_empty_list_raises_value_error() -> None:
     # WHEN: / THEN: ConnectError requires at least one failure entry
     with pytest.raises(ValueError, match="at least one"):
         ConnectError([])
+
+
+# ---- connect_timeout -------------------------------------------------------
+
+
+async def test_connect_timeout_raises_when_handshake_hangs() -> None:
+    # BEGIN: a transport that opens successfully but never feeds any bytes
+    #        (simulates a server that accepts the TCP connection but ignores
+    #        our Hello — the handshake read blocks forever without a timeout)
+    async def _hanging_factory(
+        _host: str,
+        _port: int,
+        _ssl: object,
+    ) -> tuple[asyncio.StreamReader, _WriterLike]:
+        return asyncio.StreamReader(), _ScriptedWriter(bytearray())
+
+    conn = Connection(
+        [("h", 9000)],
+        transport_factory=_hanging_factory,
+        connect_timeout=0.05,
+    )
+
+    # WHEN / THEN: open() raises because the handshake times out
+    with pytest.raises((TimeoutError, asyncio.TimeoutError)):
+        await conn.open()
+    assert conn.state == State.BROKEN
+
+
+async def test_connect_timeout_falls_through_to_next_host() -> None:
+    # BEGIN: first host hangs; second host has a valid Hello
+    async def _hanging_factory(
+        host: str,
+        port: int,
+        _ssl: object,
+    ) -> tuple[asyncio.StreamReader, _WriterLike]:
+        if host == "slow":
+            return asyncio.StreamReader(), _ScriptedWriter(bytearray())
+        reader = asyncio.StreamReader()
+        reader.feed_data(encode_server_hello())
+        reader.feed_eof()
+        return reader, _ScriptedWriter(bytearray())
+
+    conn = Connection(
+        [("slow", 9000), ("fast", 9000)],
+        transport_factory=_hanging_factory,
+        connect_timeout=0.05,
+    )
+
+    # WHEN: opening the connection
+    await conn.open()
+
+    # THEN: the second host won; connection is READY
+    assert conn.state == State.READY
+    assert conn.host == "fast"

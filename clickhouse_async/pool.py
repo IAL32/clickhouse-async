@@ -85,6 +85,7 @@ class Pool:
         column_factories: dict[str, Callable[[list[Any]], Any]] | None = None,
         json_nested: bool = False,
         compression: CompressionMethod | None = None,
+        connect_timeout: float | None = None,
     ) -> None:
         if max_size < 1:
             raise ValueError(f"max_size must be ≥ 1, got {max_size}")
@@ -132,6 +133,7 @@ class Pool:
         self._column_factories = column_factories
         self._json_nested = json_nested
         self._compression = compression
+        self._connect_timeout = connect_timeout
         self._rotation = _HostRotation(self._dsn.hosts, cooldown=host_failover_cooldown)
 
         # FIFO deque + Condition: the reaper needs to scan entries by
@@ -344,6 +346,7 @@ class Pool:
             column_factories=self._column_factories,
             json_nested=self._json_nested,
             compression=self._compression,
+            connect_timeout=self._connect_timeout,
         )
         await client.open()
         # Stamp the open timestamp on the client itself so we can read
@@ -647,6 +650,7 @@ def create_pool(
     column_factories: dict[str, Callable[[list[Any]], Any]] | None = None,
     json_nested: bool = False,
     compression: CompressionMethod | None = None,
+    connect_timeout: float | None = None,
 ) -> Pool:
     """Build an unopened pool. Connections open on first ``acquire()``.
 
@@ -671,6 +675,9 @@ def create_pool(
       (seconds) to skip a host that just failed before considering it
       again. Best-effort: if every host is in cooldown the rotation
       retries them all.
+    - ``connect_timeout``: seconds each per-host TCP connect + Hello
+      handshake may take before the host is treated as failed. ``None``
+      (the default) means no limit.
 
     ``transport_factory`` is a test-only injection point for the
     underlying socket pair; production callers should leave it unset.
@@ -691,4 +698,5 @@ def create_pool(
         column_factories=column_factories,
         json_nested=json_nested,
         compression=compression,
+        connect_timeout=connect_timeout,
     )

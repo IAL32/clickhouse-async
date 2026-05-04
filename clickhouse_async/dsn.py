@@ -57,7 +57,7 @@ class DSN:
     password: str
     database: str
     secure: bool = False
-    compression: CompressionMethod = CompressionMethod.NONE
+    compression: CompressionMethod | None = None
     connect_timeout: float = DEFAULT_CONNECT_TIMEOUT
     settings: dict[str, str] = field(default_factory=dict)
 
@@ -115,7 +115,7 @@ def parse_dsn(dsn: str) -> DSN:
     path = parsed.path.lstrip("/")
     database = unquote(path) if path else DEFAULT_DATABASE
 
-    compression = _parse_compression(_take_one(query, "compression", "none"))
+    compression = _parse_compression(_take_one(query, "compression", ""))
 
     connect_timeout_str = _take_one(
         query, "connect_timeout", str(DEFAULT_CONNECT_TIMEOUT)
@@ -231,9 +231,11 @@ def _parse_bool(s: str) -> bool:
     raise ValueError(f"invalid bool value {s!r}")
 
 
-def _parse_compression(s: str) -> CompressionMethod:
+def _parse_compression(s: str) -> CompressionMethod | None:
     lowered = s.strip().lower()
-    if lowered in ("none", "off", "false", ""):
+    if lowered == "":
+        return None  # not specified → auto-detect at connection time
+    if lowered in ("none", "off", "false"):
         return CompressionMethod.NONE
     if lowered == "lz4":
         return CompressionMethod.LZ4

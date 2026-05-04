@@ -28,7 +28,8 @@ from enum import IntEnum
 from typing import TYPE_CHECKING
 
 from clickhouse_async.protocol._client_env import _safe_hostname, _safe_os_user
-from clickhouse_async.protocol.block import Block, BlockInfo, write_block
+from clickhouse_async.protocol.block import Block, BlockInfo
+from clickhouse_async.protocol.compression import CompressionMethod, write_block_framed
 from clickhouse_async.protocol.handshake import (
     CLIENT_NAME,
     CLIENT_VERSION_MAJOR,
@@ -144,14 +145,15 @@ def write_query_packet(
     revision: int,
     settings: Mapping[str, str] | None = None,
     parameters: Mapping[str, str] | None = None,
-    compression: bool = False,
+    compression: CompressionMethod = CompressionMethod.NONE,
 ) -> None:
     """Append a complete Query packet plus the trailing empty data block.
 
     Settings and parameters values are strings on the wire — type
-    coercion happens at the call site. ``compression`` only flips the
-    flag here; the actual compressed framing lives in
-    ``protocol/compression.py``.
+    coercion happens at the call site. The trailing empty Data block is
+    framed with the same ``compression`` method as the rest of the
+    connection — the server expects all client-to-server blocks to be
+    compressed whenever compression is negotiated.
     """
 
     writer.write_varuint(ClientPacket.QUERY)
@@ -172,7 +174,7 @@ def write_query_packet(
         writer.write_string("")
 
     writer.write_varuint(QueryStage.COMPLETE)
-    writer.write_varuint(1 if compression else 0)
+    writer.write_varuint(0 if compression == CompressionMethod.NONE else 1)
     writer.write_string(sql)
 
     if revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS:
@@ -185,10 +187,13 @@ def write_query_packet(
 
     # Trailing empty Data packet — signals "no inline data" for SELECTs;
     # for INSERTs the caller follows it with real Data packets.
+    # Must be framed with the connection's compression when compression is
+    # on — the server expects all client-to-server blocks to be compressed.
     writer.write_varuint(ClientPacket.DATA)
     writer.write_string("")  # external table name (empty = main table)
-    write_block(
+    write_block_framed(
         writer,
         Block(info=BlockInfo(), columns=[], n_rows=0, data=[]),
         revision=revision,
+        compression=compression,
     )

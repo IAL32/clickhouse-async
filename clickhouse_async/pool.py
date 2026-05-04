@@ -49,6 +49,7 @@ if TYPE_CHECKING:
     from typing import Any
 
     from clickhouse_async.connection import TransportFactory
+    from clickhouse_async.protocol.compression import CompressionMethod
 
 _logger = logging.getLogger(__name__)
 
@@ -83,6 +84,7 @@ class Pool:
         transport_factory: TransportFactory | None = None,
         column_factories: dict[str, Callable[[list[Any]], Any]] | None = None,
         json_nested: bool = False,
+        compression: CompressionMethod | None = None,
     ) -> None:
         if max_size < 1:
             raise ValueError(f"max_size must be ≥ 1, got {max_size}")
@@ -129,6 +131,7 @@ class Pool:
         self._transport_factory = transport_factory
         self._column_factories = column_factories
         self._json_nested = json_nested
+        self._compression = compression
         self._rotation = _HostRotation(self._dsn.hosts, cooldown=host_failover_cooldown)
 
         # FIFO deque + Condition: the reaper needs to scan entries by
@@ -340,6 +343,7 @@ class Pool:
             on_host_attempt=_on_attempt,
             column_factories=self._column_factories,
             json_nested=self._json_nested,
+            compression=self._compression,
         )
         await client.open()
         # Stamp the open timestamp on the client itself so we can read
@@ -642,6 +646,7 @@ def create_pool(
     transport_factory: TransportFactory | None = None,
     column_factories: dict[str, Callable[[list[Any]], Any]] | None = None,
     json_nested: bool = False,
+    compression: CompressionMethod | None = None,
 ) -> Pool:
     """Build an unopened pool. Connections open on first ``acquire()``.
 
@@ -685,4 +690,5 @@ def create_pool(
         transport_factory=transport_factory,
         column_factories=column_factories,
         json_nested=json_nested,
+        compression=compression,
     )

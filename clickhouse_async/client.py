@@ -39,6 +39,7 @@ from clickhouse_async.protocol.server_packets import ProfileInfo, ProgressInfo
 if TYPE_CHECKING:
     from types import TracebackType
 
+    from clickhouse_async.protocol.compression import CompressionMethod
     from clickhouse_async.protocol.handshake import ServerInfo
 
 
@@ -132,6 +133,7 @@ class Client:
         | None = None,
         column_factories: dict[str, Callable[[list[Any]], Any]] | None = None,
         json_nested: bool = False,
+        compression: CompressionMethod | None = None,
     ) -> None:
         parsed = dsn if isinstance(dsn, DSN) else parse_dsn(dsn)
         self._dsn: DSN = parsed
@@ -146,10 +148,15 @@ class Client:
         self._transport_factory = transport_factory
         self._on_host_attempt = on_host_attempt
         self._column_factories = column_factories
+        # Explicit kwarg overrides DSN; None in either falls through to
+        # _default_compression() inside Connection.__init__.
+        effective_compression = (
+            compression if compression is not None else parsed.compression
+        )
         self._conn = Connection(
             parsed.hosts,
             ssl_context=ssl_context,
-            compression=parsed.compression,
+            compression=effective_compression,
             transport_factory=transport_factory,
             on_host_attempt=on_host_attempt,
             json_nested=json_nested,
@@ -788,6 +795,7 @@ def connect(
     transport_factory: TransportFactory | None = None,
     column_factories: dict[str, Callable[[list[Any]], Any]] | None = None,
     json_nested: bool = False,
+    compression: CompressionMethod | None = None,
 ) -> Client:
     """Build an unopened ``Client``. The handshake happens when you
     enter the ``async with`` block (or call ``await client.open()``).
@@ -803,6 +811,11 @@ def connect(
     dotted-path dicts (``{"user.id": 7}``). Write path always accepts
     both shapes transparently.
 
+    ``compression`` overrides the DSN's compression setting. ``None``
+    (the default) defers to the DSN, or auto-detects LZ4 when the
+    ``[compression]`` extra is installed and the DSN omits
+    ``?compression=``. Pass ``CompressionMethod.NONE`` to force off.
+
     ``transport_factory`` is a test-only injection point for the
     underlying socket pair; production callers should leave it unset.
     """
@@ -812,4 +825,5 @@ def connect(
         transport_factory=transport_factory,
         column_factories=column_factories,
         json_nested=json_nested,
+        compression=compression,
     )

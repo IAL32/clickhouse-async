@@ -33,7 +33,9 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import importlib
 import logging
+import os
 import ssl as _ssl_module
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass
@@ -81,6 +83,28 @@ from clickhouse_async.protocol.server_packets import (
 )
 
 _logger = logging.getLogger(__name__)
+
+
+def _default_compression() -> CompressionMethod:
+    """Return the auto-detected default compression method.
+
+    Checks ``CLICKHOUSE_ASYNC_DEFAULT_COMPRESSION`` first (any of
+    ``off``, ``none``, ``false``, ``0`` disables); then tries a lazy
+    ``import lz4.block`` — returns LZ4 on success, NONE on ImportError.
+    Never called at module import time so a bare install stays clean.
+    """
+    if os.environ.get("CLICKHOUSE_ASYNC_DEFAULT_COMPRESSION", "").lower() in (
+        "off",
+        "none",
+        "false",
+        "0",
+    ):
+        return CompressionMethod.NONE
+    try:
+        importlib.import_module("lz4.block")
+        return CompressionMethod.LZ4
+    except ImportError:
+        return CompressionMethod.NONE
 
 
 class State(IntEnum):
@@ -155,7 +179,7 @@ class Connection:
         hosts: Sequence[tuple[str, int]],
         *,
         ssl_context: _ssl_module.SSLContext | None = None,
-        compression: CompressionMethod = CompressionMethod.NONE,
+        compression: CompressionMethod | None = None,
         transport_factory: TransportFactory | None = None,
         on_host_attempt: Callable[[tuple[str, int], BaseException | None], None]
         | None = None,
@@ -165,7 +189,9 @@ class Connection:
             raise ValueError("Connection requires at least one host")
         self._hosts: tuple[tuple[str, int], ...] = tuple(hosts)
         self._ssl_context = ssl_context
-        self._compression = compression
+        self._compression = (
+            compression if compression is not None else _default_compression()
+        )
         self._transport_factory: TransportFactory = (
             transport_factory or _default_transport_factory
         )
@@ -457,7 +483,7 @@ class Connection:
             revision=self._negotiated_revision,
             settings=settings,
             parameters=formatted_params,
-            compression=self._compression != CompressionMethod.NONE,
+            compression=self._compression,
         )
         try:
             self._writer.write(out.getvalue())

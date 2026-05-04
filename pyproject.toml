@@ -132,6 +132,18 @@ target-version = "py311"
     # Allow magic values in comparisons
     "PLR2004",
 ]
+"scripts/*" = [
+    # Scripts use print for terminal output
+    "T20",
+    # SQL strings in scripts are not user-facing injection vectors
+    "S608",
+    # assert is fine in scripts
+    "S101",
+    # Magic values in scripts are acceptable
+    "PLR2004",
+    # Lazy imports inside functions are intentional in scripts
+    "PLC0415",
+]
 # ``Connection`` and ``Pool`` use ``assert`` for state-machine invariant
 # narrowing (``assert self._reader is not None`` after a State check).
 # These are real invariants — the State enum guarantees the values are

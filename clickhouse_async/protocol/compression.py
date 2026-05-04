@@ -69,10 +69,19 @@ def _cityhash_128(
 ) -> bytes:  # pragma: no cover — requires clickhouse-cityhash extra
     """CityHash128 over ``data``, packed as 16 LE bytes (low64 first,
     matching upstream ``writeBinaryLittleEndian(checksum.low64);
-    writeBinaryLittleEndian(checksum.high64)``)."""
+    writeBinaryLittleEndian(checksum.high64)``).
+
+    ``clickhouse_cityhash.CityHash128`` returns a 128-bit Python integer
+    as ``(low64 << 64) | high64`` — the opposite of what the name
+    suggests — so we extract the halves explicitly rather than using a
+    plain ``to_bytes`` on the whole value.
+    """
     mod = _require("compression", "clickhouse_cityhash.cityhash")
-    value = mod.CityHash128(data)
-    return int(value).to_bytes(16, "little")
+    value = int(mod.CityHash128(data))
+    # The binding packs (low64 << 64) | high64, so mask accordingly.
+    high64 = value & 0xFFFFFFFFFFFFFFFF
+    low64 = value >> 64
+    return low64.to_bytes(8, "little") + high64.to_bytes(8, "little")
 
 
 def _compress(method: CompressionMethod, payload: bytes) -> bytes:
@@ -186,6 +195,37 @@ class CompressedBlockWriter:
 # ---- compression-aware Block helpers -----------------------------------
 
 
+class _MultiFrameReader(AsyncBinaryReader):
+    """Wraps a raw ``AsyncBinaryReader`` and reads compressed frames on
+    demand, presenting the concatenated decompressed stream to the codec
+    layer.
+
+    ClickHouse's ``CompressedWriteBuffer`` flushes at ~1 MB compressed,
+    so a block larger than ~1 MB raw spans multiple frames in the same
+    DATA packet. Reading only the first frame leaves ``read_block`` with
+    partial data. This reader transparently fetches the next frame
+    whenever the buffer runs dry.
+    """
+
+    __slots__ = ("_buf", "_raw")
+
+    def __init__(self, raw: AsyncBinaryReader) -> None:  # pragma: no cover
+        self._raw = raw
+        self._buf: bytearray = bytearray()
+        self._pos = 0
+
+    async def read_exact(self, n: int) -> bytes:  # pragma: no cover
+        if n == 0:
+            return b""
+        while len(self._buf) < n:
+            frame = await CompressedBlockReader(self._raw).read_payload()
+            self._buf.extend(frame)
+        data = bytes(self._buf[:n])
+        del self._buf[:n]
+        self._pos += n
+        return data
+
+
 async def read_block_framed(
     reader: AsyncBinaryReader,
     *,
@@ -212,11 +252,8 @@ async def read_block_framed(
             session_timezone=session_timezone,
             json_nested=json_nested,
         )
-    payload = await CompressedBlockReader(
-        reader
-    ).read_payload()  # pragma: no cover — requires extras
     return await read_block(  # pragma: no cover — requires extras
-        AsyncBinaryReader.from_bytes(payload),
+        _MultiFrameReader(reader),
         revision=revision,
         session_timezone=session_timezone,
         json_nested=json_nested,

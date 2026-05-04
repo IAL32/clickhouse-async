@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import pytest
 
+from clickhouse_async.protocol.compression import CompressionMethod
 from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 from clickhouse_async.protocol.packets import (
     DBMS_MIN_REVISION_WITH_CLIENT_INFO,
@@ -94,10 +95,15 @@ async def test_write_query_packet_encodes_settings_in_wire_format() -> None:
 
 
 async def test_write_query_packet_with_compression_flag() -> None:
-    # BEGIN: write_query_packet with compression=True
+    # BEGIN: compression extra must be present — the compressed trailing block
+    # requires lz4 + clickhouse_cityhash
+    pytest.importorskip("lz4")
+    pytest.importorskip("clickhouse_cityhash")
+
     writer_plain = BinaryWriter()
     writer_comp = BinaryWriter()
 
+    # WHEN: writing a query packet without and with LZ4 compression
     write_query_packet(
         writer_plain, sql="SELECT 1", query_id="q", user="u", revision=OUR_REVISION
     )
@@ -107,9 +113,10 @@ async def test_write_query_packet_with_compression_flag() -> None:
         query_id="q",
         user="u",
         revision=OUR_REVISION,
-        compression=True,
+        compression=CompressionMethod.LZ4,
     )
 
-    # THEN: both are non-empty and differ (the compression flag byte differs)
+    # THEN: both are non-empty; the compressed packet differs (flag byte + framed block)
+    assert len(writer_plain.getvalue()) > 0
+    assert len(writer_comp.getvalue()) > 0
     assert writer_plain.getvalue() != writer_comp.getvalue()
-    assert len(writer_comp.getvalue()) == len(writer_plain.getvalue())

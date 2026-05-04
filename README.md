@@ -111,6 +111,37 @@ await client.insert(
 Parameters are bound server-side via ClickHouse's `{name:Type}` syntax,
 not interpolated client-side.
 
+## Compression
+
+LZ4 compression is **on by default** when the `[compression]` extra is
+installed. It costs almost nothing CPU-wise on modern hardware and cuts
+wire bytes by 3–10× on typical numeric/columnar data.
+
+```bash
+pip install clickhouse-async[compression]   # or uv add clickhouse-async[compression]
+```
+
+Once installed, every connection uses LZ4 automatically. To opt out:
+
+```python
+from clickhouse_async.protocol.compression import CompressionMethod
+
+# per-connection override
+async with ch.connect("clickhouse://...", compression=CompressionMethod.NONE) as client:
+    ...
+
+# via DSN query string
+async with ch.connect("clickhouse://host?compression=none") as client:
+    ...
+```
+
+Set the environment variable `CLICKHOUSE_ASYNC_DEFAULT_COMPRESSION=off` to
+disable the auto-detect globally without changing code (useful when the
+extra is installed but compression is undesired, e.g. during debugging).
+
+ZSTD is also supported (`compression=CompressionMethod.ZSTD` /
+`?compression=zstd`) for higher compression ratios at the cost of more CPU.
+
 ## Development
 
 ### Setup

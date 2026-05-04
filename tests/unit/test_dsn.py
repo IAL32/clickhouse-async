@@ -31,7 +31,7 @@ def test_minimal_dsn_uses_documented_defaults() -> None:
     assert dsn.password == ""
     assert dsn.database == DEFAULT_DATABASE
     assert dsn.secure is False
-    assert dsn.compression == CompressionMethod.NONE
+    assert dsn.compression is None  # omitted → auto-detect at connection time
     assert dsn.connect_timeout == DEFAULT_CONNECT_TIMEOUT
     assert dsn.settings == {}
 

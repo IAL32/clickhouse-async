@@ -396,10 +396,14 @@ ClickHouseError
 
 ## 9. Compression and TLS
 
-- **Compression:** opt-in via DSN/option. v0 supports **LZ4** (fast, the
-  default in upstream drivers) and **ZSTD**. The compressed-block framing
-  with CityHash128 checksums is implemented in the codec layer, so the
-  connection layer is unaware. Disabled by default until benchmarked.
+- **Compression:** auto-detected. v0 supports **LZ4** (fast, the default
+  in upstream drivers) and **ZSTD**. The compressed-block framing with
+  CityHash128 checksums is implemented in the codec layer, so the connection
+  layer is unaware. **Enabled by default (LZ4) when the `[compression]`
+  extra is installed;** falls back to uncompressed when the extra is absent.
+  Set `CLICKHOUSE_ASYNC_DEFAULT_COMPRESSION=off` to opt out globally, or
+  pass `compression=CompressionMethod.NONE` / `?compression=none` in the
+  DSN to opt out per-connection.
 - **TLS:** `clickhouses://` / `secure=true` in the DSN creates
   `ssl.create_default_context()` (system CA store, hostname verification
   on). Users who need custom CA bundles, client certificates, or disabled

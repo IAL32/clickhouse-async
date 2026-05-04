@@ -131,6 +131,7 @@ class Client:
         on_host_attempt: Callable[[tuple[str, int], BaseException | None], None]
         | None = None,
         column_factories: dict[str, Callable[[list[Any]], Any]] | None = None,
+        json_nested: bool = False,
     ) -> None:
         parsed = dsn if isinstance(dsn, DSN) else parse_dsn(dsn)
         self._dsn: DSN = parsed
@@ -151,6 +152,7 @@ class Client:
             compression=parsed.compression,
             transport_factory=transport_factory,
             on_host_attempt=on_host_attempt,
+            json_nested=json_nested,
         )
 
     # ---- lifecycle -------------------------------------------------------
@@ -785,6 +787,7 @@ def connect(
     ssl_context: _ssl_module.SSLContext | None = None,
     transport_factory: TransportFactory | None = None,
     column_factories: dict[str, Callable[[list[Any]], Any]] | None = None,
+    json_nested: bool = False,
 ) -> Client:
     """Build an unopened ``Client``. The handshake happens when you
     enter the ``async with`` block (or call ``await client.open()``).
@@ -795,6 +798,11 @@ def connect(
     ``numpy.array``). Applied in ``fetch_columns`` and
     ``iter_column_blocks``; row-major paths are unaffected.
 
+    ``json_nested=True`` makes every ``JSON`` column in the session
+    return nested dicts (``{"user": {"id": 7}}``) instead of flat
+    dotted-path dicts (``{"user.id": 7}``). Write path always accepts
+    both shapes transparently.
+
     ``transport_factory`` is a test-only injection point for the
     underlying socket pair; production callers should leave it unset.
     """
@@ -803,4 +811,5 @@ def connect(
         ssl_context=ssl_context,
         transport_factory=transport_factory,
         column_factories=column_factories,
+        json_nested=json_nested,
     )

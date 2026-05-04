@@ -192,6 +192,7 @@ async def read_block_framed(
     revision: int,
     compression: CompressionMethod,
     session_timezone: str | None = None,
+    json_nested: bool = False,
 ) -> Block:
     """Read a Block — framed-and-compressed when compression is on,
     raw otherwise. Used for the DATA / TOTALS / EXTREMES packet bodies
@@ -200,10 +201,16 @@ async def read_block_framed(
     ``session_timezone`` flows through to the inner ``read_block`` so
     bare ``DateTime`` codecs in the block's column specs honour the
     Connection's session timezone fallback.
+
+    ``json_nested`` flows through to configure ``JSON`` codecs to
+    return nested dicts on read.
     """
     if compression == CompressionMethod.NONE:
         return await read_block(
-            reader, revision=revision, session_timezone=session_timezone
+            reader,
+            revision=revision,
+            session_timezone=session_timezone,
+            json_nested=json_nested,
         )
     payload = await CompressedBlockReader(
         reader
@@ -212,6 +219,7 @@ async def read_block_framed(
         AsyncBinaryReader.from_bytes(payload),
         revision=revision,
         session_timezone=session_timezone,
+        json_nested=json_nested,
     )
 
 

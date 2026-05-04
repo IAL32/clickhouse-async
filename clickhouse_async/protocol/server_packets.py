@@ -137,6 +137,7 @@ async def read_block_packet_body(
     revision: int,
     compression: CompressionMethod = CompressionMethod.NONE,
     session_timezone: str | None = None,
+    json_nested: bool = False,
 ) -> tuple[str, Block]:
     """Read the body shared by Data / Totals / Extremes / Log / ProfileEvents.
 
@@ -151,6 +152,9 @@ async def read_block_packet_body(
     ``session_timezone`` is forwarded to ``read_block_framed`` so
     naive ``DateTime`` columns in the block honour the connection's
     session timezone.
+
+    ``json_nested`` is forwarded so ``JSON`` codecs in the block
+    return nested dicts on read when the session requests it.
     """
 
     table_name = await reader.read_string()
@@ -159,6 +163,7 @@ async def read_block_packet_body(
         revision=revision,
         compression=compression,
         session_timezone=session_timezone,
+        json_nested=json_nested,
     )
     return table_name, block
 

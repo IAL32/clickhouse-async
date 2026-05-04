@@ -35,6 +35,8 @@ specs verbatim so server-emitted block headers can be re-INSERTed.
 
 from __future__ import annotations
 
+import json as _json
+from collections import Counter
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from clickhouse_async.errors import ProtocolError
@@ -73,6 +75,42 @@ _OBJECT_VERSION_V2 = 2
 _DEFAULT_MAX_DYNAMIC_PATHS = 1024
 
 
+# ---- nested / flat helpers -------------------------------------------------
+
+
+def _nest(flat: dict[str, Any]) -> dict[str, Any]:
+    """Reconstruct a nested dict from dotted-path keys.
+
+    ``{"user.id": 7, "user.name": "alice"}`` → ``{"user": {"id": 7, "name": "alice"}}``.
+    Keys with no dot pass through unchanged.
+    """
+    out: dict[str, Any] = {}
+    for dotted_key, value in flat.items():
+        parts = dotted_key.split(".")
+        node = out
+        for part in parts[:-1]:
+            node = node.setdefault(part, {})
+        node[parts[-1]] = value
+    return out
+
+
+def _flatten(d: dict[str, Any], prefix: str = "") -> dict[str, Any]:
+    """Flatten a nested dict to dotted-path keys.
+
+    ``{"user": {"id": 7}}`` → ``{"user.id": 7}``. Already-flat dicts
+    (no values that are ``dict``) pass through unchanged — calling this
+    on a flat dict is a no-op.
+    """
+    out: dict[str, Any] = {}
+    for k, v in d.items():
+        full = f"{prefix}.{k}" if prefix else k
+        if isinstance(v, dict):
+            out.update(_flatten(v, full))
+        else:
+            out[full] = v
+    return out
+
+
 class JSON:
     """``JSON[(hint, hint, …)]`` — schema-on-read JSON column.
 
@@ -92,8 +130,14 @@ class JSON:
     null_value: ClassVar[None] = None
     python_type: ClassVar[type] = dict
 
-    def __init__(self, hints: list[_JSONHint] | None = None) -> None:
+    def __init__(
+        self,
+        hints: list[_JSONHint] | None = None,
+        *,
+        json_nested: bool = False,
+    ) -> None:
         self.hints = hints or []
+        self._nested = json_nested
         if self.hints:
             self.name = "JSON({})".format(", ".join(h.text for h in self.hints))
         else:
@@ -174,14 +218,13 @@ class JSON:
             for components in per_path_components
         ]
 
-        # 6. shared_data bulk — an ``Array(Tuple(String, String))``
-        #    body for n_rows. We decode it but don't surface the
-        #    values (most columns have it empty); future revisions can
-        #    hook these spilled paths back into the per-row dict.
+        # 6. shared_data bulk — ``Array(Tuple(String, String))`` body.
+        #    Each per-row element is a list of (dotted_path, json_str)
+        #    pairs for paths that spilled past max_dynamic_paths.
         shared_data_codec = parse_type("Array(Tuple(String, String))")
-        await shared_data_codec.read(reader, n_rows)
+        shared_data: list[list[Any]] = await shared_data_codec.read(reader, n_rows)
 
-        # 5. Reassemble per-row dicts. NULL on a path's Dynamic stream
+        # 7. Reassemble per-row dicts. NULL on a path's Dynamic stream
         #    means "this row had no value for this path" — represent
         #    that as the path being absent from the row's dict, not
         #    ``{path: None}``.
@@ -190,22 +233,48 @@ class JSON:
             for i, v in enumerate(values):
                 if v is not None:
                     result[i][path] = v
+        # Merge overflow paths from shared-data back in.
+        for i, spilled in enumerate(shared_data):
+            for path, json_str in spilled:
+                result[i][path] = _json.loads(json_str)
+        if self._nested:
+            return [_nest(row) for row in result]
         return result
 
     def write(self, writer: BinaryWriter, values: Sequence[dict[str, Any]]) -> None:
         if not values:
             return
 
-        # Walk rows once to discover the union of paths across the block.
-        # Sort alphabetically — upstream ``SerializationObject`` sorts
-        # ``object_state->sorted_dynamic_paths`` before writing.
-        path_set: set[str] = set()
-        for row in values:
-            path_set.update(row.keys())
-        sorted_paths = sorted(path_set)
+        # Flatten nested dicts to dotted-path keys first. Already-flat
+        # rows pass through unchanged (_flatten is a no-op on flat dicts).
+        flat_values: list[dict[str, Any]] = [_flatten(row) for row in values]
 
-        # For each path, resolve every row to a ``(spec, payload)`` pair
-        # (or ``(None, None)`` for missing). We need this resolution
+        # Count path occurrences across the batch to decide which paths
+        # get their own sub-column vs. spill to shared-data. Sort
+        # alphabetically — upstream ``SerializationObject`` sorts
+        # ``object_state->sorted_dynamic_paths`` before writing.
+        path_counts: Counter[str] = Counter()
+        for row in flat_values:
+            path_counts.update(row.keys())
+        all_paths = sorted(path_counts.keys())
+
+        if len(all_paths) <= _DEFAULT_MAX_DYNAMIC_PATHS:
+            dynamic_paths = all_paths
+            overflow_paths: list[str] = []
+        else:
+            # Most-frequent paths earn their own sub-column; the rest
+            # spill to the shared-data Array(Tuple(String, String)) column.
+            most_common = [
+                p for p, _ in path_counts.most_common(_DEFAULT_MAX_DYNAMIC_PATHS)
+            ]
+            dynamic_paths = sorted(most_common)
+            overflow_set = set(all_paths) - set(dynamic_paths)
+            overflow_paths = sorted(overflow_set)
+
+        sorted_paths = dynamic_paths
+
+        # For each dynamic path, resolve every row to a ``(spec, payload)``
+        # pair (or ``(None, None)`` for missing). We need this resolution
         # twice (once for the state prefix to compute declared types,
         # once for the bulk body to compute discriminators), so cache it
         # up front.
@@ -216,7 +285,7 @@ class JSON:
             seen: set[str] = set()
             specs: list[str] = []
             resolved: list[tuple[str | None, Any]] = []
-            for row in values:
+            for row in flat_values:
                 v = row.get(path)
                 if v is None:
                     resolved.append((None, None))
@@ -296,8 +365,20 @@ class JSON:
             ]
             Variant._write_body(writer, sorted_components, rows_with_disc)
 
-        # 5. shared_data bulk — empty ``Array(Tuple(String, String))``
-        #    body for ``n_rows``. Offsets are all 0 (no spilled
-        #    paths), and the inner Tuple body has 0 rows.
+        # 5. shared_data bulk — ``Array(Tuple(String, String))`` body.
+        #    Each element is a list of (dotted_path, json_encoded_value)
+        #    pairs for overflow paths present in that row. Empty when all
+        #    paths fit within _DEFAULT_MAX_DYNAMIC_PATHS.
+        if overflow_paths:
+            shared_rows: list[list[tuple[str, str]]] = []
+            for row in flat_values:
+                spilled: list[tuple[str, str]] = []
+                for path in overflow_paths:
+                    v = row.get(path)
+                    if v is not None:
+                        spilled.append((path, _json.dumps(v, default=str)))
+                shared_rows.append(spilled)
+        else:
+            shared_rows = [[] for _ in flat_values]
         shared_data_codec = parse_type("Array(Tuple(String, String))")
-        shared_data_codec.write(writer, [[] for _ in values])
+        shared_data_codec.write(writer, shared_rows)

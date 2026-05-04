@@ -82,6 +82,7 @@ class Pool:
         ssl_context: _ssl_module.SSLContext | None = None,
         transport_factory: TransportFactory | None = None,
         column_factories: dict[str, Callable[[list[Any]], Any]] | None = None,
+        json_nested: bool = False,
     ) -> None:
         if max_size < 1:
             raise ValueError(f"max_size must be ≥ 1, got {max_size}")
@@ -127,6 +128,7 @@ class Pool:
         self._ssl_context = ssl_context
         self._transport_factory = transport_factory
         self._column_factories = column_factories
+        self._json_nested = json_nested
         self._rotation = _HostRotation(self._dsn.hosts, cooldown=host_failover_cooldown)
 
         # FIFO deque + Condition: the reaper needs to scan entries by
@@ -337,6 +339,7 @@ class Pool:
             transport_factory=self._transport_factory,
             on_host_attempt=_on_attempt,
             column_factories=self._column_factories,
+            json_nested=self._json_nested,
         )
         await client.open()
         # Stamp the open timestamp on the client itself so we can read
@@ -638,6 +641,7 @@ def create_pool(
     ssl_context: _ssl_module.SSLContext | None = None,
     transport_factory: TransportFactory | None = None,
     column_factories: dict[str, Callable[[list[Any]], Any]] | None = None,
+    json_nested: bool = False,
 ) -> Pool:
     """Build an unopened pool. Connections open on first ``acquire()``.
 
@@ -680,4 +684,5 @@ def create_pool(
         ssl_context=ssl_context,
         transport_factory=transport_factory,
         column_factories=column_factories,
+        json_nested=json_nested,
     )

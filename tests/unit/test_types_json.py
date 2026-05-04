@@ -1,11 +1,4 @@
-"""Parser tests for the v0.2 ``JSON`` parser-only stub.
-
-The codec round-trips ``codec.name`` for every JSON spec the server
-emits in block headers. ``read`` and ``write`` raise
-``NotImplementedError`` with a diagnostic pointing at the v0.3
-follow-up; the column-body wire format (5 concatenated substreams) is
-out of v0.2 scope.
-"""
+"""Tests for the ``JSON`` codec including nested-dict mode and overflow write."""
 
 from __future__ import annotations
 
@@ -15,7 +8,12 @@ import pytest
 
 from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 from clickhouse_async.types import ColumnCodec, parse_type
-from clickhouse_async.types.json_type import JSON
+from clickhouse_async.types.json_type import (
+    _DEFAULT_MAX_DYNAMIC_PATHS,
+    JSON,
+    _flatten,
+    _nest,
+)
 
 
 def _reader(data: bytes) -> AsyncBinaryReader:
@@ -186,3 +184,145 @@ async def test_all_empty_dicts_round_trip() -> None:
     # THEN: every row comes back as an empty dict; the prefix declares
     #       zero dynamic paths
     assert decoded == values
+
+
+# ---- _nest helper ----------------------------------------------------------
+
+
+def test_nest_helper_reconstructs_nested_dict() -> None:
+    # BEGIN / WHEN: flat dict with dotted-path keys
+    flat = {"user.id": 7, "user.name": "alice", "score": 99}
+
+    # THEN: nested dict with proper hierarchy
+    assert _nest(flat) == {"user": {"id": 7, "name": "alice"}, "score": 99}
+
+
+def test_nest_helper_no_dots_passes_through() -> None:
+    # BEGIN / WHEN: flat dict with no dotted keys
+    flat = {"a": 1, "b": "x"}
+
+    # THEN: same dict back (no nesting to apply)
+    assert _nest(flat) == flat
+
+
+def test_nest_helper_empty_dict() -> None:
+    # BEGIN / WHEN / THEN: empty dict → empty dict
+    assert _nest({}) == {}
+
+
+def test_nest_helper_three_levels_deep() -> None:
+    # BEGIN / WHEN: deeply nested key
+    flat = {"a.b.c": 42}
+
+    # THEN: three levels reconstructed
+    assert _nest(flat) == {"a": {"b": {"c": 42}}}
+
+
+# ---- _flatten helper -------------------------------------------------------
+
+
+def test_flatten_helper_round_trips_nested_dict() -> None:
+    # BEGIN / WHEN: nested dict
+    nested = {"user": {"id": 7, "name": "alice"}}
+
+    # THEN: flattened to dotted-path keys
+    assert _flatten(nested) == {"user.id": 7, "user.name": "alice"}
+
+
+def test_flatten_is_noop_on_already_flat_dict() -> None:
+    # BEGIN / WHEN: already-flat dict (no dict values)
+    flat = {"a": 1, "b": "x"}
+
+    # THEN: unchanged
+    assert _flatten(flat) == flat
+
+
+def test_flatten_empty_dict() -> None:
+    # BEGIN / WHEN / THEN: empty dict → empty dict
+    assert _flatten({}) == {}
+
+
+# ---- json_nested read mode -------------------------------------------------
+
+
+async def test_json_read_flat_by_default() -> None:
+    # BEGIN: codec without json_nested; dotted-path source data
+    codec = parse_type("JSON")
+    values: list[dict[str, object]] = [{"user.id": 7, "user.name": "alice"}]
+
+    # WHEN: round-tripping
+    decoded = await _round_trip(codec, values)
+
+    # THEN: flat dotted-path representation preserved (default behaviour)
+    assert decoded == [{"user.id": 7, "user.name": "alice"}]
+
+
+async def test_json_read_nested_mode() -> None:
+    # BEGIN: codec with json_nested=True; write flat, read back nested
+    codec_flat = parse_type("JSON")
+    codec_nested = parse_type("JSON", json_nested=True)
+    values: list[dict[str, object]] = [
+        {"user.id": 7, "user.name": "alice"},
+        {"user.id": 8, "user.name": "bob"},
+    ]
+    writer = BinaryWriter()
+    codec_flat.write(writer, values)
+
+    # WHEN: reading with nested codec
+    decoded = await codec_nested.read(_reader(writer.getvalue()), len(values))
+
+    # THEN: dotted keys are reconstructed into nested dicts
+    assert decoded == [
+        {"user": {"id": 7, "name": "alice"}},
+        {"user": {"id": 8, "name": "bob"}},
+    ]
+
+
+async def test_json_write_accepts_nested_dict() -> None:
+    # BEGIN: nested input dict written with flat codec
+    codec = parse_type("JSON")
+    nested_values: list[dict[str, object]] = [
+        {"user": {"id": 7, "name": "alice"}},
+        {"user": {"id": 8, "name": "bob"}},
+    ]
+
+    # WHEN: writing nested dicts and reading back flat
+    decoded = await _round_trip(codec, nested_values)
+
+    # THEN: round-trip preserves the data; flat codec returns dotted-path keys
+    assert decoded == [
+        {"user.id": 7, "user.name": "alice"},
+        {"user.id": 8, "user.name": "bob"},
+    ]
+
+
+# ---- shared-data overflow write --------------------------------------------
+
+
+async def test_json_write_shared_data_empty_when_paths_fit() -> None:
+    # BEGIN: a batch with well under 1024 unique paths
+    codec = parse_type("JSON")
+    values: list[dict[str, object]] = [{"a": i, "b": str(i)} for i in range(10)]
+
+    # WHEN: round-tripping (≤ max_dynamic_paths paths → empty shared-data)
+    decoded = await _round_trip(codec, values)
+
+    # THEN: all data survives; no paths dropped
+    assert decoded == values
+
+
+async def test_json_write_shared_data_populated_when_paths_overflow() -> None:
+    # BEGIN: a batch whose unique path count exceeds _DEFAULT_MAX_DYNAMIC_PATHS
+    codec = parse_type("JSON")
+    n_paths = _DEFAULT_MAX_DYNAMIC_PATHS + 10
+    # Single row carrying every path so we force overflow
+    row: dict[str, object] = {f"p{i}": i for i in range(n_paths)}
+
+    # WHEN: writing and reading back
+    decoded = await _round_trip(codec, [row])
+
+    # THEN: no path is silently dropped — every key round-trips
+    assert len(decoded) == 1
+    assert set(decoded[0].keys()) == set(row.keys())
+    for k, v in row.items():
+        assert decoded[0][k] == v

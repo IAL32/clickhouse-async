@@ -119,6 +119,7 @@ async def read_block(
     *,
     revision: int,
     session_timezone: str | None = None,
+    json_nested: bool = False,
 ) -> Block:
     """Decode one block from the reader.
 
@@ -131,6 +132,9 @@ async def read_block(
     block's column specs. The Connection plumbs it down from the
     ``TIMEZONE_UPDATE`` packet so naive datetimes land in the
     server's negotiated session zone instead of silently UTC.
+
+    ``json_nested`` (when ``True``) configures any ``JSON`` codec in
+    the block to return nested dicts on read.
     """
 
     info = await read_block_info(reader)
@@ -141,7 +145,9 @@ async def read_block(
     for _ in range(n_columns):
         name = await reader.read_string()
         type_spec = await reader.read_string()
-        codec = parse_type(type_spec, session_timezone=session_timezone)
+        codec = parse_type(
+            type_spec, session_timezone=session_timezone, json_nested=json_nested
+        )
         if revision >= DBMS_MIN_REVISION_WITH_CUSTOM_SERIALIZATION:
             has_custom = await reader.read_byte()
             if has_custom != 0:

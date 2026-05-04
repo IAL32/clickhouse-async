@@ -105,10 +105,14 @@ def _factory_dynamic(max_types: int | None = None) -> ColumnCodec:
     return Dynamic(max_types=max_types)
 
 
-def _factory_json(hints: list[_JSONHint] | None = None) -> ColumnCodec:
+def _factory_json(
+    hints: list[_JSONHint] | None = None,
+    *,
+    json_nested: bool = False,
+) -> ColumnCodec:
     from clickhouse_async.types.json_type import JSON  # noqa: PLC0415
 
-    return JSON(hints=hints)
+    return JSON(hints=hints, json_nested=json_nested)
 
 
 # ---- registry --------------------------------------------------------------
@@ -286,7 +290,12 @@ _DT64_MAX_PARAMS = 2  # DateTime64(precision[, 'timezone'])
 # ---- parser ---------------------------------------------------------------
 
 
-def parse_type(spec: str, *, session_timezone: str | None = None) -> ColumnCodec:
+def parse_type(
+    spec: str,
+    *,
+    session_timezone: str | None = None,
+    json_nested: bool = False,
+) -> ColumnCodec:
     """Parse a ClickHouse type spec into a column codec.
 
     ``session_timezone`` (when given) is used as the fallback timezone
@@ -295,18 +304,31 @@ def parse_type(spec: str, *, session_timezone: str | None = None) -> ColumnCodec
     ``read_block`` so naive ``DateTime`` reads land in the server's
     negotiated session timezone rather than silently UTC.
 
+    ``json_nested`` (when ``True``) configures any ``JSON`` codec
+    constructed from this spec to return nested dicts on read instead
+    of flat dotted-path dicts.
+
     Raises ``ValueError`` for unknown type names or malformed specs.
     """
-    return _Parser(spec, session_timezone=session_timezone).parse_top()
+    return _Parser(
+        spec, session_timezone=session_timezone, json_nested=json_nested
+    ).parse_top()
 
 
 class _Parser:
-    __slots__ = ("pos", "session_timezone", "spec")
+    __slots__ = ("json_nested", "pos", "session_timezone", "spec")
 
-    def __init__(self, spec: str, *, session_timezone: str | None = None) -> None:
+    def __init__(
+        self,
+        spec: str,
+        *,
+        session_timezone: str | None = None,
+        json_nested: bool = False,
+    ) -> None:
         self.spec = spec
         self.pos = 0
         self.session_timezone = session_timezone
+        self.json_nested = json_nested
 
     def parse_top(self) -> ColumnCodec:
         codec = self._parse_one()
@@ -376,7 +398,7 @@ class _Parser:
             if name == "JSON":
                 hints = self._parse_json_hints()
                 self._consume(")")
-                return _factory_json(hints=hints)
+                return _factory_json(hints=hints, json_nested=self.json_nested)
             params = self._parse_params()
             self._consume(")")
             # ``DateTime`` / ``DateTime64`` need ``session_timezone``
@@ -395,6 +417,9 @@ class _Parser:
             # Bare ``DateTime`` (no parens) — still wants the session
             # timezone fallback when one is plumbed in.
             return DateTime(session_timezone=self.session_timezone)
+        if name == "JSON":
+            # Bare ``JSON`` (no parens) — needs json_nested threaded in.
+            return _factory_json(json_nested=self.json_nested)
         factory_n = _NULLARY.get(name)
         if factory_n is None:
             raise ValueError(f"unknown type: {name!r}")

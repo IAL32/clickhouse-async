@@ -159,6 +159,7 @@ class Connection:
         transport_factory: TransportFactory | None = None,
         on_host_attempt: Callable[[tuple[str, int], BaseException | None], None]
         | None = None,
+        json_nested: bool = False,
     ) -> None:
         if not hosts:
             raise ValueError("Connection requires at least one host")
@@ -198,6 +199,10 @@ class Connection:
         # ``read_block_packet_body`` so naive ``DateTime`` columns
         # honour the session zone instead of silently UTC.
         self._session_timezone: str | None = None
+        # Session-level JSON nested-dict mode. When True, every JSON
+        # column in incoming blocks is decoded into nested dicts rather
+        # than flat dotted-path dicts.
+        self._json_nested: bool = json_nested
         # (from_state, to_state, reason) per transition — load-bearing for
         # tests and a useful debugging breadcrumb in production logs.
         self._transitions: list[tuple[State, State, str]] = []
@@ -667,6 +672,7 @@ class Connection:
                 # Re-read on each iteration so a TIMEZONE_UPDATE packet
                 # mid-query updates the codec's view for subsequent blocks.
                 session_tz = self._session_timezone
+                json_nested = self._json_nested
                 packet_id = await self._reader.read_varuint()
                 if packet_id == ServerPacket.DATA:
                     _, block = await read_block_packet_body(
@@ -674,6 +680,7 @@ class Connection:
                         revision=revision,
                         compression=compression,
                         session_timezone=session_tz,
+                        json_nested=json_nested,
                     )
                     yield StreamedBlock(kind="data", block=block)
                 elif packet_id == ServerPacket.TOTALS:
@@ -682,6 +689,7 @@ class Connection:
                         revision=revision,
                         compression=compression,
                         session_timezone=session_tz,
+                        json_nested=json_nested,
                     )
                     yield StreamedBlock(kind="totals", block=block)
                 elif packet_id == ServerPacket.EXTREMES:
@@ -690,6 +698,7 @@ class Connection:
                         revision=revision,
                         compression=compression,
                         session_timezone=session_tz,
+                        json_nested=json_nested,
                     )
                     yield StreamedBlock(kind="extremes", block=block)
                 elif packet_id == ServerPacket.END_OF_STREAM:

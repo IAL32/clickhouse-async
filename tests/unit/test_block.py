@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import struct
 
 import pytest
 
@@ -73,15 +74,35 @@ async def test_block_info_layout_is_numbered_fields_terminated_by_zero() -> None
 
 
 async def test_block_info_unknown_field_raises_protocol_error() -> None:
-    # BEGIN: a stream encoding field number 3 — gated above OUR_REVISION (24.8)
-    bad = b"\x03\x01\x00"  # field 3, one payload byte, then sentinel
+    # BEGIN: a stream encoding a genuinely unknown field number (99)
+    bad = b"\x63\x01\x00"  # field 99, one payload byte, then sentinel
     reader = _reader(bad)
 
     # WHEN: reading the block info
-    # THEN: a ProtocolError surfaces — the handshake should not have
-    #       produced field 3 at our negotiated revision
-    with pytest.raises(ProtocolError, match="unknown BlockInfo field number 3"):
+    # THEN: a ProtocolError surfaces — unknown field numbers are rejected
+    with pytest.raises(ProtocolError, match="unknown BlockInfo field number 99"):
         await read_block_info(reader)
+
+
+async def test_block_info_field_3_out_of_order_buckets_is_drained() -> None:
+    # BEGIN: a stream with field 3 (out_of_order_buckets) carrying two Int32s
+    #        followed by field 1 (is_overflows=True) then sentinel
+    buckets = struct.pack("<ii", 7, 42)  # two Int32 values
+    data = (
+        b"\x03"  # field_num = 3
+        + b"\x02"  # varuint count = 2
+        + buckets  # 2 x Int32
+        + b"\x01"  # field_num = 1 (is_overflows)
+        + b"\x01"  # True
+        + b"\x00"  # terminator
+    )
+    reader = _reader(data)
+
+    # WHEN: reading block info
+    info = await read_block_info(reader)
+
+    # THEN: field 3 was drained; the subsequent is_overflows field was read
+    assert info.is_overflows is True
 
 
 # ---- Block: empty / header-only ----------------------------------------

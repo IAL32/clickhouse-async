@@ -46,6 +46,10 @@ import uuid as _uuid
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from clickhouse_async.errors import ProtocolError
+from clickhouse_async.protocol.packets import (
+    DBMS_MIN_REVISION_WITH_V2_DYNAMIC_AND_JSON_SERIALIZATION,
+    OUR_REVISION,
+)
 from clickhouse_async.types._parser import parse_type
 
 if TYPE_CHECKING:
@@ -319,21 +323,28 @@ class Dynamic:
     the source of truth — but raises on writes if the inferred arm
     count exceeds the cap (when set).
 
-    Wire format (V1 layout, what ClickHouse 24.8 emits and accepts at
-    our negotiated revision 54469 < ``DBMS_MIN_REVISION_WITH_V2_DYNAMIC``):
+    Wire format:
+
+    **V1** (negotiated revision < 54473):
 
     | Bytes              | Meaning                                              |
     | ------------------ | ---------------------------------------------------- |
     | 8                  | structure version (1 = V1)                           |
-    | varuint            | ``max_dynamic_types`` slot (column-policy hint, the  |
-    |                    | reader skips it past)                                |
-    | varuint            | ``num_dynamic_types`` (= number of declared arms,    |
-    |                    | excluding the implicit ``SharedVariant`` tail-arm)   |
+    | varuint            | ``max_dynamic_types`` slot (column-policy hint)      |
+    | varuint            | ``num_dynamic_types`` (declared arms excl. Shared)   |
     | n length-prefixed  | declared type-spec names, in any order               |
-    | (then a Variant body — the inner ``Variant`` is built from the declared      |
-    |  arms + an implicit ``SharedVariant`` arm, then sorted alphabetically by    |
-    |  type name to mirror upstream ``DataTypeVariant``'s by-name sort. Both      |
-    |  sender and receiver agree on disc → arm because both apply the same sort.) |
+
+    **V2** (negotiated revision >= 54473, drops ``max_dynamic_types``):
+
+    | Bytes              | Meaning                                              |
+    | ------------------ | ---------------------------------------------------- |
+    | 8                  | structure version (2 = V2)                           |
+    | varuint            | ``num_dynamic_types``                                |
+    | n length-prefixed  | declared type-spec names, in any order               |
+
+    In both versions a Variant body follows — the inner ``Variant`` is built
+    from the declared arms plus an implicit ``SharedVariant`` arm, sorted
+    alphabetically to match upstream ``DataTypeVariant``'s by-name sort.
     """
 
     null_value: ClassVar[None] = None
@@ -437,22 +448,23 @@ class Dynamic:
         sorted_names = sorted([*type_specs, _SHARED_VARIANT_NAME])
         spec_to_disc = {name: i for i, name in enumerate(sorted_names)}
 
-        # Write V1: server-side ``DynamicSerializationVersion::checkVersion``
-        # accepts both V1 and V2, but ClickHouse 24.8 LTS gates V2 behind
-        # ``DBMS_MIN_REVISION_WITH_V2_DYNAMIC_AND_JSON_SERIALIZATION`` (54473).
-        # Our negotiated revision (54469) is below that, so the server's
-        # codec is configured for V1; we mirror that on writes for
-        # symmetry. V1 layout (per upstream
-        # ``SerializationDynamic::serializeBinaryBulkStatePrefix``):
-        # ``8B version + varuint max_dynamic_types + varuint
-        # num_dynamic_types + n type-spec strings``. The reader skips the
-        # ``max_dynamic_types`` slot (it's a column-policy hint, not a
-        # wire constraint).
-        writer.write_int(_DYNAMIC_VERSION_V1, 8, signed=False)
-        writer.write_varuint(len(type_specs))
-        writer.write_varuint(len(type_specs))
-        for spec in type_specs:
-            writer.write_string(spec)
+        # V2 (revision >= 54473) drops the ``max_dynamic_types`` field;
+        # V1 emits it as a column-policy hint before ``num_dynamic_types``.
+        # Read the revision from the writer (set by write_block); fall
+        # back to OUR_REVISION when the writer carries no context (e.g.
+        # unit tests that build a BinaryWriter directly).
+        revision = getattr(writer, "revision", OUR_REVISION)
+        if revision >= DBMS_MIN_REVISION_WITH_V2_DYNAMIC_AND_JSON_SERIALIZATION:
+            writer.write_int(_DYNAMIC_VERSION_V2, 8, signed=False)
+            writer.write_varuint(len(type_specs))
+            for spec in type_specs:
+                writer.write_string(spec)
+        else:
+            writer.write_int(_DYNAMIC_VERSION_V1, 8, signed=False)
+            writer.write_varuint(len(type_specs))  # max_dynamic_types slot
+            writer.write_varuint(len(type_specs))
+            for spec in type_specs:
+                writer.write_string(spec)
 
         # Build the per-arm components list in *sorted* order so the
         # per-arm bodies land in the order the server expects on read.

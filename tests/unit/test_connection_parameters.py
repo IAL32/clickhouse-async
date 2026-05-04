@@ -47,6 +47,9 @@ async def _drain_client_hello(rdr: AsyncBinaryReader) -> None:
     await rdr.read_string()  # user
     await rdr.read_string()  # password
     await rdr.read_string()  # addendum: quota_key (empty)
+    await rdr.read_string()  # addendum: proto_send_chunked
+    await rdr.read_string()  # addendum: proto_recv_chunked
+    await rdr.read_varuint()  # addendum: parallel_replicas_protocol_version
 
 
 async def _drain_query_through_sql(
@@ -76,8 +79,12 @@ async def _drain_query_through_sql(
     await rdr.read_varuint()  # parallel_replicas: collaborate
     await rdr.read_varuint()  # parallel_replicas: count
     await rdr.read_varuint()  # parallel_replicas: replica idx
+    await rdr.read_varuint()  # script_query_number
+    await rdr.read_varuint()  # script_line_number
+    await rdr.read_byte()  # have_jwt
     # settings terminator + interserver_secret + stage + compression + sql
     await rdr.read_string()  # settings terminator
+    await rdr.read_string()  # extra_roles (empty for non-interserver)
     await rdr.read_string()  # interserver_secret
     await rdr.read_varuint()  # stage
     await rdr.read_varuint()  # compression

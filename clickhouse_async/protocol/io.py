@@ -97,10 +97,11 @@ class AsyncBinaryReader:
 class BinaryWriter:
     """Builds a ClickHouse packet in an in-memory bytearray."""
 
-    __slots__ = ("_buf",)
+    __slots__ = ("_buf", "revision")
 
-    def __init__(self) -> None:
+    def __init__(self, revision: int = 0) -> None:
         self._buf = bytearray()
+        self.revision = revision
 
     def __len__(self) -> int:
         return len(self._buf)

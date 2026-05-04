@@ -257,6 +257,9 @@ async def _decode_query_sql_and_params_async(
     await rdr.read_string()  # user
     await rdr.read_string()  # password
     await rdr.read_string()  # addendum: quota_key (empty)
+    await rdr.read_string()  # addendum: proto_send_chunked
+    await rdr.read_string()  # addendum: proto_recv_chunked
+    await rdr.read_varuint()  # addendum: parallel_replicas_protocol_version
     # ---- Query ----
     assert await rdr.read_varuint() == ClientPacket.QUERY
     await rdr.read_string()  # query_id
@@ -280,8 +283,12 @@ async def _decode_query_sql_and_params_async(
     await rdr.read_varuint()  # parallel_replicas: collaborate
     await rdr.read_varuint()  # parallel_replicas: count
     await rdr.read_varuint()  # parallel_replicas: replica idx
+    await rdr.read_varuint()  # script_query_number
+    await rdr.read_varuint()  # script_line_number
+    await rdr.read_byte()  # have_jwt
     # Tail of Query packet
     await rdr.read_string()  # settings terminator
+    await rdr.read_string()  # extra_roles (empty for non-interserver)
     await rdr.read_string()  # interserver_secret
     await rdr.read_varuint()  # stage
     await rdr.read_varuint()  # compression

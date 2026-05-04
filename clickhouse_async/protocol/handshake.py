@@ -16,9 +16,14 @@ Wire layout, in order:
 - varuint ``version_major``
 - varuint ``version_minor``
 - varuint ``revision``
+- if ``revision >= DBMS_MIN_REVISION_WITH_VERSIONED_PARALLEL_REPLICAS_PROTOCOL``:
+  varuint ``parallel_replicas_protocol_version`` — read and discarded.
 - if ``revision >= DBMS_MIN_REVISION_WITH_SERVER_TIMEZONE``: string ``timezone``
 - if ``revision >= DBMS_MIN_REVISION_WITH_SERVER_DISPLAY_NAME``: string ``display_name``
 - if ``revision >= DBMS_MIN_REVISION_WITH_VERSION_PATCH``: varuint ``version_patch``
+- if ``revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_CHUNKED_PACKETS``:
+  strings ``proto_caps.send`` and ``proto_caps.recv`` — read and discarded
+  (we always negotiate "notchunked").
 - if ``revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_PASSWORD_COMPLEXITY_RULES``:
   varuint ``n_rules`` followed by ``n_rules`` pairs of (string
   ``pattern``, string ``message``) — informational; v0 reads and
@@ -26,6 +31,14 @@ Wire layout, in order:
 - if ``revision >= DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET_V2``: 8-byte
   little-endian unsigned ``nonce`` — used for inter-server auth, which
   v0 doesn't drive; we read and discard.
+- if ``revision >= DBMS_MIN_REVISION_WITH_SERVER_SETTINGS``:
+  settings in STRINGS_WITH_FLAGS format — ``(name, flags_varuint,
+  value_string)`` entries terminated by an empty name — read and
+  discarded.
+- if ``revision >= DBMS_MIN_REVISION_WITH_QUERY_PLAN_SERIALIZATION``:
+  varuint ``query_plan_serialization_version`` — read and discarded.
+- if ``revision >= DBMS_MIN_REVISION_WITH_VERSIONED_CLUSTER_FUNCTION_PROTOCOL``:
+  varuint ``cluster_function_protocol_version`` — read and discarded.
 
 Both ``read_server_hello`` and ``read_exception_body`` (in
 ``exception_packet``) operate on the body — the caller has already
@@ -39,11 +52,16 @@ from typing import TYPE_CHECKING
 
 import clickhouse_async
 from clickhouse_async.protocol.packets import (
+    DBMS_MIN_PROTOCOL_VERSION_WITH_CHUNKED_PACKETS,
     DBMS_MIN_PROTOCOL_VERSION_WITH_PASSWORD_COMPLEXITY_RULES,
     DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET_V2,
+    DBMS_MIN_REVISION_WITH_QUERY_PLAN_SERIALIZATION,
     DBMS_MIN_REVISION_WITH_SERVER_DISPLAY_NAME,
+    DBMS_MIN_REVISION_WITH_SERVER_SETTINGS,
     DBMS_MIN_REVISION_WITH_SERVER_TIMEZONE,
     DBMS_MIN_REVISION_WITH_VERSION_PATCH,
+    DBMS_MIN_REVISION_WITH_VERSIONED_CLUSTER_FUNCTION_PROTOCOL,
+    DBMS_MIN_REVISION_WITH_VERSIONED_PARALLEL_REPLICAS_PROTOCOL,
     OUR_REVISION,
     ClientPacket,
 )
@@ -107,6 +125,10 @@ async def read_server_hello(reader: AsyncBinaryReader) -> ServerInfo:
     version_minor = await reader.read_varuint()
     revision = await reader.read_varuint()
 
+    # Parallel replicas protocol version — inter-server feature, discarded.
+    if revision >= DBMS_MIN_REVISION_WITH_VERSIONED_PARALLEL_REPLICAS_PROTOCOL:
+        await reader.read_varuint()
+
     timezone: str | None = None
     if revision >= DBMS_MIN_REVISION_WITH_SERVER_TIMEZONE:
         timezone = await reader.read_string()
@@ -118,6 +140,12 @@ async def read_server_hello(reader: AsyncBinaryReader) -> ServerInfo:
     version_patch = 0
     if revision >= DBMS_MIN_REVISION_WITH_VERSION_PATCH:
         version_patch = await reader.read_varuint()
+
+    # Chunked-protocol capabilities — two strings (send/recv). We always
+    # negotiate "notchunked" in the addendum; just drain here.
+    if revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_CHUNKED_PACKETS:
+        await reader.read_string()  # proto_caps.send
+        await reader.read_string()  # proto_caps.recv
 
     # Password complexity rules — informational, the client doesn't use
     # them. Drained so the wire stays in sync.
@@ -131,6 +159,24 @@ async def read_server_hello(reader: AsyncBinaryReader) -> ServerInfo:
     # doesn't drive that path; we read and discard.
     if revision >= DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET_V2:
         await reader.read_int(8, signed=False)
+
+    # Server settings (STRINGS_WITH_FLAGS): for each setting the server
+    # writes (name, flags_varuint, value_string), then an empty name to
+    # terminate. We read and discard all three fields per entry.
+    if revision >= DBMS_MIN_REVISION_WITH_SERVER_SETTINGS:
+        while True:
+            setting_name = await reader.read_string()
+            if not setting_name:
+                break
+            await reader.read_varuint()  # flags (IMPORTANT | CUSTOM | TIER bits)
+            await reader.read_string()  # value
+
+    # Query-plan and cluster-function protocol versions — informational.
+    if revision >= DBMS_MIN_REVISION_WITH_QUERY_PLAN_SERIALIZATION:
+        await reader.read_varuint()
+
+    if revision >= DBMS_MIN_REVISION_WITH_VERSIONED_CLUSTER_FUNCTION_PROTOCOL:
+        await reader.read_varuint()
 
     return ServerInfo(
         name=name,

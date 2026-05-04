@@ -88,12 +88,12 @@ def test_our_revision_is_at_least_every_declared_gate() -> None:
     )
 
 
-def test_our_revision_pinned_to_24_8_lts_tcp_protocol_version() -> None:
-    # BEGIN: the upstream pin from ClickHouse 24.8 LTS ProtocolDefines.h
-    upstream_24_8_tcp_protocol_version = 54469
+def test_our_revision_pinned_to_tcp_protocol_version() -> None:
+    # BEGIN: the upstream DBMS_TCP_PROTOCOL_VERSION from ClickHouse 26.5.1
+    upstream_tcp_protocol_version = 54483
 
     # WHEN: reading OUR_REVISION
     pinned = OUR_REVISION
 
     # THEN: the pin matches; bumping requires touching .clickhouse-version too
-    assert pinned == upstream_24_8_tcp_protocol_version
+    assert pinned == upstream_tcp_protocol_version

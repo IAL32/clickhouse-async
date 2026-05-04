@@ -10,7 +10,10 @@
 # Usage:
 #   ./scripts/act.sh full            # run the full job (unit + integration)
 #                                    # for a single Python version (3.12)
-#   ./scripts/act.sh full all        # run the full matrix (3.11/3.12/3.13)
+#   ./scripts/act.sh full [py] [ch]  # run full for one Python + ClickHouse
+#                                    # version (default: 3.12 / 26.3)
+#                                    # e.g. ./scripts/act.sh full 3.12 24.8
+#   ./scripts/act.sh full all        # run the full matrix (3.11/3.12/3.13 × 24.8/26.3)
 #                                    # WARNING: matrix jobs share the host's
 #                                    # Docker daemon; the parallel jobs will
 #                                    # race on the ClickHouse container name
@@ -57,10 +60,14 @@ case "$cmd" in
         if [[ "${1:-}" == "all" ]]; then
             exec act push -W .github/workflows/tests.yml -j full "$@"
         fi
-        # Default: pin to one Python version for fast iteration.
+        # Default: pin to one Python + ClickHouse version for fast iteration.
+        # Usage: ./scripts/act.sh full [python] [clickhouse]
+        #   e.g. ./scripts/act.sh full 3.12 24.8
         py="${1:-3.12}"
+        ch="${2:-26.3}"
         exec act push -W .github/workflows/tests.yml -j full \
-            --matrix "python:${py}"
+            --matrix "python:${py}" \
+            --matrix "clickhouse:${ch}"
         ;;
     unit)
         py="${1:-3.12}"

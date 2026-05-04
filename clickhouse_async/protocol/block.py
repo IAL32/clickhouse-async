@@ -7,7 +7,8 @@ and ``NativeWriter.cpp``):
 1. **BlockInfo** — numbered TLV-style fields ending in a varuint ``0``
    sentinel (see ``Core/BlockInfo.cpp`` for the canonical layout). At
    ``OUR_REVISION`` the live fields are ``is_overflows`` (bool, field
-   1) and ``bucket_num`` (Int32, field 2). Higher-numbered fields
+   1), ``bucket_num`` (Int32, field 2), and ``out_of_order_buckets``
+   (vector<Int32>, field 3, added at 54480). Higher-numbered fields
    (e.g. ``out_of_order_buckets``) are gated above our revision and we
    treat them as a protocol error if a server emits them — the
    handshake contract says it shouldn't.
@@ -46,6 +47,7 @@ if TYPE_CHECKING:
 _BLOCK_INFO_FIELD_TERMINATOR = 0
 _BLOCK_INFO_FIELD_IS_OVERFLOWS = 1
 _BLOCK_INFO_FIELD_BUCKET_NUM = 2
+_BLOCK_INFO_FIELD_OUT_OF_ORDER_BUCKETS = 3  # vector<Int32>, added at 54480
 
 
 @dataclass
@@ -95,6 +97,12 @@ async def read_block_info(reader: AsyncBinaryReader) -> BlockInfo:
             info.is_overflows = (await reader.read_byte()) != 0
         elif field_num == _BLOCK_INFO_FIELD_BUCKET_NUM:
             info.bucket_num = await reader.read_int(4, signed=True)
+        elif field_num == _BLOCK_INFO_FIELD_OUT_OF_ORDER_BUCKETS:
+            # vector<Int32>: varuint count followed by count x Int32 entries.
+            # Used only for server-side aggregation ordering; read and discard.
+            n = await reader.read_varuint()
+            for _ in range(n):
+                await reader.read_int(4, signed=True)
         else:
             raise ProtocolError(
                 f"unknown BlockInfo field number {field_num} at offset "
@@ -180,6 +188,7 @@ def write_block(writer: BinaryWriter, block: Block, *, revision: int) -> None:
                 f"block.n_rows is {block.n_rows}"
             )
 
+    writer.revision = revision  # available to codecs (e.g. Dynamic V1/V2 switch)
     write_block_info(writer, block.info)
     writer.write_varuint(len(block.columns))
     writer.write_varuint(block.n_rows)

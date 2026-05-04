@@ -35,6 +35,14 @@ codec/module that carries the limitation so a grep finds the on-ramp.
 
 ### Protocol primitives
 
+- **Sparse serialization (`has_custom=1`) not decoded.** The server may
+  send columns with `has_custom=1` (sparse/custom encoding) for any
+  negotiated revision ≥ 54454. The client raises `ProtocolError` on
+  such columns. In practice, data must be highly sparse to trigger it
+  so it rarely fires in production workloads. Fixing this requires
+  decoding `SerializationInfo` and implementing the sparse column format.
+  *Code:* `protocol/block.py::read_block`.
+
 - **Single-quoted strings in type specs don't support escapes.** The
   parser reads up to the next single quote — server-emitted type
   strings shouldn't contain doubled quotes or backslash escapes, but
@@ -89,13 +97,6 @@ version advances to 1.0.
   `BROKEN`.
   *Code:* `connection.py`.
 
-- **`fetch_all` / `execute` result-size guard.** Accumulating a 100 M-row
-  result into a Python list silently OOMs the process. Design:
-  `max_rows: int | None` on `execute` / `fetch_all`; raises new
-  `ResultTooLargeError` subclass after each block is accumulated. A pool /
-  client level `default_max_rows` sets a per-session ceiling.
-  *Code:* `client.py`, `errors.py`.
-
 - **Structured query logging.** Exactly one `_logger.debug()` call exists
   in `connection.py`. Production operations require: query start/end with
   `query_id`, `host`, and `elapsed`; pool acquire/release; health-check
@@ -123,12 +124,6 @@ version advances to 1.0.
   matching `v*` in CI.
   *Code:* `pyproject.toml`, `.github/workflows/`.
 
-- **INSERT deduplication token.** `insert_deduplication_token` is
-  settable today via `settings={...}` but undocumented. Callers cannot
-  implement idempotent retry without a first-class API. Design:
-  `deduplication_token: str | None = None` on `Client.insert()`, injected
-  into `settings` automatically.
-  *Code:* `client.py`.
 
 ### v0.5+ — Adapters and extended type support
 
@@ -154,13 +149,3 @@ version advances to 1.0.
 - **No automatic query retry.** Documented as a deliberate non-feature;
   surfaced here because users will ask. Connection-level reconnect on
   `acquire()` is fine. Query-level retry is the caller's problem.
-
----
-
-## 3. Open design questions
-
-These have no obvious right answer; they need a decision before the
-relevant code lands.
-
-- **`Block.to_arrow()` / `.to_polars()` location.** Core vs. extras.
-  Decision: extras package, keep core lean.

@@ -274,6 +274,9 @@ async def test_send_query_compression_flag_flips_when_lz4_enabled() -> None:
     await rdr.read_string()  # user
     await rdr.read_string()  # password
     await rdr.read_string()  # addendum: quota_key (empty)
+    await rdr.read_string()  # addendum: proto_send_chunked
+    await rdr.read_string()  # addendum: proto_recv_chunked
+    await rdr.read_varuint()  # addendum: parallel_replicas_protocol_version
     # Drain Query packet up to the compression flag
     assert await rdr.read_varuint() == ClientPacket.QUERY
     await rdr.read_string()  # query_id
@@ -297,7 +300,11 @@ async def test_send_query_compression_flag_flips_when_lz4_enabled() -> None:
     await rdr.read_varuint()  # parallel_replicas: collaborate
     await rdr.read_varuint()  # parallel_replicas: count
     await rdr.read_varuint()  # parallel_replicas: replica idx
+    await rdr.read_varuint()  # script_query_number
+    await rdr.read_varuint()  # script_line_number
+    await rdr.read_byte()  # have_jwt
     await rdr.read_string()  # settings terminator
+    await rdr.read_string()  # extra_roles (empty for non-interserver)
     await rdr.read_string()  # interserver secret
     await rdr.read_varuint()  # stage
     assert await rdr.read_varuint() == 1  # compression flag flipped on

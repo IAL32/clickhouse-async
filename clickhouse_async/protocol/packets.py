@@ -17,9 +17,9 @@ Every constant declared below is enforced to be ``≤ OUR_REVISION`` by
 ``tests/unit/test_protocol_packets.py``. Add a constant only when this
 client gates a behaviour on it.
 
-Cross-checked against the local ClickHouse master clone at SHA
-``564e37f5088e3a27ba9f866655898ed4e2845df1``; the values for every gate
-listed here are identical on the 24.8 branch.
+Values cross-checked against ClickHouse 26.5.1 source (``ProtocolDefines.h``
+and ``Protocol.h``). Backward-compat with 24.8 LTS is maintained through
+revision-gated logic — older servers negotiate down to their own revision.
 """
 
 from __future__ import annotations
@@ -104,8 +104,20 @@ DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET_V2 = 54462
 DBMS_MIN_PROTOCOL_VERSION_WITH_TOTAL_BYTES_IN_PROGRESS = 54463
 DBMS_MIN_PROTOCOL_VERSION_WITH_TIMEZONE_UPDATES = 54464
 DBMS_MIN_REVISION_WITH_ROWS_BEFORE_AGGREGATION = 54469
+DBMS_MIN_PROTOCOL_VERSION_WITH_CHUNKED_PACKETS = 54470
+DBMS_MIN_REVISION_WITH_VERSIONED_PARALLEL_REPLICAS_PROTOCOL = 54471
+DBMS_MIN_PROTOCOL_VERSION_WITH_INTERSERVER_EXTERNALLY_GRANTED_ROLES = 54472
+DBMS_MIN_REVISION_WITH_V2_DYNAMIC_AND_JSON_SERIALIZATION = 54473
+DBMS_MIN_REVISION_WITH_SERVER_SETTINGS = 54474
+DBMS_MIN_REVISION_WITH_QUERY_AND_LINE_NUMBERS = 54475
+DBMS_MIN_REVISON_WITH_JWT_IN_INTERSERVER = 54476
+DBMS_MIN_REVISION_WITH_QUERY_PLAN_SERIALIZATION = 54477
+DBMS_MIN_REVISION_WITH_VERSIONED_CLUSTER_FUNCTION_PROTOCOL = 54479
+DBMS_MIN_REVISION_WITH_OUT_OF_ORDER_BUCKETS_IN_AGGREGATION = 54480
+DBMS_MIN_REVISION_WITH_COMPRESSED_LOGS_PROFILE_EVENTS_COLUMNS = 54481
+DBMS_MIN_REVISION_WITH_NULLABLE_SPARSE_SERIALIZATION = 54483
 
 # The protocol revision this client claims in Hello. Pinned to the
 # upstream DBMS_TCP_PROTOCOL_VERSION matching the server image declared
 # in .clickhouse-version; bumping is a paired edit on both files.
-OUR_REVISION = 54469
+OUR_REVISION = 54483

@@ -13,6 +13,13 @@ from __future__ import annotations
 import pytest
 
 
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    """Apply a 1-second timeout to every unit test."""
+    timeout_mark = pytest.mark.timeout(1)
+    for item in items:
+        item.add_marker(timeout_mark, append=False)
+
+
 @pytest.fixture(autouse=True)
 def _pin_default_compression(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("CLICKHOUSE_ASYNC_DEFAULT_COMPRESSION", "off")

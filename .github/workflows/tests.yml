@@ -86,16 +86,18 @@ jobs:
           retention-days: 14
 
   # Full suite — unit + integration — with the compression extra
-  # installed and a real ClickHouse server (started via the project's
-  # own scripts/clickhouse.sh, which sources the version from
-  # .clickhouse-version so CI stays in sync with local dev).
+  # installed and a real ClickHouse server. The ClickHouse version
+  # matrix covers the oldest supported LTS (24.8) and the current
+  # target LTS (.clickhouse-version), ensuring backward compatibility
+  # is not silently broken.
   full:
-    name: Unit + integration (full) — Python ${{ matrix.python }}
+    name: Unit + integration — Python ${{ matrix.python }} / ClickHouse ${{ matrix.clickhouse }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python: ["3.11", "3.12", "3.13"]
+        clickhouse: ["24.8", "26.3"]
     steps:
       - uses: actions/checkout@v4
 
@@ -110,8 +112,10 @@ jobs:
       - name: Install (with compression extra)
         run: uv sync --frozen --extra compression
 
-      - name: Start ClickHouse (version from .clickhouse-version)
+      - name: Start ClickHouse ${{ matrix.clickhouse }}
         run: ./scripts/clickhouse.sh up
+        env:
+          CLICKHOUSE_VERSION: ${{ matrix.clickhouse }}
 
       - name: Unit tests
         run: uv run pytest tests/unit -q --timeout=10

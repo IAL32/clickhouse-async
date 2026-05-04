@@ -58,6 +58,9 @@ async def _drain_client_hello(rdr: AsyncBinaryReader) -> None:
     await rdr.read_string()  # user
     await rdr.read_string()  # password
     await rdr.read_string()  # addendum: quota_key (empty)
+    await rdr.read_string()  # addendum: proto_send_chunked
+    await rdr.read_string()  # addendum: proto_recv_chunked
+    await rdr.read_varuint()  # addendum: parallel_replicas_protocol_version
 
 
 # ---- send_query bytes ---------------------------------------------------
@@ -111,11 +114,15 @@ async def test_send_query_emits_documented_field_order_through_sql() -> None:
     assert await rdr.read_varuint() == 0  # parallel_replicas: collaborate
     assert await rdr.read_varuint() == 0  # parallel_replicas: count
     assert await rdr.read_varuint() == 0  # parallel_replicas: replica idx
+    await rdr.read_varuint()  # script_query_number
+    await rdr.read_varuint()  # script_line_number
+    await rdr.read_byte()  # have_jwt
 
     # THEN: the rest of the Query packet matches the documented layout —
     #       empty settings + empty interserver secret + Complete stage +
     #       compression flag 0 + SQL string + empty parameters terminator
     assert await rdr.read_string() == ""  # settings terminator
+    await rdr.read_string()  # extra_roles (empty for non-interserver)
     assert await rdr.read_string() == ""  # interserver_secret (empty)
     assert await rdr.read_varuint() == QueryStage.COMPLETE
     assert await rdr.read_varuint() == 0  # compression flag

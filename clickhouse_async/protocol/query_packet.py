@@ -38,13 +38,16 @@ from clickhouse_async.protocol.handshake import (
 from clickhouse_async.protocol.packets import (
     DBMS_MIN_PROTOCOL_VERSION_WITH_DISTRIBUTED_DEPTH,
     DBMS_MIN_PROTOCOL_VERSION_WITH_INITIAL_QUERY_START_TIME,
+    DBMS_MIN_PROTOCOL_VERSION_WITH_INTERSERVER_EXTERNALLY_GRANTED_ROLES,
     DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS,
     DBMS_MIN_REVISION_WITH_CLIENT_INFO,
     DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET,
     DBMS_MIN_REVISION_WITH_OPENTELEMETRY,
     DBMS_MIN_REVISION_WITH_PARALLEL_REPLICAS,
+    DBMS_MIN_REVISION_WITH_QUERY_AND_LINE_NUMBERS,
     DBMS_MIN_REVISION_WITH_QUOTA_KEY_IN_CLIENT_INFO,
     DBMS_MIN_REVISION_WITH_VERSION_PATCH,
+    DBMS_MIN_REVISON_WITH_JWT_IN_INTERSERVER,
     OUR_REVISION,
     ClientPacket,
 )
@@ -135,6 +138,13 @@ def _write_client_info(
         writer.write_varuint(0)  # obsolete_count_participating_replicas
         writer.write_varuint(0)  # number_of_current_replica
 
+    if revision >= DBMS_MIN_REVISION_WITH_QUERY_AND_LINE_NUMBERS:
+        writer.write_varuint(0)  # script_query_number
+        writer.write_varuint(0)  # script_line_number
+
+    if revision >= DBMS_MIN_REVISON_WITH_JWT_IN_INTERSERVER:
+        writer.write_byte(0)  # have_jwt = 0 (no JWT token)
+
 
 def write_query_packet(
     writer: BinaryWriter,
@@ -168,6 +178,9 @@ def write_query_packet(
             writer.write_varuint(_SETTING_FLAG_IMPORTANT)
             writer.write_string(value)
     writer.write_string("")  # terminator
+
+    if revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_INTERSERVER_EXTERNALLY_GRANTED_ROLES:
+        writer.write_string("")  # extra_roles — empty for non-interserver queries
 
     if revision >= DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET:
         # Empty hash for INITIAL_QUERY — which is the only kind v0 issues.

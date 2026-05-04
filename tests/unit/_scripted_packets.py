@@ -11,15 +11,20 @@ from __future__ import annotations
 from clickhouse_async.protocol.block import Block, write_block
 from clickhouse_async.protocol.io import BinaryWriter
 from clickhouse_async.protocol.packets import (
+    DBMS_MIN_PROTOCOL_VERSION_WITH_CHUNKED_PACKETS,
     DBMS_MIN_PROTOCOL_VERSION_WITH_PASSWORD_COMPLEXITY_RULES,
     DBMS_MIN_PROTOCOL_VERSION_WITH_SERVER_QUERY_TIME_IN_PROGRESS,
     DBMS_MIN_PROTOCOL_VERSION_WITH_TOTAL_BYTES_IN_PROGRESS,
     DBMS_MIN_REVISION_WITH_CLIENT_WRITE_INFO,
     DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET_V2,
+    DBMS_MIN_REVISION_WITH_QUERY_PLAN_SERIALIZATION,
     DBMS_MIN_REVISION_WITH_ROWS_BEFORE_AGGREGATION,
     DBMS_MIN_REVISION_WITH_SERVER_DISPLAY_NAME,
+    DBMS_MIN_REVISION_WITH_SERVER_SETTINGS,
     DBMS_MIN_REVISION_WITH_SERVER_TIMEZONE,
     DBMS_MIN_REVISION_WITH_VERSION_PATCH,
+    DBMS_MIN_REVISION_WITH_VERSIONED_CLUSTER_FUNCTION_PROTOCOL,
+    DBMS_MIN_REVISION_WITH_VERSIONED_PARALLEL_REPLICAS_PROTOCOL,
     OUR_REVISION,
     ServerPacket,
 )
@@ -49,6 +54,8 @@ def encode_server_hello(
     w.write_varuint(version_major)
     w.write_varuint(version_minor)
     w.write_varuint(revision)
+    if revision >= DBMS_MIN_REVISION_WITH_VERSIONED_PARALLEL_REPLICAS_PROTOCOL:
+        w.write_varuint(0)  # parallel_replicas_protocol_version
     if revision >= DBMS_MIN_REVISION_WITH_SERVER_TIMEZONE and timezone is not None:
         w.write_string(timezone)
     if (
@@ -58,10 +65,19 @@ def encode_server_hello(
         w.write_string(display_name)
     if revision >= DBMS_MIN_REVISION_WITH_VERSION_PATCH:
         w.write_varuint(version_patch)
+    if revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_CHUNKED_PACKETS:
+        w.write_string("notchunked")  # proto_caps.send
+        w.write_string("notchunked")  # proto_caps.recv
     if revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_PASSWORD_COMPLEXITY_RULES:
         w.write_varuint(0)  # zero password-complexity rules
     if revision >= DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET_V2:
         w.write_int(0, 8, signed=False)  # nonce — discarded by client
+    if revision >= DBMS_MIN_REVISION_WITH_SERVER_SETTINGS:
+        w.write_string("")  # empty settings list terminator
+    if revision >= DBMS_MIN_REVISION_WITH_QUERY_PLAN_SERIALIZATION:
+        w.write_varuint(0)  # query_plan_serialization_version
+    if revision >= DBMS_MIN_REVISION_WITH_VERSIONED_CLUSTER_FUNCTION_PROTOCOL:
+        w.write_varuint(0)  # cluster_function_protocol_version
     return w.getvalue()
 
 

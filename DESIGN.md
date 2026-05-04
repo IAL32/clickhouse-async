@@ -156,7 +156,9 @@ class Client:
     # queries returning rows
     async def execute(self, sql: str, *, params: Mapping[str, Any] | None = None,
                       settings: Mapping[str, Any] | None = None,
-                      query_id: str | None = None) -> QueryResult: ...
+                      query_id: str | None = None,
+                      timeout: float | None = None,
+                      max_rows: int | None = None) -> QueryResult: ...
     async def fetch_all(self, sql: str, **kw) -> list[tuple]: ...
     async def fetch_one(self, sql: str, **kw) -> tuple | None: ...
     def iter_blocks(self, sql: str, **kw) -> AsyncIterator[Block]: ...
@@ -165,7 +167,9 @@ class Client:
     # inserts
     async def insert(self, sql: str, *, rows: Iterable | AsyncIterable,
                      column_names: Sequence[str],
-                     column_types: Sequence[str] | None = None) -> int: ...
+                     column_types: Sequence[str] | None = None,
+                     timeout: float | None = None,
+                     deduplication_token: str | None = None) -> int: ...
 
     # introspection
     @property
@@ -186,8 +190,9 @@ class Client:
   injection bugs and matches how the server expects modern drivers to behave.
 - **Streaming returns are the default.** `iter_blocks` / `iter_rows` are
   `AsyncIterator`s, and `fetch_all` is just `[r async for r in iter_rows(...)]`
-  with a memory cap. A `max_rows` setting on the client stops accidental
-  unbounded loads.
+  with a memory cap. A `max_rows` parameter on `execute`/`fetch_all` raises
+  `ResultTooLargeError` (subclass of `ClickHouseError`) before the process
+  can OOM — **not yet implemented, tracked in §15**.
 - **Inserts accept any iterable.** Sync iterables are fine; async iterables
   are awaited transparently. Rows are batched into blocks of a configurable
   size (`insert_block_size`, default 65 536) before being sent.
@@ -196,14 +201,17 @@ class Client:
   **not** hold a reference to the connection — once `execute` returns, the
   conn is idle and pool-returnable.
 
-### Cancellation
+### Cancellation and timeouts
 
 - An `asyncio.CancelledError` raised in user code while iterating a result
   triggers a `Cancel` packet, then drains the connection until `EndOfStream`
   with a bounded timeout. If draining exceeds the timeout, we close the
   socket and mark the connection bad — the pool will discard it.
-- A per-query `timeout` parameter installs an `asyncio.timeout()` around
-  the same logic.
+- A per-query `timeout: float | None` parameter wraps the entire
+  packet-iteration loop with `asyncio.timeout()`, providing client-side
+  enforcement independent of the server's `max_execution_time` setting.
+  This protects against network partitions and hung server processes —
+  **not yet implemented, tracked in §15**.
 - We never silently swallow a cancel. The cancel either returns control to
   the caller or surfaces a `QueryCancellationError` describing what we did.
 
@@ -392,8 +400,18 @@ ClickHouseError
   default in upstream drivers) and **ZSTD**. The compressed-block framing
   with CityHash128 checksums is implemented in the codec layer, so the
   connection layer is unaware. Disabled by default until benchmarked.
-- **TLS:** standard `ssl.SSLContext` plumbed through `asyncio.open_connection`.
-  No custom certificate handling — users hand us a context.
+- **TLS:** `clickhouses://` / `secure=true` in the DSN creates
+  `ssl.create_default_context()` (system CA store, hostname verification
+  on). Users who need custom CA bundles, client certificates, or disabled
+  verification pass an explicit `ssl_context` kwarg to `connect()` /
+  `create_pool()`. There is no implicit cert pinning or HPKP — that is the
+  caller's responsibility.
+- **Socket idle read timeout:** after the TCP+TLS handshake, individual
+  `asyncio.StreamReader.read()` calls can block indefinitely if the network
+  goes dark mid-stream (TCP connection alive but no data flowing — common
+  behind load balancers and in container environments). A configurable
+  per-read timeout would wrap every `readexactly` call and transition the
+  connection to `BROKEN` on expiry — **not yet implemented, tracked in §15**.
 
 ---
 
@@ -554,6 +572,173 @@ tests/
    packet send/receive, gated behind an extra so the bare install stays
    import-clean. Pinned to v1 so span shapes don't churn while the API
    is still settling.
+
+---
+
+## 15. Production readiness gaps
+
+Features that are either planned but not yet implemented, or entirely
+missing, that block recommending this client for production use. Each item
+here has a corresponding entry in `TODO.md §2`. Once all items in this
+section are shipped, the version should advance to **v1.0**.
+
+### 1. Client-side per-query timeout
+
+**Status:** Designed (§4) but not implemented. No `timeout` parameter
+exists on `execute`, `fetch_all`, `iter_blocks`, `insert`, or any other
+public method.
+
+**Risk:** If ClickHouse is overloaded and stops sending packets, or if a
+network partition occurs mid-stream, the calling coroutine blocks forever.
+Server-side `max_execution_time` does not protect against this because it
+only fires if the server is still running — a dead TCP-alive-but-silent
+connection (common behind load balancers) silently hangs the client.
+
+**Design:** `timeout: float | None = None` on every query method. If set,
+wraps the packet-iteration loop with `asyncio.timeout(timeout)`. Expiry
+sends a `Cancel` packet, drains with `drain_timeout`, and raises
+`QueryCancellationError(reason="client_timeout")`. If the cancel drain
+itself times out, marks the connection `BROKEN`.
+
+### 2. Socket idle read timeout
+
+**Status:** Not implemented. `connect_timeout` covers only the TCP+TLS
+handshake.
+
+**Risk:** Independent of (1). After connection, individual
+`asyncio.StreamReader.readexactly()` calls have no deadline. A half-open
+TCP connection (server rebooted, load balancer dropped the session, network
+partition) silently blocks every read forever, independent of whether the
+user set a per-query `timeout`.
+
+**Design:** `read_timeout: float | None = None` on `Connection` / DSN.
+Wraps each `readexactly` in an `asyncio.wait_for`. Timeout transitions the
+connection to `BROKEN` and raises `ConnectionError`. Distinct from
+per-query timeout: per-query timeout caps total query duration; read timeout
+caps the gap between successive packets.
+
+### 3. `fetch_all` / `execute` result-size guard
+
+**Status:** Described in §4 ("a `max_rows` setting on the client stops
+accidental unbounded loads") but not implemented in code.
+
+**Risk:** `fetch_all("SELECT * FROM large_table")` accumulates all rows
+into a Python list. A 100 M-row result set will exhaust memory with no
+warning or circuit-breaker.
+
+**Design:** `max_rows: int | None = None` on `execute` / `fetch_all`.
+After accumulating each block, check `len(rows) >= max_rows` and raise
+`ResultTooLargeError` (new `ClickHouseError` subclass). Does not send a
+Cancel — the error marks the connection `BROKEN` since partial drain
+would be ambiguous. Callers who want large results should use `iter_blocks`
+with an explicit consumer loop. A default can be set at the `Client` or
+`Pool` level via `default_max_rows`.
+
+### 4. Structured query logging
+
+**Status:** `logging.getLogger("clickhouse_async")` is instantiated in
+`connection.py` and `pool.py` but used almost nowhere: one `DEBUG` call
+in `connection.py`, four in `pool.py`. No log emitted on query start,
+query end, connection open/close, pool acquire/release, or health-check
+result.
+
+**Risk:** Debugging production incidents requires replaying what queries
+ran, on which connections, how long they took, and what pool events
+preceded a failure. Without structured logs, operators are blind.
+
+**Design:** Emit to `logging.getLogger("clickhouse_async")` at these
+points, with structured extra fields (never interpolated into the message
+so log aggregators can filter):
+- `INFO`: connection opened/closed, pool acquire/release (with
+  `query_id`, `host`, `elapsed_ms`).
+- `DEBUG`: query started (sql truncated to 200 chars, `query_id`,
+  `params` redacted if a `redact_params` option is set), query finished
+  (elapsed, rows, bytes).
+- `WARNING`: health-check ping failed, connection discarded, acquire
+  timeout imminent.
+- `ERROR`: unhandled pool reaper exception (already present).
+
+SQL is truncated, not redacted by default — operators may opt in to
+`log_queries=False` if queries contain sensitive literals.
+
+### 5. Graceful pool drain on shutdown
+
+**Status:** `pool.close()` closes all connections immediately, including
+those backing in-flight queries. Callers mid-`async with pool.acquire()`
+get their client torn away.
+
+**Risk:** Zero-downtime deploys require finishing in-flight queries before
+recycling the process. Abrupt close means any query in flight when the
+application shuts down fails with a transport error, even if it was
+milliseconds from completion.
+
+**Design:** `pool.drain(timeout: float = 30.0)` — a new method that:
+1. Sets a "draining" flag so new `acquire()` calls raise `PoolClosedError`
+   immediately.
+2. Waits until all currently-acquired clients are returned (via
+   `asyncio.Condition`), bounded by `timeout`.
+3. Then closes idle connections and returns. Callers chain
+   `await pool.drain(); await pool.close()` in their shutdown handler.
+
+`pool.close()` gains a `drain_timeout: float = 0.0` parameter as a
+shortcut: `0.0` (default) means "close immediately" (current behaviour);
+positive value means "drain first".
+
+### 6. Lightweight instrumentation hooks
+
+**Status:** No callback or hook surface for observing query latency, pool
+utilisation, or error rates — short of attaching a `logging.Handler` or
+waiting for OTel (v1).
+
+**Risk:** Before OTel lands, operators cannot alert on slow queries, count
+errors, or graph pool wait times without monkey-patching internal methods.
+
+**Design:** Two sync callbacks, both optional and `None` by default,
+accepted at `create_pool()` and `connect()`:
+
+```python
+on_query_start: Callable[[QueryEvent], None] | None = None
+on_query_end:   Callable[[QueryEvent], None] | None = None
+```
+
+`QueryEvent` is a small dataclass: `query_id`, `sql` (truncated),
+`host`, `started_at`, `elapsed` (only on end), `rows`, `error`.
+Callbacks are sync (no `await`), called with the GIL held. Users bridge
+to async or external systems themselves (e.g., `loop.call_soon`). These
+are intentionally minimal — OTel replaces them at v1 with proper spans.
+
+### 7. PyPI release and versioned wheels
+
+**Status:** The package is installable via `pip install git+https://…`
+but has not been published to PyPI. README notes "Not yet on PyPI."
+
+**Risk:** VCS installs are not reproducible across environments (git ref
+can be force-pushed), are not accepted by some security-conscious
+dependency scanners, and cannot be pinned in a `uv.lock` / `pip-compile`
+workflow the same way as a versioned wheel.
+
+**Design:** Publish to PyPI at v0.3 or v0.4 (whichever ships first after
+the API surface stabilises enough not to need a major-version bump on the
+first public release). Use `uv build` + `twine upload`. CI gains a
+`publish` job gated on tags matching `v*`. Enforce that `pyproject.toml`
+`[project.version]` matches the git tag before publish.
+
+### 8. INSERT deduplication token
+
+**Status:** ClickHouse's `insert_deduplication_token` setting can be
+passed today via `settings={"insert_deduplication_token": "..."}` but is
+undocumented and has no first-class API surface.
+
+**Risk:** Without a documented deduplication story, callers who implement
+retry logic cannot achieve at-most-once INSERT semantics. An insert that
+succeeds but whose confirmation is lost (network partition before the
+`await insert(...)` returns) will be retried and duplicated.
+
+**Design:** Add `deduplication_token: str | None = None` to `Client.insert()`.
+When set, it is injected into `settings` as `insert_deduplication_token`.
+The recommended pattern — generate a deterministic token from the content
+or operation ID, pass it on every retry attempt — is documented alongside
+the parameter. The pool's `insert()` pass-through surfaces the same kwarg.
 
 ---
 

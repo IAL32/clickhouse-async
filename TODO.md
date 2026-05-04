@@ -81,6 +81,71 @@ Things we haven't written yet, ordered by approximate priority.
   LZ4 when the `[compression]` extra is installed; `CLICKHOUSE_ASYNC_DEFAULT_COMPRESSION=off`
   opts out globally; `compression=None` opts out per-connection.
 
+### Pre-v1 production requirements
+
+These block recommending the client for production use. They are not
+feature additions — they are correctness and operability gaps. Every item
+here has a detailed design in `DESIGN.md §15`. All must ship before the
+version advances to 1.0.
+
+- **Client-side per-query timeout.** No `timeout` parameter exists on any
+  public query method. A half-open TCP connection or an overloaded server
+  that stops sending packets will block the caller forever. Server-side
+  `max_execution_time` does not protect against network partitions.
+  Design: `timeout: float | None = None` on `execute`, `fetch_all`,
+  `iter_blocks`, `insert`; wraps packet iteration with
+  `asyncio.timeout()`; expiry triggers cancel-and-drain.
+  *Code:* `client.py`.
+
+- **Socket idle read timeout.** `connect_timeout` covers only the TCP/TLS
+  handshake. After connection, `asyncio.StreamReader.readexactly()` can
+  block forever if the server or network goes silent mid-stream (common
+  behind load balancers). Design: `read_timeout: float | None = None` on
+  `Connection`; wraps every `readexactly` call; expiry transitions to
+  `BROKEN`.
+  *Code:* `connection.py`.
+
+- **`fetch_all` / `execute` result-size guard.** Accumulating a 100 M-row
+  result into a Python list silently OOMs the process. Design:
+  `max_rows: int | None` on `execute` / `fetch_all`; raises new
+  `ResultTooLargeError` subclass after each block is accumulated. A pool /
+  client level `default_max_rows` sets a per-session ceiling.
+  *Code:* `client.py`, `errors.py`.
+
+- **Structured query logging.** Exactly one `_logger.debug()` call exists
+  in `connection.py`. Production operations require: query start/end with
+  `query_id`, `host`, and `elapsed`; pool acquire/release; health-check
+  results; connection lifecycle events. Design: emit to
+  `logging.getLogger("clickhouse_async")` at `INFO` (lifecycle) and
+  `DEBUG` (query start/end with truncated SQL).
+  *Code:* `connection.py`, `pool.py`, `client.py`.
+
+- **Graceful pool drain on shutdown.** `pool.close()` tears connections
+  immediately, dropping in-flight queries. Design: `pool.drain(timeout)`
+  sets a draining flag (new `acquire()` → `PoolClosedError`) and waits
+  for all acquired clients to be returned before closing idle connections.
+  `pool.close(drain_timeout=30.0)` as a shortcut.
+  *Code:* `pool.py`.
+
+- **Lightweight instrumentation hooks.** No callback surface for observing
+  query latency or error rates before OTel (v1). Design: `on_query_start`
+  and `on_query_end` sync callbacks on `connect()` / `create_pool()`,
+  receiving a small `QueryEvent` dataclass. OTel replaces these at v1.
+  *Code:* `client.py`, `pool.py`.
+
+- **PyPI release and versioned wheels.** Installable via VCS only. VCS
+  installs are not reproducible, fail security scanners, and can't be
+  pinned in lockfiles. Publish to PyPI at v0.3 or v0.4; gate on a tag
+  matching `v*` in CI.
+  *Code:* `pyproject.toml`, `.github/workflows/`.
+
+- **INSERT deduplication token.** `insert_deduplication_token` is
+  settable today via `settings={...}` but undocumented. Callers cannot
+  implement idempotent retry without a first-class API. Design:
+  `deduplication_token: str | None = None` on `Client.insert()`, injected
+  into `settings` automatically.
+  *Code:* `client.py`.
+
 ### v0.4 — Example scenarios
 
 - **Real-workload scenario tests.** Three public ClickHouse datasets

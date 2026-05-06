@@ -129,6 +129,67 @@ async def test_server_side_parameter_binding_none_for_nullable(
     assert rows_str_value == [("hi",)]
 
 
+async def test_server_side_parameter_binding_list_arrays(
+    pool: ch.Pool,
+) -> None:
+    # BEGIN: no fixture data — generate the rows on the fly
+    # WHEN: a list / tuple parameter against an Array(T) placeholder
+
+    # Numeric IN (...) — the canonical use case
+    rows_in = await pool.fetch_all(
+        "SELECT number FROM numbers(10) "
+        "WHERE number IN ({ids:Array(Int64)}) ORDER BY number",
+        params={"ids": [2, 5, 7]},
+    )
+
+    # Pre-stringified workaround must still produce the same wire bytes
+    rows_in_workaround = await pool.fetch_all(
+        "SELECT number FROM numbers(10) "
+        "WHERE number IN ({ids:Array(Int64)}) ORDER BY number",
+        params={"ids": "[2, 5, 7]"},
+    )
+
+    # tuple round-trips through the same path as list
+    rows_tuple = await pool.fetch_all(
+        "SELECT number FROM numbers(10) "
+        "WHERE number IN ({ids:Array(Int64)}) ORDER BY number",
+        params={"ids": (2, 5, 7)},
+    )
+
+    # Array(String) — exercises the inner-quote escaping path
+    rows_str = await pool.fetch_all(
+        "SELECT {names:Array(String)} AS v",
+        params={"names": ["a", "b"]},
+    )
+
+    # Array(Nullable(Int64)) — None inside the array becomes literal NULL
+    rows_null_int = await pool.fetch_all(
+        "SELECT {xs:Array(Nullable(Int64))} AS v",
+        params={"xs": [1, None, 3]},
+    )
+
+    # Array(Nullable(String)) — same NULL token, string element type
+    rows_null_str = await pool.fetch_all(
+        "SELECT {xs:Array(Nullable(String))} AS v",
+        params={"xs": ["a", None, "c"]},
+    )
+
+    # Empty array
+    rows_empty = await pool.fetch_all(
+        "SELECT {xs:Array(Int64)} AS v",
+        params={"xs": []},
+    )
+
+    # THEN: every shape lands as the expected ClickHouse Array(T) value
+    assert rows_in == [(2,), (5,), (7,)]
+    assert rows_in_workaround == [(2,), (5,), (7,)]
+    assert rows_tuple == [(2,), (5,), (7,)]
+    assert rows_str == [(["a", "b"],)]
+    assert rows_null_int == [([1, None, 3],)]
+    assert rows_null_str == [(["a", None, "c"],)]
+    assert rows_empty == [([],)]
+
+
 async def test_streaming_iter_rows_returns_to_ready(pool: ch.Pool) -> None:
     # BEGIN: a connected client streaming over a generated row source
     n_rows = 100

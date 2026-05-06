@@ -166,9 +166,46 @@ def test_format_param_rejects_unsupported_types() -> None:
     # BEGIN / WHEN / THEN: unknown Python types raise TypeError naming
     #     the offending type
     with pytest.raises(TypeError, match="cannot format query parameter"):
-        format_param([1, 2, 3])
-    with pytest.raises(TypeError, match="cannot format query parameter"):
         format_param({"k": "v"})
+    with pytest.raises(TypeError, match="cannot format query parameter"):
+        format_param(object())
+
+
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        ([1, 2, 3], "'[1,2,3]'"),
+        ((1, 2, 3), "'[1,2,3]'"),
+        ([], "'[]'"),
+        ([True, False], "'[true,false]'"),
+        ([1.5, -2.0], f"'[{1.5!r},{-2.0!r}]'"),
+        ([Decimal("3.14")], "'[3.14]'"),
+        # String elements get single-quoted; the outer ``_quote`` then
+        # escapes those single quotes — so each ``'`` lands on the wire
+        # as ``\'``.
+        (["a", "b"], r"'[\'a\',\'b\']'"),
+        # An apostrophe inside a string gets escaped twice: once for the
+        # inner array-element quote (``\'``), and once more by the outer
+        # ``_quote`` pass (``\\\'``).
+        (["it's"], r"'[\'it\\\'s\']'"),
+        # ``None`` inside an array is the literal token ``NULL``, NOT the
+        # scalar ``\N`` sentinel — the array-text parser silently coerces
+        # ``\N`` to ``0`` / ``""`` instead of NULL.
+        ([None, 1], "'[NULL,1]'"),
+        ([1, None, 3], "'[1,NULL,3]'"),
+        # Nested arrays fall out via the recursive _to_text dispatch.
+        ([[1, 2], [3]], "'[[1,2],[3]]'"),
+        # Mixed scalar types — date, UUID — go through the scalar text
+        # path and pick up no extra escaping.
+        ([date(2026, 5, 7)], "'[2026-05-07]'"),
+        ([UUID(int=0)], "'[00000000-0000-0000-0000-000000000000]'"),
+    ],
+)
+def test_format_param_renders_arrays(value: object, expected: str) -> None:
+    # BEGIN / WHEN: a list or tuple of supported scalar types
+    # THEN: it lands as a ClickHouse array literal inside the outer
+    #     single-quoted SQL wrapper
+    assert format_param(value) == expected
 
 
 # ---- send_query parameter wire format ---------------------------------
@@ -326,9 +363,10 @@ async def test_send_query_unsupported_param_type_raises_type_error() -> None:
     conn = await _connect(transport)
 
     # WHEN: passing a parameter of a type the registry doesn't cover
+    #       (a plain ``dict`` — Map(K,V) binding isn't wired up yet)
     # THEN: TypeError surfaces from format_param via send_query;
     #       nothing was written for this Query
     pre = len(transport.written())
     with pytest.raises(TypeError, match="cannot format query parameter"):
-        await conn.send_query("SELECT 1", params={"x": [1, 2, 3]})
+        await conn.send_query("SELECT 1", params={"x": {"k": "v"}})
     assert len(transport.written()) == pre

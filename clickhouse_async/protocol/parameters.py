@@ -30,6 +30,12 @@ For v0 we cover the common types in ``DESIGN.md §7``:
 - ``UUID`` — canonical 8-4-4-4-12
 - ``IPv4Address`` / ``IPv6Address`` — ``str(value)``
 - ``bytes`` — hex-encoded
+- ``list`` / ``tuple`` — rendered as a ClickHouse array literal
+  (``[1,2,3]`` for numerics; ``['a','b']`` for strings, with single quotes
+  inside) and wrapped in the outer ``_quote``. ``None`` inside an array
+  becomes the literal token ``NULL`` — the scalar ``\\N`` sentinel does
+  not carry into array literals (the array-text parser silently coerces
+  ``\\N`` to ``0`` / ``""`` instead of NULL).
 
 Anything else raises ``TypeError``. Custom types belong at the
 higher-level ``Client`` where the type-aware conversion lives, not
@@ -97,11 +103,28 @@ def _to_text(value: object) -> str:
         return str(value)
     if isinstance(value, bytes):
         return value.hex()
+    if isinstance(value, (list, tuple)):
+        return "[" + ",".join(_to_array_text(v) for v in value) + "]"
     raise TypeError(
         f"cannot format query parameter of type {type(value).__name__}: "
         f"{value!r}; pass a pre-stringified value or extend "
         f"format_param for a new Python type"
     )
+
+
+def _to_array_text(value: object) -> str:
+    """Render one element inside an array literal. Numbers go bare,
+    strings get single-quoted with inner-quote escaping, ``None`` becomes
+    the literal token ``NULL`` (the scalar ``\\N`` sentinel does not
+    parse to NULL inside an array — the array-text parser silently
+    coerces it to a zero value instead). Anything else falls through to
+    ``_to_text`` and inherits its formatting."""
+
+    if value is None:
+        return "NULL"
+    if isinstance(value, str):
+        return "'" + value.replace("\\", "\\\\").replace("'", "\\'") + "'"
+    return _to_text(value)
 
 
 def _quote(s: str) -> str:

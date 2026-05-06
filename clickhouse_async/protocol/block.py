@@ -158,15 +158,118 @@ async def read_block(
         )
         if revision >= DBMS_MIN_REVISION_WITH_CUSTOM_SERIALIZATION:
             has_custom = await reader.read_byte()
-            if has_custom != 0:
-                raise ProtocolError(
-                    f"custom serialization not supported: column {name!r} "
-                    f"of type {type_spec!r} carries has_custom={has_custom}"
+            if has_custom == 1:
+                column_data = await _read_custom_serialised_column(
+                    reader, codec, n_rows, name=name, type_spec=type_spec
                 )
-        column_data = await codec.read(reader, n_rows)
+            elif has_custom != 0:
+                raise ProtocolError(
+                    f"invalid has_custom byte {has_custom} for column "
+                    f"{name!r} of type {type_spec!r}: must be 0 or 1"
+                )
+            else:
+                column_data = await codec.read(reader, n_rows)
+        else:
+            column_data = await codec.read(reader, n_rows)
         columns.append(ColumnSpec(name=name, type_spec=type_spec, codec=codec))
         data.append(column_data)
     return Block(info=info, columns=columns, n_rows=n_rows, data=data)
+
+
+# Custom-serialization "kind" byte. Currently only Sparse (= 1) is
+# emitted by the server; future kinds would land here without changing
+# the surrounding handshake.
+_KIND_SPARSE = 1
+
+# Bit-62 flag set on the **last** sparse-offset varuint to mark
+# end-of-granule. The remaining low 62 bits hold the trailing-defaults
+# count (number of default values after the last non-default). Defined
+# in upstream ``SerializationSparse.cpp`` as ``END_OF_GRANULE_FLAG``.
+_SPARSE_END_OF_GRANULE_FLAG = 1 << 62
+
+
+async def _read_custom_serialised_column(
+    reader: AsyncBinaryReader,
+    codec: ColumnCodec,
+    n_rows: int,
+    *,
+    name: str,
+    type_spec: str,
+) -> list[Any]:
+    """Decode a column whose header set ``has_custom=1``.
+
+    The first byte after ``has_custom`` is the **kind** discriminator.
+    Only ``1`` = Sparse is currently produced; other values raise. The
+    body that follows depends on the kind — see ``_read_sparse_column``.
+    """
+
+    kind = await reader.read_byte()
+    if kind == _KIND_SPARSE:
+        return await _read_sparse_column(
+            reader, codec, n_rows, name=name, type_spec=type_spec
+        )
+    raise ProtocolError(
+        f"unsupported custom-serialization kind for column {name!r} "
+        f"of type {type_spec!r}: kind={kind} (only 1=sparse is recognised)"
+    )
+
+
+async def _read_sparse_column(
+    reader: AsyncBinaryReader,
+    codec: ColumnCodec,
+    n_rows: int,
+    *,
+    name: str,
+    type_spec: str,
+) -> list[Any]:
+    """Decode one sparse-serialised column body (after the kind byte).
+
+    Wire format:
+
+    1. **Group-size offsets** (varuints). Each value is the number of
+       default-valued rows preceding the next non-default row. The
+       sequence terminates with a varuint that has ``END_OF_GRANULE_FLAG``
+       (``1 << 62``) set; the low 62 bits of that final varuint are the
+       trailing-defaults count.
+    2. **Non-default values** (the codec's normal encoding for
+       ``n_non_default`` rows).
+
+    Reconstruction walks ``position`` forward by each ``group_size + 1``
+    and writes the matching value into a list pre-filled with
+    ``codec.null_value`` (the codec's neutral / type-default value —
+    matches the column's effective DEFAULT for the simple types sparse
+    is ever applied to).
+    """
+
+    group_sizes: list[int] = []
+    while True:
+        raw = await reader.read_varuint()
+        if raw & _SPARSE_END_OF_GRANULE_FLAG:
+            # Trailing-defaults count is the low 62 bits; we don't need
+            # it for reconstruction (we know n_rows from the block
+            # header), but we validate it below for protocol-conformance.
+            trailing_defaults = raw & ~_SPARSE_END_OF_GRANULE_FLAG
+            break
+        group_sizes.append(raw)
+
+    n_non_default = len(group_sizes)
+    values = await codec.read(reader, n_non_default)
+
+    result: list[Any] = [codec.null_value] * n_rows
+    position = 0
+    for group_size, value in zip(group_sizes, values, strict=True):
+        position += group_size
+        result[position] = value
+        position += 1
+
+    if position + trailing_defaults != n_rows:
+        raise ProtocolError(
+            f"sparse offsets do not span n_rows for column {name!r} "
+            f"of type {type_spec!r}: {n_non_default} non-defaults + "
+            f"{trailing_defaults} trailing defaults != {n_rows} rows"
+        )
+
+    return result
 
 
 def write_block(writer: BinaryWriter, block: Block, *, revision: int) -> None:

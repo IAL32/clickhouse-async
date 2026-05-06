@@ -246,27 +246,156 @@ async def test_below_custom_serialization_revision_omits_has_custom_byte() -> No
     assert decoded.data == [[1]]
 
 
-async def test_custom_serialization_byte_must_be_zero() -> None:
-    # BEGIN: a synthetic stream where has_custom=1 (we never emit this, but
-    #        a misconfigured server would)
+async def test_has_custom_byte_above_one_raises_protocol_error() -> None:
+    # BEGIN: a synthetic stream where has_custom=2 — the protocol only
+    #        defines 0 (default) and 1 (custom serialisation present).
+    #        Any other value is a wire-format violation.
     writer = BinaryWriter()
-    # Empty BlockInfo
-    writer.write_varuint(1)
-    writer.write_byte(0)
-    writer.write_varuint(2)
-    writer.write_int(-1, 4, signed=True)
-    writer.write_varuint(0)
-    # 1 column, 1 row
-    writer.write_varuint(1)
-    writer.write_varuint(1)
-    # Column header: name, type, has_custom=1
+    _write_empty_block_header(writer, n_columns=1, n_rows=1)
     writer.write_string("x")
     writer.write_string("Int8")
-    writer.write_byte(1)  # poison
+    writer.write_byte(2)  # invalid
 
     # WHEN: reading the block at OUR_REVISION
     # THEN: a ProtocolError surfaces, naming the offending column and value
-    with pytest.raises(ProtocolError, match="custom serialization"):
+    with pytest.raises(ProtocolError, match="has_custom byte 2"):
+        await read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
+
+
+async def test_custom_serialization_unknown_kind_raises() -> None:
+    # BEGIN: has_custom=1 (custom serialisation present) but the inner
+    #        kind byte is 2 — only kind=1 (Sparse) is currently produced
+    writer = BinaryWriter()
+    _write_empty_block_header(writer, n_columns=1, n_rows=1)
+    writer.write_string("x")
+    writer.write_string("Int8")
+    writer.write_byte(1)  # has_custom = 1
+    writer.write_byte(2)  # kind = 2 (unknown)
+
+    # WHEN / THEN: a ProtocolError surfaces, naming the offending kind
+    with pytest.raises(ProtocolError, match=r"kind=2"):
+        await read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
+
+
+# ---- Block: sparse-serialised columns ----------------------------------
+
+# Bit-62 flag the server OR-s into the **last** sparse-offset varuint to
+# mark end-of-granule. The remaining low 62 bits are the trailing-defaults
+# count. Mirrors ``_SPARSE_END_OF_GRANULE_FLAG`` in ``protocol/block.py``.
+_SPARSE_END_OF_GRANULE_FLAG = 1 << 62
+
+
+def _write_empty_block_header(
+    writer: BinaryWriter, *, n_columns: int, n_rows: int
+) -> None:
+    """Emit the BlockInfo + (n_columns, n_rows) prefix used by every
+    block test that doesn't go through ``write_block`` directly."""
+    writer.write_varuint(1)  # BlockInfo field 1: is_overflows
+    writer.write_byte(0)
+    writer.write_varuint(2)  # BlockInfo field 2: bucket_num
+    writer.write_int(-1, 4, signed=True)
+    writer.write_varuint(0)  # BlockInfo terminator
+    writer.write_varuint(n_columns)
+    writer.write_varuint(n_rows)
+
+
+def _write_sparse_uint8_column(
+    writer: BinaryWriter,
+    *,
+    group_sizes: list[int],
+    trailing_defaults: int,
+    values: list[int],
+) -> None:
+    """Encode the body of a sparse UInt8 column past its has_custom byte.
+
+    ``group_sizes[i]`` is the number of default-valued rows before the
+    i-th non-default; ``trailing_defaults`` is the count after the last
+    non-default. ``values`` carries the non-default UInt8 payloads.
+    """
+    writer.write_byte(1)  # has_custom = 1
+    writer.write_byte(1)  # kind = 1 (Sparse)
+    for size in group_sizes:
+        writer.write_varuint(size)
+    writer.write_varuint(_SPARSE_END_OF_GRANULE_FLAG | trailing_defaults)
+    for v in values:
+        writer.write_byte(v)
+
+
+async def test_sparse_all_default_column_decodes_to_null_values() -> None:
+    # BEGIN: a block whose only column is sparse and *fully* default —
+    #        no group-size varuints, just the end-of-granule marker
+    #        whose low 62 bits hold the trailing-defaults count
+    writer = BinaryWriter()
+    _write_empty_block_header(writer, n_columns=1, n_rows=5)
+    writer.write_string("v")
+    writer.write_string("UInt8")
+    _write_sparse_uint8_column(writer, group_sizes=[], trailing_defaults=5, values=[])
+
+    # WHEN: reading the block
+    decoded = await read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
+
+    # THEN: every row carries the codec's null_value (0 for UInt8)
+    assert decoded.n_rows == 5
+    assert decoded.data == [[0, 0, 0, 0, 0]]
+
+
+async def test_sparse_single_non_default_at_position_zero() -> None:
+    # BEGIN: 5 rows, one non-default value (=7) at position 0, the rest
+    #        are defaults
+    writer = BinaryWriter()
+    _write_empty_block_header(writer, n_columns=1, n_rows=5)
+    writer.write_string("v")
+    writer.write_string("UInt8")
+    _write_sparse_uint8_column(writer, group_sizes=[0], trailing_defaults=4, values=[7])
+
+    # WHEN: reading
+    decoded = await read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
+
+    # THEN: position 0 holds 7, positions 1-4 hold the default 0
+    assert decoded.data == [[7, 0, 0, 0, 0]]
+
+
+async def test_sparse_multiple_non_defaults_interleaved() -> None:
+    # BEGIN: 10 rows with non-defaults at positions 0, 3, 9 — the same
+    #        shape we observed on the wire from the live server
+    writer = BinaryWriter()
+    _write_empty_block_header(writer, n_columns=1, n_rows=10)
+    writer.write_string("v")
+    writer.write_string("UInt8")
+    _write_sparse_uint8_column(
+        writer,
+        # Walk: pos 0 (gs=0, place 1, pos=1) -> +2 defaults to pos 3
+        # (place 2, pos=4) -> +5 defaults to pos 9 (place 3, pos=10)
+        group_sizes=[0, 2, 5],
+        trailing_defaults=0,
+        values=[1, 2, 3],
+    )
+
+    # WHEN: reading
+    decoded = await read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
+
+    # THEN: non-defaults land at the right positions; rest is the codec's
+    #       null_value (0 for UInt8)
+    assert decoded.data == [[1, 0, 0, 2, 0, 0, 0, 0, 0, 3]]
+
+
+async def test_sparse_offsets_overshoot_n_rows_raises() -> None:
+    # BEGIN: a sparse stream whose group_sizes + trailing_defaults sum
+    #        to more than n_rows — the server should never emit this,
+    #        but if it did we must catch it before producing wrong data
+    writer = BinaryWriter()
+    _write_empty_block_header(writer, n_columns=1, n_rows=5)
+    writer.write_string("v")
+    writer.write_string("UInt8")
+    _write_sparse_uint8_column(
+        writer,
+        group_sizes=[0],  # 1 non-default at position 0 (consumes 1)
+        trailing_defaults=10,  # claims 10 trailing — total 11 > n_rows=5
+        values=[7],
+    )
+
+    # WHEN / THEN: ProtocolError flags the mismatch by name
+    with pytest.raises(ProtocolError, match="sparse offsets"):
         await read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
 
 

@@ -35,14 +35,6 @@ codec/module that carries the limitation so a grep finds the on-ramp.
 
 ### Protocol primitives
 
-- **Sparse serialization (`has_custom=1`) not decoded.** The server may
-  send columns with `has_custom=1` (sparse/custom encoding) for any
-  negotiated revision ≥ 54454. The client raises `ProtocolError` on
-  such columns. In practice, data must be highly sparse to trigger it
-  so it rarely fires in production workloads. Fixing this requires
-  decoding `SerializationInfo` and implementing the sparse column format.
-  *Code:* `protocol/block.py::read_block`.
-
 - **Single-quoted strings in type specs don't support escapes.** The
   parser reads up to the next single quote — server-emitted type
   strings shouldn't contain doubled quotes or backslash escapes, but

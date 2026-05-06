@@ -4,13 +4,22 @@ Each parameter value travels as a single-quoted SQL string literal.
 The server treats every parameter's storage type as a ``Field(String)``
 on the way in, then *unquotes* the value and re-parses it according to
 the placeholder's declared type at substitution time
-(``{name:Date}``, ``{n:Int32}``, ``{tz:String}``, …). This means
-``format_param`` always produces ``'<text>'``, regardless of the
-Python type — internal single quotes and backslashes get escaped per
-ClickHouse's ``readQuoted`` convention.
+(``{name:Date}``, ``{n:Int32}``, ``{tz:String}``, …). ``format_param``
+always produces ``'<text>'``, regardless of the Python type — internal
+single quotes and backslashes get escaped per ClickHouse's ``readQuoted``
+convention.
+
+``None`` is a special case: the server's parameter parser recognises a
+``NULL`` for ``Nullable(T)`` placeholders only when the unquoted body is
+exactly the two-byte sequence ``\\N``. We therefore send the literal
+string ``\\N`` through the same ``_quote`` path; on the wire it lands
+as ``'\\\\N'`` (5 bytes), the server unquotes to ``\\N`` and resolves
+it to SQL ``NULL``. Bare ``\\N`` without surrounding quotes is rejected
+by the server's Field-dump parser.
 
 For v0 we cover the common types in ``DESIGN.md §7``:
 
+- ``None`` — ``'\\\\N'`` (ClickHouse NULL sentinel; only valid for ``Nullable(T)``)
 - ``str`` — verbatim
 - ``bool`` — ``"true"`` / ``"false"``
 - ``int`` — ``str(value)``
@@ -37,10 +46,15 @@ from uuid import UUID
 
 
 def format_param(value: object) -> str:
-    """Format ``value`` as a single-quoted SQL string literal — the
-    wire form parameter values must take regardless of the placeholder's
-    declared type."""
+    """Format ``value`` as a single-quoted SQL string literal — the wire
+    form parameter values must take regardless of the placeholder's
+    declared type. ``None`` becomes the ClickHouse NULL sentinel ``\\N``
+    routed through the same quoting path: the wire bytes are ``'\\\\N'``,
+    which the server unquotes to ``\\N`` and resolves to SQL ``NULL`` for
+    any ``Nullable(T)`` placeholder."""
 
+    if value is None:
+        return _quote(r"\N")
     return _quote(_to_text(value))
 
 

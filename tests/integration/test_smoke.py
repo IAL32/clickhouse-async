@@ -101,6 +101,34 @@ async def test_server_side_parameter_binding(
     assert rows == [(2, "beta")]
 
 
+async def test_server_side_parameter_binding_none_for_nullable(
+    pool: ch.Pool,
+) -> None:
+    # BEGIN: no fixture data needed — exercise the binding via SELECT
+    # WHEN: passing ``None`` against a ``Nullable(T)`` placeholder for
+    #       both string and integer types
+    rows_str = await pool.fetch_all(
+        "SELECT {x:Nullable(String)} AS v",
+        params={"x": None},
+    )
+    rows_int = await pool.fetch_all(
+        "SELECT {x:Nullable(Int64)} AS v",
+        params={"x": None},
+    )
+    rows_str_value = await pool.fetch_all(
+        "SELECT {x:Nullable(String)} AS v",
+        params={"x": "hi"},
+    )
+
+    # THEN: the server resolves the ``\N`` sentinel to SQL NULL on the
+    #       way in, and a non-null value through the same placeholder
+    #       still binds cleanly — the None path doesn't poison the
+    #       Nullable code path
+    assert rows_str == [(None,)]
+    assert rows_int == [(None,)]
+    assert rows_str_value == [("hi",)]
+
+
 async def test_streaming_iter_rows_returns_to_ready(pool: ch.Pool) -> None:
     # BEGIN: a connected client streaming over a generated row source
     n_rows = 100

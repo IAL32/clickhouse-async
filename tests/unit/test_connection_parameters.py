@@ -146,6 +146,16 @@ def test_format_param_handles_special_floats() -> None:
     assert format_param(float("-inf")) == "'-inf'"
 
 
+def test_format_param_none_emits_quoted_null_sentinel() -> None:
+    # BEGIN / WHEN: ``None`` rides the same quoting path as scalar values
+    #     but with the body fixed to ClickHouse's NULL sentinel ``\N``;
+    #     the server unquotes the wire bytes to ``\N`` and resolves it
+    #     to SQL NULL for any ``Nullable(T)`` placeholder. Bare ``\N``
+    #     without surrounding quotes is rejected by the Field-dump parser.
+    # THEN: the wire form is the 5-byte sequence ``'\\N'``
+    assert format_param(None) == r"'\\N'"
+
+
 def test_format_param_escapes_internal_quotes_and_backslashes() -> None:
     # BEGIN / WHEN: a string that contains both metacharacters
     # THEN: single quotes get a leading backslash; backslashes double
@@ -284,6 +294,30 @@ async def test_send_query_typed_values_format_via_registry() -> None:
     assert seen["ts"] == "'2026-05-03 12:00:00.500000'"
     assert seen["id"] == "'12345678-1234-5678-9abc-def012345678'"
     assert seen["blob"] == "'00ff'"
+
+
+async def test_send_query_emits_none_as_quoted_backslash_n_sentinel() -> None:
+    # BEGIN: a connection past handshake at OUR_REVISION
+    transport = ScriptedTransport()
+    conn = await _connect(transport)
+
+    # WHEN: sending a parametric query whose value is ``None`` for a
+    #       ``Nullable(String)`` placeholder
+    await conn.send_query(
+        "SELECT {x:Nullable(String)}",
+        params={"x": None},
+    )
+
+    # THEN: the parameter reaches the wire as the 5-byte ``'\\N'``;
+    #       the server unquotes it to ``\N`` and resolves NULL
+    rdr = _reader_over(transport.written())
+    await _drain_client_hello(rdr)
+    await _drain_query_through_sql(rdr)
+    name = await rdr.read_string()
+    assert name == "x"
+    await rdr.read_varuint()  # CUSTOM flag
+    assert await rdr.read_string() == r"'\\N'"
+    assert await rdr.read_string() == ""  # parameters terminator
 
 
 async def test_send_query_unsupported_param_type_raises_type_error() -> None:

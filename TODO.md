@@ -63,7 +63,17 @@ Things we haven't written yet, ordered by approximate priority.
 
 All four items landed in v0.3 — see `DESIGN.md §13`.
 
-### v0.4 — Example scenarios (shipped)
+### v0.4 — Example scenarios + read-throughput refactor (shipped)
+
+Example scenario tests landed at the start of v0.4. The bigger ticket
+is the read path: codec `read` is now synchronous (consumes a
+`SyncBinaryReader` over an in-memory buffer instead of awaiting per
+primitive), the transport drains then sync-parses with pushback for
+over-drained bytes, and the hot codecs (`String`, `DateTime`, `Enum`,
+`UUID`, `Array` offsets, `Decimal32/64`) bulk-unpack with `struct`.
+The 1M-row mixed-type read benchmark closes most of the gap to
+`clickhouse-connect`'s thread-pool baseline. The `tests/perf/` suite
+under `pytest-benchmark` tracks per-codec numbers across PRs.
 
 ### Pre-v1 production requirements
 
@@ -128,7 +138,9 @@ version advances to 1.0.
 - **Read-only / write-only pool variants.** Multi-host opens this up —
   primary-only writes, replica-fanout reads.
 - **C/Cython hot path** for int/float/string codecs *only if* profiling
-  shows pure-Python encoders are the bottleneck on large inserts.
+  shows pure-Python encoders are the bottleneck on large inserts. The
+  v0.4 sync codec refactor + bulk-unpack pass closed most of the read
+  gap; revisit only if the cross-library numbers still warrant it.
 
 ### v1 — Observability and API stability
 

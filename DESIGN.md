@@ -365,10 +365,19 @@ buffer given a row count.
   (e.g. polars/pyarrow/numpy adapters in a separate package later).
 
 ### Encoding strategy
-Each codec is an object with `read(buf, n_rows) -> Sequence[T]` and
-`write(buf, values) -> None`. They compose: `Nullable(Array(String))` is just
-three codecs stacked. Buffers are `memoryview`-backed to avoid copies on the
-read path.
+Each codec is an object with `read(reader, n_rows) -> Sequence[T]` and
+`write(writer, values) -> None`. They compose: `Nullable(Array(String))` is
+just three codecs stacked.
+
+`read` is **synchronous** — it consumes from a `SyncBinaryReader` over an
+in-memory bytes buffer rather than awaiting on a stream per primitive. The
+async work happens at the transport boundary: `read_block_buffered` drains
+either a generous initial socket chunk (uncompressed) or one compressed
+frame at a time, hands the resulting buffer to the sync block parser, and
+pushes any unconsumed bytes back to the async reader for the next packet.
+On `BufferUnderflow` the parse retries from the start with a topped-up
+buffer. Removing the per-row `await` is the single biggest factor in v0.4's
+read-throughput jump; see §13 v0.4.
 
 ---
 
@@ -473,7 +482,8 @@ clickhouse_async/
     protocol/
         packets.py       # packet ids, protocol revision constants
         block.py         # Block, Column, read_block, write_block
-        io.py            # AsyncBinaryReader, BinaryWriter
+        io.py            # AsyncBinaryReader (transport), BinaryWriter
+        io_sync.py       # SyncBinaryReader (in-memory codec input)
         handshake.py     # client Hello / server Hello codec
         query_packet.py  # Query packet + ClientInfo
         compression.py   # LZ4 / ZSTD compressed-block framing
@@ -552,21 +562,36 @@ tests/
    `[compression]` extra is installed; `CLICKHOUSE_ASYNC_DEFAULT_COMPRESSION=off`
    env var and `compression=None` kwarg opt out.
 
-### v0.4 (shipped — 2026-05-04)
+### v0.4
 
-1. **Example scenario tests.** Three public ClickHouse datasets
-   (COVID-19 epidemiology, OpenCelliD cell towers, Hacker News) loaded
-   into an ephemeral server in a dedicated `scenarios` CI job. Proves
-   the client works against realistic schemas — `Enum8`, `Float64`,
-   `DateTime`, `Array(UInt32)`, aggregation, date math, multi-block
-   streaming. No production code changes; tests and CI only.
-2. **`pyarrow` / `polars` adapter packages** (`clickhouse-async-arrow` /
+1. **Example scenario tests.** *(shipped — 2026-05-04.)* Three public
+   ClickHouse datasets (COVID-19 epidemiology, OpenCelliD cell towers,
+   Hacker News) loaded into an ephemeral server in a dedicated
+   `scenarios` CI job. Proves the client works against realistic
+   schemas — `Enum8`, `Float64`, `DateTime`, `Array(UInt32)`,
+   aggregation, date math, multi-block streaming. No production code
+   changes; tests and CI only.
+2. **Read-throughput refactor.** *(shipped — 2026-05-07.)* Codec
+   `read` is now synchronous, consuming a `SyncBinaryReader` over an
+   in-memory buffer instead of awaiting on a stream per primitive.
+   Async work survives only at the transport boundary
+   (`read_block_buffered` drains and sync-parses, with pushback for
+   over-drained bytes). Hot-path codecs (`String`, `DateTime`,
+   `Enum`, `UUID`, `Array` offsets, `Decimal32/64`) bulk-unpack with
+   `struct` rather than per-row `int.from_bytes`; `String.read`
+   inlines varuint + UTF-8 decode against the underlying buffer; the
+   `Client` row-tuple transpose uses C-level `zip(*data)`. End-to-end
+   the 1M-row `read_throughput` benchmark closes most of the gap to
+   `clickhouse-connect`'s thread-pool baseline. The
+   `pytest-benchmark` suite under `tests/perf/` tracks the codec-level
+   numbers across PRs.
+3. **`pyarrow` / `polars` adapter packages** (`clickhouse-async-arrow` /
    `-polars`). Separate extras; build on the `column_factories` hook
    from v0.3. Each block becomes an Arrow `RecordBatch` / Polars
    `DataFrame` with no row-tuple intermediate.
-3. **Read-only / write-only pool routing.** Primary-only writes,
+4. **Read-only / write-only pool routing.** Primary-only writes,
    replica-fanout reads — builds on multi-host DSN.
-4. **`AggregateFunction` allow-list expansion.** Adding `quantile`,
+5. **`AggregateFunction` allow-list expansion.** Adding `quantile`,
    `uniq`, etc. is a one-line registration in `aggregate.py`; deferred
    until a real workload drives priority.
 

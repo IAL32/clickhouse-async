@@ -3,11 +3,12 @@
 An async Python client for ClickHouse that speaks the native TCP protocol on
 port `9000` (or `9440` for TLS).
 
-> **Status:** v0.1. Native protocol, types, client, pool, multi-host
-> failover, idle reaper, cross-connection cancel, and the most-common
-> v0 type gaps (LowCardinality(Nullable(T)), named Tuples) all land here.
-> Not yet on PyPI — installable via VCS until the first release artefact
-> ships.
+> **Status:** v0.4. Native protocol, full v0 type system, client, pool,
+> multi-host failover, idle reaper, cross-connection cancel, and a
+> resync of the read path onto a synchronous codec interface that
+> closes most of the read-throughput gap to the thread-pool baseline of
+> `clickhouse-connect`. Not yet on PyPI — installable via VCS until the
+> first release artefact ships.
 
 ## Why another ClickHouse client?
 
@@ -159,7 +160,14 @@ uv run ruff check && uv run ruff format
 uv run ty check
 uv run pytest                       # unit tests only
 uv run pytest tests/integration     # integration tests (starts a container)
+uv run pytest tests/perf -m perf --benchmark-only   # codec micro-benchmarks
 ```
+
+The `tests/perf/` suite uses `pytest-benchmark` to track per-codec read
+throughput across PRs. Save a snapshot with
+`--benchmark-save=<label>` and compare with `--benchmark-compare=<label>`
+to catch regressions before they reach `benchmarks/` cross-library
+numbers.
 
 ### Running ClickHouse locally
 

@@ -302,29 +302,31 @@ async def read_block_buffered(
 async def _refill_uncompressed(
     reader: AsyncBinaryReader, buf: bytearray, needed: int
 ) -> None:
-    """Top up `buf` from the raw socket by exactly `needed` bytes plus
-    any extra the asyncio buffer is happy to hand over without
-    blocking. Reading exactly `needed` ensures we don't deadlock on
-    short server responses; the bonus drain that follows reduces the
-    retry count when more bytes happen to already be buffered."""
+    """Top up `buf` from the raw socket by exactly `needed` bytes —
+    the size of the read that just underflowed. Reading any more
+    risks blocking past what the server has emitted (a small one-shot
+    DATA packet would deadlock waiting for bytes that aren't coming);
+    the outer retry loop will call us again if the next parse pass
+    needs even more."""
     buf.extend(await reader.read_exact(needed))
-    extra = await reader.read_available(_UNCOMPRESSED_INITIAL_CAP)
-    if extra:
-        buf.extend(extra)
 
 
 async def _refill_compressed(
-    reader: AsyncBinaryReader, buf: bytearray, needed: int
+    reader: AsyncBinaryReader,
+    buf: bytearray,
+    needed: int,  # kept to match the refill signature; unused here
 ) -> None:  # pragma: no cover — requires extras
-    """Top up `buf` by pulling another compressed frame. `needed` is
-    advisory — frames have their own size baked in so we drain at
-    least one and keep going if it still isn't enough."""
-    while True:
-        frame = await CompressedBlockReader(reader).read_payload()
-        buf.extend(frame)
-        if len(frame) >= needed:
-            return
-        needed -= len(frame)
+    del needed
+    """Top up `buf` by exactly one compressed frame. The `needed`
+    argument is unused here: the outer `read_block_buffered` retry
+    loop re-parses after each refill and will call us again if more
+    bytes are still missing. Looping over multiple frames inside
+    this helper would over-drain on the boundary case where one
+    frame plus the bytes we *already* have is enough — we'd then
+    pull the next packet's raw header and misinterpret it as a
+    compressed frame."""
+    frame = await CompressedBlockReader(reader).read_payload()
+    buf.extend(frame)
 
 
 def write_block_framed(

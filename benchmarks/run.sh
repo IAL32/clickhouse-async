@@ -230,10 +230,24 @@ PY
 run_scenario_basic() {
     local scenario="$1" lib="$2"; shift 2
     echo "    -> $scenario / $lib" >&2
-    ( cd "$HERE" && uv run python -m "scenarios.$scenario" \
+    # Hard 30s ceiling per scenario invocation. Anything past that is
+    # almost certainly a hang — we'd rather see "killed" in the log than
+    # have the whole benchmark suite stall on a single library. We
+    # capture the exit code via a temporary disable of `set -e` so a
+    # single failed scenario doesn't kill the whole sweep.
+    set +e
+    ( cd "$HERE" && timeout --kill-after=5 30 uv run python -m "scenarios.$scenario" \
         --library "$lib" \
         --dsn-native "$DSN_NATIVE" --dsn-http "$DSN_HTTP" \
         "$@" ) >> "$RAW"
+    local rc=$?
+    set -e
+    if (( rc == 124 || rc == 137 )); then
+        echo "    !! $scenario / $lib timed out after 30s (rc=$rc)" >&2
+    elif (( rc != 0 )); then
+        echo "    !! $scenario / $lib failed (rc=$rc)" >&2
+    fi
+    return 0
 }
 
 run_all_scenarios_for_lib() {

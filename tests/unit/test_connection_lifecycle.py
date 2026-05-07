@@ -1,8 +1,8 @@
-"""Lifecycle and state-machine tests for ``Connection``.
+"""Lifecycle and state-machine tests for `Connection`.
 
-``open()`` brings the transport up *and* runs the Hello handshake, so
+`open()` brings the transport up *and* runs the Hello handshake, so
 tests that reach an open connection feed a scripted Hello reply via
-``encode_server_hello``.
+`encode_server_hello`.
 """
 
 from __future__ import annotations

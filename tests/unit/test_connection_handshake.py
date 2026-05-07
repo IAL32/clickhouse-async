@@ -1,8 +1,8 @@
-"""Hello-handshake tests for ``Connection.open()``.
+"""Hello-handshake tests for `Connection.open()`.
 
-The handshake takes ``CONNECTING → READY`` on success, or
-``CONNECTING → BROKEN`` on a server-side rejection (server replies
-``Exception``) or any handshake-time IO/protocol failure.
+The handshake takes `CONNECTING → READY` on success, or
+`CONNECTING → BROKEN` on a server-side rejection (server replies
+`Exception`) or any handshake-time IO/protocol failure.
 """
 
 from __future__ import annotations

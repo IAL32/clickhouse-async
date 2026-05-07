@@ -1,4 +1,4 @@
-"""Cancellation tests for ``Connection.cancel()``."""
+"""Cancellation tests for `Connection.cancel()`."""
 
 from __future__ import annotations
 

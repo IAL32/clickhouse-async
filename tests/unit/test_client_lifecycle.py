@@ -1,8 +1,8 @@
 """Lifecycle tests for the high-level Client.
 
-Covers ``connect`` / ``__aenter__`` / ``close`` / ``ping`` /
-``server_info`` against a scripted transport. The Client is a thin
-wrapper over ``Connection``; these tests exercise the wiring.
+Covers `connect` / `__aenter__` / `close` / `ping` /
+`server_info` against a scripted transport. The Client is a thin
+wrapper over `Connection`; these tests exercise the wiring.
 """
 
 from __future__ import annotations

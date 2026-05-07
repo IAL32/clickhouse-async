@@ -1,7 +1,7 @@
 """Integration tests for connection resilience under proxy-simulated failures.
 
 A lightweight asyncio TCP proxy intercepts the wire between the client
-and the real ClickHouse server.  ``_KillingProxy.kill_all()`` severs
+and the real ClickHouse server.  `_KillingProxy.kill_all()` severs
 every active forwarded connection either with a clean TCP FIN or an
 abrupt TCP RST, covering the two most common real-world connection-death
 modes:
@@ -13,8 +13,8 @@ modes:
 
 For each scenario we assert:
   * An error propagates to the caller — never silently swallowed.
-  * ``client.is_alive`` is ``False`` immediately after the failure.
-  * A ``Pool`` re-establishes a live connection on the next acquire
+  * `client.is_alive` is `False` immediately after the failure.
+  * A `Pool` re-establishes a live connection on the next acquire
     without the caller seeing any error.
 """
 
@@ -53,8 +53,8 @@ class _KillingProxy:
     """Transparent TCP proxy with on-demand connection termination.
 
     Forwards bytes unchanged between clients and the real ClickHouse.
-    ``kill_all()`` severs every active forwarded pair gracefully (FIN) or
-    abruptly (RST via ``SO_LINGER`` with ``l_linger = 0``).
+    `kill_all()` severs every active forwarded pair gracefully (FIN) or
+    abruptly (RST via `SO_LINGER` with `l_linger = 0`).
     """
 
     def __init__(self, target_host: str, target_port: int) -> None:

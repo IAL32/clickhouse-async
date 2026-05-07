@@ -1,8 +1,8 @@
 """Helpers for encoding server-to-client packets in unit tests.
 
 Each helper builds the byte sequence the server would emit (including
-the leading varuint packet id), so tests can ``transport.feed(…)`` it
-and drive ``Connection`` against a known scenario. The helpers are
+the leading varuint packet id), so tests can `transport.feed(…)` it
+and drive `Connection` against a known scenario. The helpers are
 shared across every substep that needs scripted server behaviour.
 """
 
@@ -40,11 +40,11 @@ def encode_server_hello(
     display_name: str | None = "test-server",
     version_patch: int = 1,
 ) -> bytes:
-    """Build the bytes a server would emit for ``ServerPacket.HELLO``.
+    """Build the bytes a server would emit for `ServerPacket.HELLO`.
 
-    Optional fields ``timezone``, ``display_name``, and ``version_patch``
+    Optional fields `timezone`, `display_name`, and `version_patch`
     are emitted only at revisions where the protocol gates them on; if
-    a caller passes ``timezone="UTC"`` against a sub-54058 revision the
+    a caller passes `timezone="UTC"` against a sub-54058 revision the
     field is silently omitted (the server wouldn't have written it).
     """
 
@@ -89,10 +89,10 @@ def encode_server_exception(
     stack_trace: str = "",
     nested: bytes | None = None,
 ) -> bytes:
-    """Build the bytes a server would emit for ``ServerPacket.EXCEPTION``.
+    """Build the bytes a server would emit for `ServerPacket.EXCEPTION`.
 
-    To test nested exceptions, pass another encoded body via ``nested``;
-    the helper sets ``has_nested = 1`` and appends it.
+    To test nested exceptions, pass another encoded body via `nested`;
+    the helper sets `has_nested = 1` and appends it.
     """
 
     w = BinaryWriter()
@@ -117,7 +117,7 @@ def encode_exception_body_only(
     nested: bytes | None = None,
 ) -> bytes:
     """The Exception body without the leading packet id — used as the
-    ``nested`` argument for stacking errors."""
+    `nested` argument for stacking errors."""
 
     w = BinaryWriter()
     _append_exception_body(
@@ -152,7 +152,7 @@ def _append_exception_body(
 def encode_server_data(
     block: Block, *, revision: int = OUR_REVISION, table_name: str = ""
 ) -> bytes:
-    """Build the bytes a server would emit for ``ServerPacket.DATA`` —
+    """Build the bytes a server would emit for `ServerPacket.DATA` —
     packet id, external-table name (empty for the main result), and the
     block at the given revision."""
 
@@ -165,7 +165,7 @@ def encode_server_data(
 
 def encode_server_end_of_stream() -> bytes:
     """Build the bytes a server would emit for
-    ``ServerPacket.END_OF_STREAM``."""
+    `ServerPacket.END_OF_STREAM`."""
 
     w = BinaryWriter()
     w.write_varuint(ServerPacket.END_OF_STREAM)
@@ -183,7 +183,7 @@ def encode_server_progress(
     written_bytes: int = 0,
     elapsed_ns: int = 0,
 ) -> bytes:
-    """Build the bytes a server would emit for ``ServerPacket.PROGRESS``
+    """Build the bytes a server would emit for `ServerPacket.PROGRESS`
     at the given revision (gates determine which trailing fields are
     emitted)."""
 
@@ -213,7 +213,7 @@ def encode_server_profile_info(
     applied_aggregation: bool = False,
     rows_before_aggregation: int = 0,
 ) -> bytes:
-    """Build the bytes a server would emit for ``ServerPacket.PROFILE_INFO``."""
+    """Build the bytes a server would emit for `ServerPacket.PROFILE_INFO`."""
 
     w = BinaryWriter()
     w.write_varuint(ServerPacket.PROFILE_INFO)
@@ -237,7 +237,7 @@ def encode_server_block_packet(
     revision: int = OUR_REVISION,
     table_name: str = "",
 ) -> bytes:
-    """Build a server packet whose body is ``[string][block]`` (Totals,
+    """Build a server packet whose body is `[string][block]` (Totals,
     Extremes, Log, ProfileEvents)."""
 
     w = BinaryWriter()
@@ -250,7 +250,7 @@ def encode_server_block_packet(
 def encode_server_table_columns(
     *, default_table_name: str = "", columns: str = ""
 ) -> bytes:
-    """Build the bytes a server would emit for ``ServerPacket.TABLE_COLUMNS``."""
+    """Build the bytes a server would emit for `ServerPacket.TABLE_COLUMNS`."""
 
     w = BinaryWriter()
     w.write_varuint(ServerPacket.TABLE_COLUMNS)
@@ -260,7 +260,7 @@ def encode_server_table_columns(
 
 
 def encode_server_timezone_update(tz: str) -> bytes:
-    """Build the bytes a server would emit for ``ServerPacket.TIMEZONE_UPDATE``."""
+    """Build the bytes a server would emit for `ServerPacket.TIMEZONE_UPDATE`."""
 
     w = BinaryWriter()
     w.write_varuint(ServerPacket.TIMEZONE_UPDATE)

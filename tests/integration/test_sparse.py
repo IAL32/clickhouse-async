@@ -2,12 +2,12 @@
 
 ClickHouse's MergeTree engine auto-enables sparse serialisation when the
 ratio of default-valued rows in a column hits
-``ratio_of_defaults_for_sparse_serialization`` (0.95 by default). The
+`ratio_of_defaults_for_sparse_serialization` (0.95 by default). The
 decision is part-merge-time, not query-time — so the test inserts
-default-valued rows, runs ``OPTIMIZE TABLE … FINAL`` to force the merge,
+default-valued rows, runs `OPTIMIZE TABLE … FINAL` to force the merge,
 then reads back via both the row-major and columnar surfaces. Without
 the sparse decoder, every assertion below would surface a
-``ProtocolError`` instead.
+`ProtocolError` instead.
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ async def test_sparse_uint8_column_round_trips_via_fetch_all_and_fetch_columns(
     pool: ch.Pool,
     fresh_table: Callable[[str, str], Awaitable[None]],
 ) -> None:
-    # BEGIN: a MergeTree table whose ``v`` column has a DEFAULT and a
+    # BEGIN: a MergeTree table whose `v` column has a DEFAULT and a
     #        load shape that trips the sparse threshold (≥ 95 % defaults
     #        triggers the encoding when the part is merged)
     table = "test_sparse_uint8"

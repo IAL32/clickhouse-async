@@ -2,12 +2,12 @@
 
 Session-scoped fixtures load three public ClickHouse datasets once per
 session and yield the table name string to each test. Data is loaded via
-``INSERT INTO ... SELECT ... FROM url/s3(...)`` so ClickHouse pulls from
+`INSERT INTO ... SELECT ... FROM url/s3(...)` so ClickHouse pulls from
 the source directly; no Python-side downloads.
 
-Every test under ``tests/scenarios/`` is auto-marked ``scenarios`` and
-is excluded from the default ``pytest`` run (which filters
-``-m 'not integration and not scenarios'``). Run with:
+Every test under `tests/scenarios/` is auto-marked `scenarios` and
+is excluded from the default `pytest` run (which filters
+`-m 'not integration and not scenarios'`). Run with:
     pytest tests/scenarios --localdb
 """
 

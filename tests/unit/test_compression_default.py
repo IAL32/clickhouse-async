@@ -1,4 +1,4 @@
-"""Unit tests for ``_default_compression()`` and the compression auto-detect path."""
+"""Unit tests for `_default_compression()` and the compression auto-detect path."""
 
 from __future__ import annotations
 

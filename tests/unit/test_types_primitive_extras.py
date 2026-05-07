@@ -364,7 +364,7 @@ async def test_datetime64_high_precision_round_trip_preserves_ticks(
 
 async def test_datetime64_high_precision_false_falls_back_to_datetime() -> None:
     # BEGIN: opt out of high_precision at p=9 — the codec returns
-    #        ``datetime`` values (lossy) for callers that prefer the
+    #        `datetime` values (lossy) for callers that prefer the
     #        v0 shape
     codec = DateTime64(precision=9, timezone="UTC", high_precision=False)
     values = [datetime(2026, 5, 2, 12, 0, 0, microsecond=123_456, tzinfo=UTC)]
@@ -381,10 +381,10 @@ def test_high_precision_timestamp_to_datetime_is_lossy_above_micro() -> None:
     # BEGIN: a HighPrecisionTimestamp at scale 9 (nanoseconds)
     ts = HighPrecisionTimestamp(ticks=1_756_812_345_123_456_789, scale=9)
 
-    # WHEN: converting to ``datetime``
+    # WHEN: converting to `datetime`
     dt = ts.to_datetime()
 
-    # THEN: the ``datetime`` carries microseconds (123_456) — the bottom
+    # THEN: the `datetime` carries microseconds (123_456) — the bottom
     #       three nanosecond digits truncate at the Python boundary
     assert dt.microsecond == 123_456
     # Round-trip from datetime back to a HighPrecisionTimestamp at the
@@ -407,12 +407,12 @@ def test_datetime64_write_rejects_mismatched_high_precision_scale() -> None:
 
 
 def test_bare_datetime_uses_session_timezone_fallback() -> None:
-    # BEGIN: a bare ``DateTime`` parsed with a session_timezone
+    # BEGIN: a bare `DateTime` parsed with a session_timezone
     codec = parse_type("DateTime", session_timezone="Europe/Berlin")
     assert isinstance(codec, DateTime)
 
     # WHEN / THEN: the codec carries the session zone in its effective
-    #              tz; ``codec.name`` still round-trips the bare form
+    #              tz; `codec.name` still round-trips the bare form
     assert codec.timezone_name == "Europe/Berlin"
     assert codec.name == "DateTime"
 
@@ -432,14 +432,14 @@ def test_bare_datetime64_uses_session_timezone_fallback() -> None:
     codec = parse_type("DateTime64(3)", session_timezone="Europe/Berlin")
     assert isinstance(codec, DateTime64)
 
-    # WHEN / THEN: the codec carries the session zone; ``.name`` still
+    # WHEN / THEN: the codec carries the session zone; `.name` still
     #              round-trips the bare form (without timezone)
     assert codec.timezone_name == "Europe/Berlin"
     assert codec.name == "DateTime64(3)"
 
 
 async def test_datetime_session_timezone_decodes_aware() -> None:
-    # BEGIN: a bare ``DateTime`` codec with a session zone of Berlin —
+    # BEGIN: a bare `DateTime` codec with a session zone of Berlin —
     #        the wire payload is UTC seconds; the decode should land
     #        in the Berlin offset
     codec = parse_type("DateTime", session_timezone="Europe/Berlin")

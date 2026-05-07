@@ -1,5 +1,5 @@
-"""Round-trip and byte-layout tests for ``Enum8``, ``Enum16``,
-``LowCardinality(T)``."""
+"""Round-trip and byte-layout tests for `Enum8`, `Enum16`,
+`LowCardinality(T)`."""
 
 from __future__ import annotations
 

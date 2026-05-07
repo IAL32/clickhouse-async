@@ -1,8 +1,8 @@
-"""Codecs for ``Decimal{32,64,128,256}(scale)`` and the dispatch wrapper
-``Decimal(precision, scale)``.
+"""Codecs for `Decimal{32,64,128,256}(scale)` and the dispatch wrapper
+`Decimal(precision, scale)`.
 
 A ClickHouse decimal is stored as a fixed-width signed integer holding
-``value * 10**scale``. Width is determined by precision (the number of
+`value * 10**scale`. Width is determined by precision (the number of
 significant decimal digits):
 
   P ≤ 9   → 4 bytes (Decimal32)
@@ -10,8 +10,8 @@ significant decimal digits):
   P ≤ 38  → 16 bytes (Decimal128)
   P ≤ 76  → 32 bytes (Decimal256)
 
-Block headers can spell decimals either as ``Decimal(P, S)`` (we dispatch
-to the right size) or as the explicit ``Decimal32(S)``/``…(S)`` form
+Block headers can spell decimals either as `Decimal(P, S)` (we dispatch
+to the right size) or as the explicit `Decimal32(S)`/`…(S)` form
 (direct lookup). Both work.
 """
 
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
     from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 
-# Storage-width breakpoints for the ``Decimal(P, S)`` dispatcher.
+# Storage-width breakpoints for the `Decimal(P, S)` dispatcher.
 # ClickHouse caps total decimal precision at 76 digits.
 _DECIMAL32_MAX_PRECISION = 9
 _DECIMAL64_MAX_PRECISION = 18
@@ -88,11 +88,11 @@ class Decimal256(_DecimalCodec):
 
 
 def make_decimal(precision: int, scale: int) -> _DecimalCodec:
-    """Dispatcher for the ``Decimal(P, S)`` block-header spelling.
+    """Dispatcher for the `Decimal(P, S)` block-header spelling.
 
     Returns the appropriate fixed-width codec for the precision; the
-    resulting codec's ``name`` reads ``Decimal(P, S)`` rather than
-    ``Decimal32(S)`` so round-tripping the spec preserves the form the
+    resulting codec's `name` reads `Decimal(P, S)` rather than
+    `Decimal32(S)` so round-tripping the spec preserves the form the
     server sent.
     """
 

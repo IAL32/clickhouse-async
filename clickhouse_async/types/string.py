@@ -1,8 +1,8 @@
-"""Codecs for ``String`` and ``FixedString(N)``.
+"""Codecs for `String` and `FixedString(N)`.
 
-``String`` is varuint-prefixed UTF-8 per row; ``FixedString(N)`` is
+`String` is varuint-prefixed UTF-8 per row; `FixedString(N)` is
 exactly N raw bytes per row, NUL-padded on writes when the input is
-shorter and surfaced as ``bytes`` on reads (FixedString columns are
+shorter and surfaced as `bytes` on reads (FixedString columns are
 often binary, not text — returning bytes preserves that).
 """
 

@@ -1,4 +1,4 @@
-"""Tests for ``Client.insert``."""
+"""Tests for `Client.insert`."""
 
 from __future__ import annotations
 

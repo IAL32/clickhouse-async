@@ -14,9 +14,9 @@ class ProtocolError(ClickHouseError):
 class ConnectError(ClickHouseError):
     """Every candidate host in a multi-host DSN failed to connect.
 
-    ``host_errors`` carries the per-attempt outcome as
-    ``(host, port, exception)`` tuples in the order the candidates
-    were tried. ``__cause__`` is the last exception so the standard
+    `host_errors` carries the per-attempt outcome as
+    `(host, port, exception)` tuples in the order the candidates
+    were tried. `__cause__` is the last exception so the standard
     traceback machinery still shows at least one underlying failure.
     """
 
@@ -44,25 +44,25 @@ class ConcurrentQueryError(ClickHouseError):
 
     The native protocol doesn't multiplex; one in-flight query per
     connection is the contract. Callers wanting concurrency should use a
-    ``Pool``.
+    `Pool`.
     """
 
 
 class QueryCancellationError(ClickHouseError):
-    """Outcome of a ``Connection.cancel()`` call.
+    """Outcome of a `Connection.cancel()` call.
 
-    ``reason`` distinguishes the path the cancel took:
+    `reason` distinguishes the path the cancel took:
 
-    - ``"drained"``: cancel succeeded; the connection returned to
-      ``READY``. The previous query is over and the connection is
+    - `"drained"`: cancel succeeded; the connection returned to
+      `READY`. The previous query is over and the connection is
       reusable.
-    - ``"timeout"``: the post-Cancel drain exceeded ``drain_timeout``;
-      the socket was closed and the connection is ``BROKEN``.
-    - ``"already_cancelled"``: another cancel is in flight on this
+    - `"timeout"`: the post-Cancel drain exceeded `drain_timeout`;
+      the socket was closed and the connection is `BROKEN`.
+    - `"already_cancelled"`: another cancel is in flight on this
       connection (the second call is rejected; the first is still
       working).
-    - ``"not_in_flight"``: cancel was called from a state other than
-      ``IN_FLIGHT`` (and not from ``READY``, where it's a no-op).
+    - `"not_in_flight"`: cancel was called from a state other than
+      `IN_FLIGHT` (and not from `READY`, where it's a no-op).
     """
 
     reason: str
@@ -77,20 +77,20 @@ class PoolError(ClickHouseError):
 
 
 class PoolClosedError(PoolError):
-    """Operation attempted on a closed ``Pool``."""
+    """Operation attempted on a closed `Pool`."""
 
 
 class PoolTimeoutError(PoolError):
-    """``Pool.acquire()`` did not get a connection within the
-    configured ``acquire_timeout``."""
+    """`Pool.acquire()` did not get a connection within the
+    configured `acquire_timeout`."""
 
 
 class MissingExtraError(ClickHouseError):
     """A feature was requested but its optional dependency isn't installed.
 
     Raised when, for example, the user enables LZ4 compression on a
-    connection but the ``[lz4]`` extra wasn't installed. The message
-    names the extra and includes the exact ``pip install`` command.
+    connection but the `[lz4]` extra wasn't installed. The message
+    names the extra and includes the exact `pip install` command.
     """
 
 
@@ -98,9 +98,9 @@ class UnsupportedFeatureError(ClickHouseError):
     """A feature was requested but the negotiated protocol revision
     doesn't support it.
 
-    Raised, for example, when the user passes ``params`` to ``send_query``
+    Raised, for example, when the user passes `params` to `send_query`
     against a server below
-    ``DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS``. We refuse rather than
+    `DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS`. We refuse rather than
     silently fall back to client-side string interpolation — that would
     undermine the safety claim of server-bound parameters.
     """
@@ -111,8 +111,8 @@ class ServerError(ClickHouseError):
 
     Carries the structured fields the server emits — numeric code, error
     name, the human-readable display text, and the stack trace if any —
-    plus an optional ``nested`` chain when the server stacks multiple
-    causes. ``code`` is the canonical upstream numeric code; we do not
+    plus an optional `nested` chain when the server stacks multiple
+    causes. `code` is the canonical upstream numeric code; we do not
     invent our own.
     """
 

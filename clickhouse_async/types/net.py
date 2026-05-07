@@ -1,17 +1,17 @@
-"""Codecs for ``UUID``, ``IPv4``, ``IPv6``.
+"""Codecs for `UUID`, `IPv4`, `IPv6`.
 
 On-wire layouts:
 
-- ``UUID``: 16 bytes — two UInt64 little-endian halves, high half first.
-  ``UUID.int = (high << 64) | low``. This is the upstream ClickHouse
+- `UUID`: 16 bytes — two UInt64 little-endian halves, high half first.
+  `UUID.int = (high << 64) | low`. This is the upstream ClickHouse
   storage format; the byte sequence on the wire is *not* the canonical
   RFC 4122 byte order.
-- ``IPv4``: 4 bytes — the address's UInt32 in little-endian. Note that
+- `IPv4`: 4 bytes — the address's UInt32 in little-endian. Note that
   the resulting byte sequence is the address octets reversed (since
   storing the integer little-endian flips the order versus the natural
   network-byte-order packing).
-- ``IPv6``: 16 raw bytes in network byte order — equivalent to
-  ``IPv6Address.packed``.
+- `IPv6`: 16 raw bytes in network byte order — equivalent to
+  `IPv6Address.packed`.
 """
 
 from __future__ import annotations

@@ -1,47 +1,47 @@
-"""Hello handshake — client and server packet codecs plus ``ServerInfo``.
+"""Hello handshake — client and server packet codecs plus `ServerInfo`.
 
 Wire layout, in order:
 
-**Client → server (varuint ``ClientPacket.HELLO``):**
-- string ``client_name``
-- varuint ``client_version_major``
-- varuint ``client_version_minor``
-- varuint ``client_revision`` = ``OUR_REVISION``
-- string ``default_database``
-- string ``user``
-- string ``password``
+**Client → server (varuint `ClientPacket.HELLO`):**
+- string `client_name`
+- varuint `client_version_major`
+- varuint `client_version_minor`
+- varuint `client_revision` = `OUR_REVISION`
+- string `default_database`
+- string `user`
+- string `password`
 
-**Server → client (varuint ``ServerPacket.HELLO``):**
-- string ``server_name``
-- varuint ``version_major``
-- varuint ``version_minor``
-- varuint ``revision``
-- if ``revision >= DBMS_MIN_REVISION_WITH_VERSIONED_PARALLEL_REPLICAS_PROTOCOL``:
-  varuint ``parallel_replicas_protocol_version`` — read and discarded.
-- if ``revision >= DBMS_MIN_REVISION_WITH_SERVER_TIMEZONE``: string ``timezone``
-- if ``revision >= DBMS_MIN_REVISION_WITH_SERVER_DISPLAY_NAME``: string ``display_name``
-- if ``revision >= DBMS_MIN_REVISION_WITH_VERSION_PATCH``: varuint ``version_patch``
-- if ``revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_CHUNKED_PACKETS``:
-  strings ``proto_caps.send`` and ``proto_caps.recv`` — read and discarded
+**Server → client (varuint `ServerPacket.HELLO`):**
+- string `server_name`
+- varuint `version_major`
+- varuint `version_minor`
+- varuint `revision`
+- if `revision >= DBMS_MIN_REVISION_WITH_VERSIONED_PARALLEL_REPLICAS_PROTOCOL`:
+  varuint `parallel_replicas_protocol_version` — read and discarded.
+- if `revision >= DBMS_MIN_REVISION_WITH_SERVER_TIMEZONE`: string `timezone`
+- if `revision >= DBMS_MIN_REVISION_WITH_SERVER_DISPLAY_NAME`: string `display_name`
+- if `revision >= DBMS_MIN_REVISION_WITH_VERSION_PATCH`: varuint `version_patch`
+- if `revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_CHUNKED_PACKETS`:
+  strings `proto_caps.send` and `proto_caps.recv` — read and discarded
   (we always negotiate "notchunked").
-- if ``revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_PASSWORD_COMPLEXITY_RULES``:
-  varuint ``n_rules`` followed by ``n_rules`` pairs of (string
-  ``pattern``, string ``message``) — informational; v0 reads and
+- if `revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_PASSWORD_COMPLEXITY_RULES`:
+  varuint `n_rules` followed by `n_rules` pairs of (string
+  `pattern`, string `message`) — informational; v0 reads and
   discards them.
-- if ``revision >= DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET_V2``: 8-byte
-  little-endian unsigned ``nonce`` — used for inter-server auth, which
+- if `revision >= DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET_V2`: 8-byte
+  little-endian unsigned `nonce` — used for inter-server auth, which
   v0 doesn't drive; we read and discard.
-- if ``revision >= DBMS_MIN_REVISION_WITH_SERVER_SETTINGS``:
-  settings in STRINGS_WITH_FLAGS format — ``(name, flags_varuint,
-  value_string)`` entries terminated by an empty name — read and
+- if `revision >= DBMS_MIN_REVISION_WITH_SERVER_SETTINGS`:
+  settings in STRINGS_WITH_FLAGS format — `(name, flags_varuint,
+  value_string)` entries terminated by an empty name — read and
   discarded.
-- if ``revision >= DBMS_MIN_REVISION_WITH_QUERY_PLAN_SERIALIZATION``:
-  varuint ``query_plan_serialization_version`` — read and discarded.
-- if ``revision >= DBMS_MIN_REVISION_WITH_VERSIONED_CLUSTER_FUNCTION_PROTOCOL``:
-  varuint ``cluster_function_protocol_version`` — read and discarded.
+- if `revision >= DBMS_MIN_REVISION_WITH_QUERY_PLAN_SERIALIZATION`:
+  varuint `query_plan_serialization_version` — read and discarded.
+- if `revision >= DBMS_MIN_REVISION_WITH_VERSIONED_CLUSTER_FUNCTION_PROTOCOL`:
+  varuint `cluster_function_protocol_version` — read and discarded.
 
-Both ``read_server_hello`` and ``read_exception_body`` (in
-``exception_packet``) operate on the body — the caller has already
+Both `read_server_hello` and `read_exception_body` (in
+`exception_packet`) operate on the body — the caller has already
 consumed the leading packet id so it can dispatch.
 """
 
@@ -73,7 +73,7 @@ CLIENT_NAME = "clickhouse-async"
 
 
 def _split_version(v: str) -> tuple[int, int]:
-    """Parse ``"0.1.0"`` → ``(0, 1)``. Patch is folded into the minor's
+    """Parse `"0.1.0"` → `(0, 1)`. Patch is folded into the minor's
     submission; we send only major/minor at handshake."""
     parts = v.split(".")
     major = int(parts[0]) if parts and parts[0].isdigit() else 0
@@ -106,7 +106,7 @@ def write_client_hello(
     password: str,
     database: str,
 ) -> None:
-    """Append the client Hello packet (id + body) to ``writer``."""
+    """Append the client Hello packet (id + body) to `writer`."""
     writer.write_varuint(ClientPacket.HELLO)
     writer.write_string(CLIENT_NAME)
     writer.write_varuint(CLIENT_VERSION_MAJOR)

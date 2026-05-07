@@ -1,39 +1,39 @@
-"""Codecs for ``Variant(T1, T2, …)`` and ``Dynamic[(max_types=N)]``.
+"""Codecs for `Variant(T1, T2, …)` and `Dynamic[(max_types=N)]`.
 
-Both are ClickHouse 24.x tagged unions. ``Variant`` is *closed* — the
+Both are ClickHouse 24.x tagged unions. `Variant` is *closed* — the
 arms are declared up front and the discriminator is a small unsigned
-integer indexing into them. ``Dynamic`` is *open* — each block's
+integer indexing into them. `Dynamic` is *open* — each block's
 active arms are declared in a per-block prefix, then encoded via the
 same Variant body.
 
 Wire format (mirrors upstream
-``SerializationVariant::serializeBinaryBulk{StatePrefix,
-WithMultipleStreams}`` in mode ``BASIC = 0``):
+`SerializationVariant::serializeBinaryBulk{StatePrefix,
+WithMultipleStreams}` in mode `BASIC = 0`):
 
 | Bytes                    | Meaning                                                |
 | ------------------------ | ------------------------------------------------------ |
-| 8                        | discriminator-stream version (always ``0`` here)       |
-| ``n_rows`` x 1           | per-row discriminator: ``0..k-1`` for an active arm,   |
-|                          | ``0xFF`` (``NULL_DISCRIMINATOR``) for NULL             |
+| 8                        | discriminator-stream version (always `0` here)       |
+| `n_rows` x 1           | per-row discriminator: `0..k-1` for an active arm,   |
+|                          | `0xFF` (`NULL_DISCRIMINATOR`) for NULL             |
 | per-arm bodies           | each arm's column body sliced to the rows whose        |
 |                          | discriminator matches its index, in declared order     |
 
-``Dynamic`` prepends a per-block prefix:
+`Dynamic` prepends a per-block prefix:
 
 | Bytes                                | Meaning                                |
 | ------------------------------------ | -------------------------------------- |
-| 8                                    | dynamic-stream version (always ``0``)  |
-| varuint                              | ``n_active_types`` for this block      |
-| ``n_active_types`` length-prefixed   | type-spec strings, parsed via          |
-|                                      | ``parse_type``                         |
+| 8                                    | dynamic-stream version (always `0`)  |
+| varuint                              | `n_active_types` for this block      |
+| `n_active_types` length-prefixed   | type-spec strings, parsed via          |
+|                                      | `parse_type`                         |
 | (then the Variant payload above)     |                                        |
 
 Python representation: a row is the value itself — the discriminator
-is implicit in the Python type. ``None`` maps to ``NULL``. When the
-declared arms are ambiguous for a given Python value (``int`` matches
-both ``Int32`` and ``Int64``), the *first declared* arm wins; pin a
-specific arm with ``Variant.tag(value, type_index)``. ``Dynamic``
-exposes a parallel ``Dynamic.tag(value, type_spec)`` helper for cases
+is implicit in the Python type. `None` maps to `NULL`. When the
+declared arms are ambiguous for a given Python value (`int` matches
+both `Int32` and `Int64`), the *first declared* arm wins; pin a
+specific arm with `Variant.tag(value, type_index)`. `Dynamic`
+exposes a parallel `Dynamic.tag(value, type_spec)` helper for cases
 where Python-type inference would pick the wrong ClickHouse type.
 """
 
@@ -59,70 +59,70 @@ if TYPE_CHECKING:
     from clickhouse_async.types.base import ColumnCodec
 
 
-# ``BASIC`` discriminator-stream mode. ``COMPACT`` (mode 1) skips the
+# `BASIC` discriminator-stream mode. `COMPACT` (mode 1) skips the
 # per-row discriminator stream when an entire block belongs to a
 # single arm — we don't emit it on writes; if the server emits it on
 # reads we surface the version with a clear error rather than silently
 # misinterpreting bytes.
 _VARIANT_VERSION_BASIC = 0
 # Reserved discriminator marking a NULL row. Upstream defines this
-# as ``ColumnVariant::NULL_DISCRIMINATOR``.
+# as `ColumnVariant::NULL_DISCRIMINATOR`.
 _NULL_DISCRIMINATOR = 0xFF
-# Per upstream ``ColumnVariant::MAX_NESTED_COLUMNS``. Variants beyond
+# Per upstream `ColumnVariant::MAX_NESTED_COLUMNS`. Variants beyond
 # this don't fit in a single discriminator byte (the slot at 0xFF is
 # reserved for NULL, leaving 0..254 for arms).
 _MAX_VARIANTS = 255
 
 # Dynamic's top-level structure version. Upstream declares this in
-# ``SerializationDynamic::DynamicSerializationVersion`` — ``V1 = 1``
-# is the legacy form (writes ``max_dynamic_types`` then
-# ``num_dynamic_types`` to the wire); ``V2 = 2`` drops the duplicate
+# `SerializationDynamic::DynamicSerializationVersion` — `V1 = 1`
+# is the legacy form (writes `max_dynamic_types` then
+# `num_dynamic_types` to the wire); `V2 = 2` drops the duplicate
 # and is the default ClickHouse 24.x emits. We accept both on read
 # and always emit V2 on write.
 _DYNAMIC_VERSION_V1 = 1
 _DYNAMIC_VERSION_V2 = 2
 
-# ClickHouse's default ``max_dynamic_types`` for a ``Dynamic`` column.
-# Upstream constant: ``ColumnDynamic::DEFAULT_MAX_DYNAMIC_TYPES``. Used
+# ClickHouse's default `max_dynamic_types` for a `Dynamic` column.
+# Upstream constant: `ColumnDynamic::DEFAULT_MAX_DYNAMIC_TYPES`. Used
 # in the V1 wire format (the slot is a column-policy hint, not a wire
 # constraint — the server's reader just skips it past — but we still
 # emit a sensible default so wire dumps don't have garbage in that
 # field).
 _DEFAULT_MAX_DYNAMIC_TYPES = 32
 
-# Every ``Dynamic`` column on the wire silently carries one extra
-# variant arm — ``SharedVariant`` (a ``String``) — used server-side
-# to spill values whose type exceeds ``max_dynamic_types``. Upstream
-# omits it from the declared types list (``num_dynamic_types =
-# variant_names.size() - 1``) but always re-appends it on the read
-# path, so an inner ``Variant`` of a Dynamic always has
-# ``num_dynamic_types + 1`` arms.
+# Every `Dynamic` column on the wire silently carries one extra
+# variant arm — `SharedVariant` (a `String`) — used server-side
+# to spill values whose type exceeds `max_dynamic_types`. Upstream
+# omits it from the declared types list (`num_dynamic_types =
+# variant_names.size() - 1`) but always re-appends it on the read
+# path, so an inner `Variant` of a Dynamic always has
+# `num_dynamic_types + 1` arms.
 #
-# Critically, ``DataTypeVariant`` *sorts* its arms alphabetically by
+# Critically, `DataTypeVariant` *sorts* its arms alphabetically by
 # the type's full name in its constructor (see
-# ``src/DataTypes/DataTypeVariant.cpp::DataTypeVariant`` — uses
-# ``std::map<String, DataTypePtr>`` so insertion order is irrelevant).
+# `src/DataTypes/DataTypeVariant.cpp::DataTypeVariant` — uses
+# `std::map<String, DataTypePtr>` so insertion order is irrelevant).
 # Both sender and receiver therefore agree on the on-wire
 # discriminator → arm mapping by sorting in the same way. Position of
-# ``SharedVariant`` in the sorted list depends on the declared type
-# names: ``"SharedVariant" > "Int64"`` so an Int64-only Dynamic ends
-# up with ``Int64`` at disc 0 and SharedVariant at disc 1, but
-# ``"SharedVariant" < "String"`` so a String-only Dynamic flips the
+# `SharedVariant` in the sorted list depends on the declared type
+# names: `"SharedVariant" > "Int64"` so an Int64-only Dynamic ends
+# up with `Int64` at disc 0 and SharedVariant at disc 1, but
+# `"SharedVariant" < "String"` so a String-only Dynamic flips the
 # order to SharedVariant at disc 0 and String at disc 1. We must
 # match this to round-trip writes against a real server.
 _SHARED_VARIANT_NAME = "SharedVariant"
-# Wire-format-wise the SharedVariant arm is just a ``String`` (the
+# Wire-format-wise the SharedVariant arm is just a `String` (the
 # custom name only changes how upstream addresses the column, not how
-# bytes flow). We use the regular ``String`` codec for its body.
+# bytes flow). We use the regular `String` codec for its body.
 _SHARED_VARIANT_TYPE_SPEC = "String"
 
 
 class _VariantTag:
-    """Sentinel wrapper produced by ``Variant.tag(value, type_index)``.
+    """Sentinel wrapper produced by `Variant.tag(value, type_index)`.
 
     Holds a value alongside an explicit arm index; the codec's resolver
     sees the wrapper and skips Python-type matching, picking the arm
-    the caller asked for. Sub-class of ``object`` only — never seen by
+    the caller asked for. Sub-class of `object` only — never seen by
     user code unless they unwrap it themselves."""
 
     __slots__ = ("type_index", "value")
@@ -136,13 +136,13 @@ class _VariantTag:
 
 
 class _DynamicTag:
-    """Sentinel wrapper produced by ``Dynamic.tag(value, type_spec)``.
+    """Sentinel wrapper produced by `Dynamic.tag(value, type_spec)`.
 
     Holds a value with an explicit ClickHouse type spec to be used as
     its arm in the block's dynamic type list. Necessary when Python
-    type inference (``int → Int64``, ``str → String`` …) would pick
-    the wrong arm — e.g. forcing a ``Date`` instead of letting a
-    ``datetime.date`` collapse into ``DateTime``."""
+    type inference (`int → Int64`, `str → String` …) would pick
+    the wrong arm — e.g. forcing a `Date` instead of letting a
+    `datetime.date` collapse into `DateTime`."""
 
     __slots__ = ("type_spec", "value")
 
@@ -155,15 +155,15 @@ class _DynamicTag:
 
 
 class Variant:
-    """``Variant(T1, T2, …)`` — closed tagged union (up to 255 arms).
+    """`Variant(T1, T2, …)` — closed tagged union (up to 255 arms).
 
-    Construct directly with ``Variant(Int64(), String())`` or via the
-    parser (``parse_type("Variant(Int64, String)")``). On read each
-    row is the value itself (``None`` for NULL); the discriminator is
+    Construct directly with `Variant(Int64(), String())` or via the
+    parser (`parse_type("Variant(Int64, String)")`). On read each
+    row is the value itself (`None` for NULL); the discriminator is
     implicit in the Python type. On write, the codec resolves the
-    arm via ``isinstance`` against each arm's ``python_type`` in
-    declared order — first match wins. Use ``Variant.tag(v, i)`` to
-    force arm ``i`` when inference picks the wrong one.
+    arm via `isinstance` against each arm's `python_type` in
+    declared order — first match wins. Use `Variant.tag(v, i)` to
+    force arm `i` when inference picks the wrong one.
     """
 
     null_value: ClassVar[None] = None
@@ -182,11 +182,11 @@ class Variant:
 
     @staticmethod
     def tag(value: object, type_index: int) -> _VariantTag:
-        """Force a particular arm for ``value`` regardless of how
+        """Force a particular arm for `value` regardless of how
         Python-type inference would resolve it.
 
         Use when several arms share a Python representation
-        (``Int32`` and ``Int64`` both surface ``int``) and the
+        (`Int32` and `Int64` both surface `int`) and the
         first-declared default is wrong for this row.
         """
         return _VariantTag(value, type_index)
@@ -208,11 +208,11 @@ class Variant:
         n_rows: int,
         components: Sequence[ColumnCodec],
     ) -> list[Any]:
-        """Read the body (``n_rows`` discriminators + per-arm column
+        """Read the body (`n_rows` discriminators + per-arm column
         bodies) for a Variant whose mode/version byte has already been
         consumed.
 
-        Shared between ``Variant.read`` and ``Dynamic.read`` so the
+        Shared between `Variant.read` and `Dynamic.read` so the
         Variant inner reuses the same path — Dynamic just hands in the
         per-block-resolved component list.
         """
@@ -249,7 +249,7 @@ class Variant:
         if not values:
             return
         # Resolve each row's (discriminator, payload) pair. NULL
-        # rows keep ``None`` as payload — variant codecs never see
+        # rows keep `None` as payload — variant codecs never see
         # them since their per-arm body skips NULL slots entirely.
         rows = [self._resolve(v) for v in values]
         writer.write_int(_VARIANT_VERSION_BASIC, 8, signed=False)
@@ -261,10 +261,10 @@ class Variant:
         components: Sequence[ColumnCodec],
         rows: Sequence[tuple[int, Any]],
     ) -> None:
-        """Emit ``n_rows`` discriminators + per-arm column bodies for
-        a sequence of pre-resolved ``(disc, payload)`` rows.
+        """Emit `n_rows` discriminators + per-arm column bodies for
+        a sequence of pre-resolved `(disc, payload)` rows.
 
-        Shared between ``Variant.write`` and ``Dynamic.write`` —
+        Shared between `Variant.write` and `Dynamic.write` —
         Dynamic resolves arms per-block from the values themselves and
         hands the resolved rows in here so the wire shape is identical
         below the prefix.
@@ -281,11 +281,11 @@ class Variant:
             component.write(writer, payload)
 
     def _resolve(self, value: object) -> tuple[int, Any]:
-        """Return ``(discriminator, payload)`` for one row.
+        """Return `(discriminator, payload)` for one row.
 
-        ``None`` → NULL discriminator. ``_VariantTag`` pins the arm
+        `None` → NULL discriminator. `_VariantTag` pins the arm
         explicitly. Otherwise the row is matched against each arm's
-        ``python_type`` via ``isinstance`` in declared order — first
+        `python_type` via `isinstance` in declared order — first
         match wins.
         """
         if value is None:
@@ -309,16 +309,16 @@ class Variant:
 
 
 class Dynamic:
-    """``Dynamic[(max_types=N)]`` — open tagged union.
+    """`Dynamic[(max_types=N)]` — open tagged union.
 
     Each block carries its own list of active types in a prefix, so
     the on-wire arms can vary block-to-block. Python rows are values
-    themselves (``None`` for NULL); on writes, the codec collects
+    themselves (`None` for NULL); on writes, the codec collects
     each value's inferred (or tagged) ClickHouse type spec, builds a
     per-block arm list, and writes the block as a Variant body.
 
-    ``max_types`` is informational (matches upstream's
-    ``Dynamic(max_types=N)`` cap on how many active arms a block may
+    `max_types` is informational (matches upstream's
+    `Dynamic(max_types=N)` cap on how many active arms a block may
     declare). The codec doesn't enforce it on reads — the server is
     the source of truth — but raises on writes if the inferred arm
     count exceeds the cap (when set).
@@ -330,21 +330,21 @@ class Dynamic:
     | Bytes              | Meaning                                              |
     | ------------------ | ---------------------------------------------------- |
     | 8                  | structure version (1 = V1)                           |
-    | varuint            | ``max_dynamic_types`` slot (column-policy hint)      |
-    | varuint            | ``num_dynamic_types`` (declared arms excl. Shared)   |
+    | varuint            | `max_dynamic_types` slot (column-policy hint)      |
+    | varuint            | `num_dynamic_types` (declared arms excl. Shared)   |
     | n length-prefixed  | declared type-spec names, in any order               |
 
-    **V2** (negotiated revision >= 54473, drops ``max_dynamic_types``):
+    **V2** (negotiated revision >= 54473, drops `max_dynamic_types`):
 
     | Bytes              | Meaning                                              |
     | ------------------ | ---------------------------------------------------- |
     | 8                  | structure version (2 = V2)                           |
-    | varuint            | ``num_dynamic_types``                                |
+    | varuint            | `num_dynamic_types`                                |
     | n length-prefixed  | declared type-spec names, in any order               |
 
-    In both versions a Variant body follows — the inner ``Variant`` is built
-    from the declared arms plus an implicit ``SharedVariant`` arm, sorted
-    alphabetically to match upstream ``DataTypeVariant``'s by-name sort.
+    In both versions a Variant body follows — the inner `Variant` is built
+    from the declared arms plus an implicit `SharedVariant` arm, sorted
+    alphabetically to match upstream `DataTypeVariant`'s by-name sort.
     """
 
     null_value: ClassVar[None] = None
@@ -360,11 +360,11 @@ class Dynamic:
 
     @staticmethod
     def tag(value: object, type_spec: str) -> _DynamicTag:
-        """Pin a ClickHouse type spec for ``value`` instead of relying
+        """Pin a ClickHouse type spec for `value` instead of relying
         on the Python-type → type-spec inference. Necessary when the
-        default mapping (``int → Int64``, ``str → String`` …) picks
-        the wrong arm — e.g. forcing ``Date`` over ``DateTime`` for a
-        ``datetime.date`` value.
+        default mapping (`int → Int64`, `str → String` …) picks
+        the wrong arm — e.g. forcing `Date` over `DateTime` for a
+        `datetime.date` value.
         """
         return _DynamicTag(value, type_spec)
 
@@ -379,14 +379,14 @@ class Dynamic:
                 f"are supported"
             )
         if version == _DYNAMIC_VERSION_V1:
-            # V1 emits ``max_dynamic_types`` before the actual count; we
+            # V1 emits `max_dynamic_types` before the actual count; we
             # ignore the cap (server-side policy, not a wire constraint).
             await reader.read_varuint()
         n_types = await reader.read_varuint()
         declared_specs = [await reader.read_string() for _ in range(n_types)]
         # Sort the declared specs together with the implicit
-        # ``SharedVariant`` arm to mirror upstream ``DataTypeVariant``'s
-        # by-name sort. The sorted order is what the inner ``Variant``
+        # `SharedVariant` arm to mirror upstream `DataTypeVariant`'s
+        # by-name sort. The sorted order is what the inner `Variant`
         # arms map to discriminators; sender and receiver agree on
         # discriminator → arm because both apply the same sort.
         sorted_specs = sorted([*declared_specs, _SHARED_VARIANT_NAME])
@@ -410,11 +410,11 @@ class Dynamic:
             return
         # Walk values once: pick a type spec per row (explicit tag or
         # inferred from Python type) and remember each row's
-        # ``(spec, payload)``. We assign discriminators *after* sorting
+        # `(spec, payload)`. We assign discriminators *after* sorting
         # — both sender and receiver agree on the disc→arm mapping by
         # sorting the declared specs (with the implicit SharedVariant
         # interleaved) alphabetically, mirroring upstream
-        # ``DataTypeVariant``'s by-name sort.
+        # `DataTypeVariant`'s by-name sort.
         type_specs: list[str] = []
         spec_seen: set[str] = set()
         rows: list[tuple[str | None, Any]] = []
@@ -440,16 +440,16 @@ class Dynamic:
                 f"or raise the cap"
             )
 
-        # Compute the sorted variant order including ``SharedVariant``.
-        # ``DataTypeVariant`` sorts its arms by name in the constructor
-        # (uses ``std::map``), so the discriminator → arm mapping the
+        # Compute the sorted variant order including `SharedVariant`.
+        # `DataTypeVariant` sorts its arms by name in the constructor
+        # (uses `std::map`), so the discriminator → arm mapping the
         # server applies on read is determined by this sort. Mirror it
         # exactly here.
         sorted_names = sorted([*type_specs, _SHARED_VARIANT_NAME])
         spec_to_disc = {name: i for i, name in enumerate(sorted_names)}
 
-        # V2 (revision >= 54473) drops the ``max_dynamic_types`` field;
-        # V1 emits it as a column-policy hint before ``num_dynamic_types``.
+        # V2 (revision >= 54473) drops the `max_dynamic_types` field;
+        # V1 emits it as a column-policy hint before `num_dynamic_types`.
         # Read the revision from the writer (set by write_block); fall
         # back to OUR_REVISION when the writer carries no context (e.g.
         # unit tests that build a BinaryWriter directly).
@@ -493,12 +493,12 @@ class Dynamic:
 
 def _infer_dynamic_type_spec(value: object) -> str:
     """Map a Python value to its default ClickHouse type spec for a
-    ``Dynamic`` block-prefix declaration.
+    `Dynamic` block-prefix declaration.
 
-    Conservative: covers the common scalar shapes only. ``bool`` is
-    checked before ``int`` (Python's ``bool`` is a subclass of ``int``,
+    Conservative: covers the common scalar shapes only. `bool` is
+    checked before `int` (Python's `bool` is a subclass of `int`,
     so the order matters). Anything outside this table raises with a
-    pointer to ``Dynamic.tag`` for explicit typing.
+    pointer to `Dynamic.tag` for explicit typing.
     """
     if isinstance(value, bool):
         return "Bool"

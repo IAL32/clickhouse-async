@@ -1,7 +1,7 @@
-"""Tests for ``Client.kill_query`` and ``Pool.kill_query``.
+"""Tests for `Client.kill_query` and `Pool.kill_query`.
 
-The kill_query call issues ``KILL QUERY WHERE query_id = {qid:String}``
-(with optional ``SYNC``) on a side-channel connection. Tests assert
+The kill_query call issues `KILL QUERY WHERE query_id = {qid:String}`
+(with optional `SYNC`) on a side-channel connection. Tests assert
 the SQL hits the wire correctly, validation rejects garbage input,
 and the busy-connection fallback opens a fresh client.
 """
@@ -40,11 +40,11 @@ def _reader_over(data: bytes) -> AsyncBinaryReader:
 
 
 def _kill_query_response(transport: ScriptedTransport, *, killed: int) -> None:
-    """Queue the typical ``KILL QUERY`` response shape: header block +
-    one data block with ``killed`` rows + EndOfStream.
+    """Queue the typical `KILL QUERY` response shape: header block +
+    one data block with `killed` rows + EndOfStream.
 
     We don't care about the column values for the SQL-on-the-wire
-    test; ``Client.execute`` returns ``row_count`` based on the block
+    test; `Client.execute` returns `row_count` based on the block
     row count.
     """
     spec, _ = make_column("query_id", "String", [])
@@ -142,8 +142,8 @@ async def test_kill_query_drops_sync_when_sync_false() -> None:
 
 
 class _MultiTransport:
-    """Hands out a fresh ``ScriptedTransport`` per open call. Tests can
-    pre-populate the next transport's reply queue via ``next_reply``.
+    """Hands out a fresh `ScriptedTransport` per open call. Tests can
+    pre-populate the next transport's reply queue via `next_reply`.
     """
 
     def __init__(self) -> None:

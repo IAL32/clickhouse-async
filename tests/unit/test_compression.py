@@ -4,13 +4,13 @@ Covers:
 - Bare-install discipline: importing the compression module never
   raises, even with all compression libs absent. The error only fires
   when a codec method is actually invoked.
-- ``MissingExtraError`` paths via ``monkeypatch.setitem`` on
-  ``sys.modules`` so we can exercise the failure mode without
+- `MissingExtraError` paths via `monkeypatch.setitem` on
+  `sys.modules` so we can exercise the failure mode without
   uninstalling anything.
 - Round-trip + multi-block round-trip per method (LZ4, ZSTD, NONE)
-  via ``pytest.importorskip`` so the tests skip on bare installs.
-- End-to-end ``Connection`` wiring: the query packet's compression
-  flag flips, and ``send_data`` / ``iter_packets`` round-trip blocks
+  via `pytest.importorskip` so the tests skip on bare installs.
+- End-to-end `Connection` wiring: the query packet's compression
+  flag flips, and `send_data` / `iter_packets` round-trip blocks
   through the framed format when compression is on.
 """
 
@@ -87,8 +87,8 @@ def test_method_enum_carries_documented_byte_values() -> None:
 @pytest.fixture
 def _isolated_modules(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """Drop every compression-related module from sys.modules so the
-    next ``import_module`` call inside ``_require`` actually re-runs
-    against whatever ``sys.modules`` looks like."""
+    next `import_module` call inside `_require` actually re-runs
+    against whatever `sys.modules` looks like."""
     for name in [
         "lz4",
         "lz4.block",

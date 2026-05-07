@@ -1,29 +1,29 @@
 """Parse a ClickHouse connection-string DSN.
 
-Format: ``clickhouse[s]://[user[:password]]@host[:port][,host2[:port2]...][/database][?k=v&...]``
+Format: `clickhouse[s]://[user[:password]]@host[:port][,host2[:port2]...][/database][?k=v&...]`
 
 Multiple hosts are comma-separated; bare hosts inherit the scheme's
-default port (``9000`` plain / ``9440`` secure). The first connection
-attempt walks the list in order; ``Pool`` rotates the start position
+default port (`9000` plain / `9440` secure). The first connection
+attempt walks the list in order; `Pool` rotates the start position
 across acquires so a single dead replica doesn't dominate.
 
 Examples:
 
-- ``clickhouse://localhost``
-- ``clickhouse://default:@localhost:9000/default``
-- ``clickhouse://alice:secret@db.example:9000/analytics?compression=lz4``
-- ``clickhouses://alice@db.example/`` (TLS, default port 9440)
-- ``clickhouse://user@[::1]:9000/db`` (IPv6 host literal)
-- ``clickhouse://user@h1:9000,h2:9000,h3/db`` (failover list)
+- `clickhouse://localhost`
+- `clickhouse://default:@localhost:9000/default`
+- `clickhouse://alice:secret@db.example:9000/analytics?compression=lz4`
+- `clickhouses://alice@db.example/` (TLS, default port 9440)
+- `clickhouse://user@[::1]:9000/db` (IPv6 host literal)
+- `clickhouse://user@h1:9000,h2:9000,h3/db` (failover list)
 
 Recognised query parameters:
 
-- ``secure=true|false`` — overrides the scheme. ``clickhouses://`` implies
-  ``secure=true``.
-- ``compression=none|lz4|zstd``
-- ``connect_timeout=<float seconds>``
+- `secure=true|false` — overrides the scheme. `clickhouses://` implies
+  `secure=true`.
+- `compression=none|lz4|zstd`
+- `connect_timeout=<float seconds>`
 
-Anything else in the query string lands in ``settings`` as a ``str → str``
+Anything else in the query string lands in `settings` as a `str → str`
 map and is forwarded to the server alongside each query.
 """
 
@@ -45,10 +45,10 @@ _MAX_TCP_PORT = 65535
 
 @dataclass(frozen=True)
 class DSN:
-    """Parsed DSN. ``parse_dsn`` is the only documented constructor.
+    """Parsed DSN. `parse_dsn` is the only documented constructor.
 
-    ``hosts`` is the canonical multi-host candidate list. ``host`` /
-    ``port`` are read-only shortcuts pointing at the first entry — the
+    `hosts` is the canonical multi-host candidate list. `host` /
+    `port` are read-only shortcuts pointing at the first entry — the
     one a single-host caller would expect.
     """
 
@@ -73,9 +73,9 @@ class DSN:
 
 
 def parse_dsn(dsn: str) -> DSN:
-    """Parse a ``clickhouse://`` DSN string into a ``DSN`` dataclass.
+    """Parse a `clickhouse://` DSN string into a `DSN` dataclass.
 
-    Raises ``ValueError`` for unsupported schemes, missing host, malformed
+    Raises `ValueError` for unsupported schemes, missing host, malformed
     host:port pieces, or malformed query-parameter values.
     """
     parsed = urlparse(dsn)
@@ -148,7 +148,7 @@ def parse_dsn(dsn: str) -> DSN:
 
 
 def _split_host_pieces(s: str) -> list[str]:
-    """Split a multi-host string on top-level commas, respecting ``[...]``
+    """Split a multi-host string on top-level commas, respecting `[...]`
     brackets so an IPv6 literal's internal colons / commas don't get
     confused for a separator."""
     pieces: list[str] = []
@@ -175,8 +175,8 @@ def _split_host_pieces(s: str) -> list[str]:
 
 
 def _parse_host_piece(piece: str, *, default_port: int) -> tuple[str, int]:
-    """Parse a single ``host[:port]`` (or ``[ipv6][:port]``) into
-    ``(host, port)`` with the scheme's default port if no port is given."""
+    """Parse a single `host[:port]` (or `[ipv6][:port]`) into
+    `(host, port)` with the scheme's default port if no port is given."""
     piece = piece.strip()
     if piece.startswith("["):
         end = piece.find("]")
@@ -213,8 +213,8 @@ def _parse_port(s: str, piece: str) -> int:
 
 
 def _take_one(query: dict[str, list[str]], key: str, default: str) -> str:
-    """Take the last value for ``key`` (a multi-valued query is ambiguous;
-    last-value matches what most parsers do). Returns ``default`` if the
+    """Take the last value for `key` (a multi-valued query is ambiguous;
+    last-value matches what most parsers do). Returns `default` if the
     key is missing."""
     values = query.get(key)
     if not values:

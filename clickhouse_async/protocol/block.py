@@ -1,30 +1,30 @@
 """Read and write the columnar Block format.
 
-Every result row batch and every ``INSERT`` payload is wrapped in a
-Block. The wire layout (mirrors upstream ``Formats/NativeReader.cpp``
-and ``NativeWriter.cpp``):
+Every result row batch and every `INSERT` payload is wrapped in a
+Block. The wire layout (mirrors upstream `Formats/NativeReader.cpp`
+and `NativeWriter.cpp`):
 
-1. **BlockInfo** — numbered TLV-style fields ending in a varuint ``0``
-   sentinel (see ``Core/BlockInfo.cpp`` for the canonical layout). At
-   ``OUR_REVISION`` the live fields are ``is_overflows`` (bool, field
-   1), ``bucket_num`` (Int32, field 2), and ``out_of_order_buckets``
+1. **BlockInfo** — numbered TLV-style fields ending in a varuint `0`
+   sentinel (see `Core/BlockInfo.cpp` for the canonical layout). At
+   `OUR_REVISION` the live fields are `is_overflows` (bool, field
+   1), `bucket_num` (Int32, field 2), and `out_of_order_buckets`
    (vector<Int32>, field 3, added at 54480). Higher-numbered fields
-   (e.g. ``out_of_order_buckets``) are gated above our revision and we
+   (e.g. `out_of_order_buckets`) are gated above our revision and we
    treat them as a protocol error if a server emits them — the
    handshake contract says it shouldn't.
-2. **Varuint ``n_columns``**, then **varuint ``n_rows``**.
+2. **Varuint `n_columns`**, then **varuint `n_rows`**.
 3. For each column, in declared order:
    - Length-prefixed UTF-8 column name.
-   - Length-prefixed UTF-8 type spec (``Array(Nullable(String))`` etc.).
-   - At ``revision >= DBMS_MIN_REVISION_WITH_CUSTOM_SERIALIZATION``: a
-     1-byte custom-serialization flag. v0 only emits/accepts ``0``;
-     non-zero raises ``ProtocolError``.
-   - The column body — ``codec.read(reader, n_rows)`` /
-     ``codec.write(writer, values)``.
+   - Length-prefixed UTF-8 type spec (`Array(Nullable(String))` etc.).
+   - At `revision >= DBMS_MIN_REVISION_WITH_CUSTOM_SERIALIZATION`: a
+     1-byte custom-serialization flag. v0 only emits/accepts `0`;
+     non-zero raises `ProtocolError`.
+   - The column body — `codec.read(reader, n_rows)` /
+     `codec.write(writer, values)`.
 
-Empty blocks and header-only blocks (``n_rows = 0``, any column count)
+Empty blocks and header-only blocks (`n_rows = 0`, any column count)
 are valid and used by the server to signal the column metadata of a
-``SELECT`` before streaming any rows.
+`SELECT` before streaming any rows.
 """
 
 from __future__ import annotations
@@ -43,7 +43,7 @@ if TYPE_CHECKING:
 
     from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 
-# BlockInfo TLV field numbers (canonical layout, ``Core/BlockInfo.cpp``).
+# BlockInfo TLV field numbers (canonical layout, `Core/BlockInfo.cpp`).
 _BLOCK_INFO_FIELD_TERMINATOR = 0
 _BLOCK_INFO_FIELD_IS_OVERFLOWS = 1
 _BLOCK_INFO_FIELD_BUCKET_NUM = 2
@@ -55,8 +55,8 @@ class BlockInfo:
     """The numbered metadata fields preceding every Block on the wire.
 
     Defaults match upstream's defaults; an empty block info (defaults
-    only) round-trips through ``write_block_info`` /
-    ``read_block_info`` with the same byte layout the server emits.
+    only) round-trips through `write_block_info` /
+    `read_block_info` with the same byte layout the server emits.
     """
 
     is_overflows: bool = False
@@ -131,17 +131,17 @@ async def read_block(
 ) -> Block:
     """Decode one block from the reader.
 
-    ``revision`` is the connection's negotiated protocol revision —
-    ``min(OUR_REVISION, server_revision)`` from the handshake — and
+    `revision` is the connection's negotiated protocol revision —
+    `min(OUR_REVISION, server_revision)` from the handshake — and
     governs which optional fields are on the wire.
 
-    ``session_timezone`` (when set) becomes the fallback timezone for
-    any bare ``DateTime`` / ``DateTime64(p)`` codec parsed from this
+    `session_timezone` (when set) becomes the fallback timezone for
+    any bare `DateTime` / `DateTime64(p)` codec parsed from this
     block's column specs. The Connection plumbs it down from the
-    ``TIMEZONE_UPDATE`` packet so naive datetimes land in the
+    `TIMEZONE_UPDATE` packet so naive datetimes land in the
     server's negotiated session zone instead of silently UTC.
 
-    ``json_nested`` (when ``True``) configures any ``JSON`` codec in
+    `json_nested` (when `True`) configures any `JSON` codec in
     the block to return nested dicts on read.
     """
 
@@ -184,7 +184,7 @@ _KIND_SPARSE = 1
 # Bit-62 flag set on the **last** sparse-offset varuint to mark
 # end-of-granule. The remaining low 62 bits hold the trailing-defaults
 # count (number of default values after the last non-default). Defined
-# in upstream ``SerializationSparse.cpp`` as ``END_OF_GRANULE_FLAG``.
+# in upstream `SerializationSparse.cpp` as `END_OF_GRANULE_FLAG`.
 _SPARSE_END_OF_GRANULE_FLAG = 1 << 62
 
 
@@ -196,11 +196,11 @@ async def _read_custom_serialised_column(
     name: str,
     type_spec: str,
 ) -> list[Any]:
-    """Decode a column whose header set ``has_custom=1``.
+    """Decode a column whose header set `has_custom=1`.
 
-    The first byte after ``has_custom`` is the **kind** discriminator.
-    Only ``1`` = Sparse is currently produced; other values raise. The
-    body that follows depends on the kind — see ``_read_sparse_column``.
+    The first byte after `has_custom` is the **kind** discriminator.
+    Only `1` = Sparse is currently produced; other values raise. The
+    body that follows depends on the kind — see `_read_sparse_column`.
     """
 
     kind = await reader.read_byte()
@@ -228,15 +228,15 @@ async def _read_sparse_column(
 
     1. **Group-size offsets** (varuints). Each value is the number of
        default-valued rows preceding the next non-default row. The
-       sequence terminates with a varuint that has ``END_OF_GRANULE_FLAG``
-       (``1 << 62``) set; the low 62 bits of that final varuint are the
+       sequence terminates with a varuint that has `END_OF_GRANULE_FLAG`
+       (`1 << 62`) set; the low 62 bits of that final varuint are the
        trailing-defaults count.
     2. **Non-default values** (the codec's normal encoding for
-       ``n_non_default`` rows).
+       `n_non_default` rows).
 
-    Reconstruction walks ``position`` forward by each ``group_size + 1``
+    Reconstruction walks `position` forward by each `group_size + 1`
     and writes the matching value into a list pre-filled with
-    ``codec.null_value`` (the codec's neutral / type-default value —
+    `codec.null_value` (the codec's neutral / type-default value —
     matches the column's effective DEFAULT for the simple types sparse
     is ever applied to).
     """
@@ -275,8 +275,8 @@ async def _read_sparse_column(
 def write_block(writer: BinaryWriter, block: Block, *, revision: int) -> None:
     """Encode one block to the writer.
 
-    Caller is responsible for ``len(block.data) == len(block.columns)``
-    and each column's data list having ``block.n_rows`` entries.
+    Caller is responsible for `len(block.data) == len(block.columns)`
+    and each column's data list having `block.n_rows` entries.
     """
 
     if len(block.data) != len(block.columns):

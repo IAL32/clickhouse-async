@@ -27,10 +27,10 @@ if TYPE_CHECKING:
 
 
 class _FreshTransports:
-    """Test-only transport factory that mints a fresh ``ScriptedTransport``
+    """Test-only transport factory that mints a fresh `ScriptedTransport`
     per client and pre-feeds a Hello reply so the handshake completes.
 
-    Tests can grab a transport after open via ``transports[i]`` to feed
+    Tests can grab a transport after open via `transports[i]` to feed
     query-shape responses.
     """
 

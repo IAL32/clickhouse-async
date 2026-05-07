@@ -1,17 +1,17 @@
 """Decoders for the non-data server packets observed during a query.
 
-The packet id (varuint ``ServerPacket.*``) has already been consumed by
+The packet id (varuint `ServerPacket.*`) has already been consumed by
 the caller; each function reads only the packet body. Block-bearing
 packets (Data, Totals, Extremes, Log, ProfileEvents) share the
-``[external table name string][block]`` shape — see
-``read_block_packet_body``.
+`[external table name string][block]` shape — see
+`read_block_packet_body`.
 
 Layouts pinned against upstream:
 
-- **Progress** — ``IO/Progress.cpp::ProgressValues::write``
-- **ProfileInfo** — ``QueryPipeline/ProfileInfo.cpp::ProfileInfo::write``
-- **Log / ProfileEvents / Totals / Extremes / Data** — ``Server/TCPHandler.cpp``
-- **TableColumns** — id + ``""`` + columns description string
+- **Progress** — `IO/Progress.cpp::ProgressValues::write`
+- **ProfileInfo** — `QueryPipeline/ProfileInfo.cpp::ProfileInfo::write`
+- **Log / ProfileEvents / Totals / Extremes / Data** — `Server/TCPHandler.cpp`
+- **TableColumns** — id + `""` + columns description string
 - **TimezoneUpdate** — id + tz string
 """
 
@@ -42,7 +42,7 @@ class ProgressInfo:
 
     ClickHouse emits Progress packets multiple times during a query,
     each carrying *increments since the last Progress packet* (per
-    upstream's ``fetchValuesAndResetPiecewiseAtomically``). Callers
+    upstream's `fetchValuesAndResetPiecewiseAtomically`). Callers
     that want cumulative totals accumulate themselves.
     """
 
@@ -141,19 +141,19 @@ async def read_block_packet_body(
 ) -> tuple[str, Block]:
     """Read the body shared by Data / Totals / Extremes / Log / ProfileEvents.
 
-    Layout: ``string external_table_name`` (often empty) + ``Block``.
+    Layout: `string external_table_name` (often empty) + `Block`.
 
-    ``compression`` controls whether the block bytes are framed: pass
-    the connection's compression method for ``DATA`` / ``TOTALS`` /
-    ``EXTREMES``, and ``CompressionMethod.NONE`` for ``LOG`` /
-    ``PROFILE_EVENTS`` (which upstream always sends raw, even when the
+    `compression` controls whether the block bytes are framed: pass
+    the connection's compression method for `DATA` / `TOTALS` /
+    `EXTREMES`, and `CompressionMethod.NONE` for `LOG` /
+    `PROFILE_EVENTS` (which upstream always sends raw, even when the
     connection has compression on).
 
-    ``session_timezone`` is forwarded to ``read_block_framed`` so
-    naive ``DateTime`` columns in the block honour the connection's
+    `session_timezone` is forwarded to `read_block_framed` so
+    naive `DateTime` columns in the block honour the connection's
     session timezone.
 
-    ``json_nested`` is forwarded so ``JSON`` codecs in the block
+    `json_nested` is forwarded so `JSON` codecs in the block
     return nested dicts on read when the session requests it.
     """
 
@@ -174,8 +174,8 @@ async def read_block_packet_body(
 async def read_table_columns(
     reader: AsyncBinaryReader,
 ) -> tuple[str, str]:
-    """``TableColumns`` body: ``string default_table_name`` (typically "")
-    + ``string columns_description`` (the full ``CREATE TABLE`` columns
+    """`TableColumns` body: `string default_table_name` (typically "")
+    + `string columns_description` (the full `CREATE TABLE` columns
     DDL fragment)."""
 
     default_table_name = await reader.read_string()
@@ -186,7 +186,7 @@ async def read_table_columns(
 async def read_timezone_update(
     reader: AsyncBinaryReader,
 ) -> str:
-    """``TimezoneUpdate`` body: a single string carrying the server's
+    """`TimezoneUpdate` body: a single string carrying the server's
     session timezone."""
 
     return await reader.read_string()

@@ -1,23 +1,23 @@
-"""Codec for ``AggregateFunction(func, arg1, arg2, …)`` state columns.
+"""Codec for `AggregateFunction(func, arg1, arg2, …)` state columns.
 
 These are the opaque-state columns ClickHouse uses for materialised
-views and ``-State`` aggregate suffixes. The wire format is **per-row
-bytes**, where each row's structure is determined by ``func``'s own
-``serialize`` / ``deserialize`` implementation server-side. There's
+views and `-State` aggregate suffixes. The wire format is **per-row
+bytes**, where each row's structure is determined by `func`'s own
+`serialize` / `deserialize` implementation server-side. There's
 no generic length prefix at the column level — upstream
-``DataTypeAggregateFunction::serializeBinaryBulk`` simply concatenates
-``function->serialize(buf, place)`` outputs — so the client has to
+`DataTypeAggregateFunction::serializeBinaryBulk` simply concatenates
+`function->serialize(buf, place)` outputs — so the client has to
 know the per-row structure for each function it wants to round-trip.
 
 v0.2 ships with per-function readers for a small, common set of
 aggregates — enough to round-trip the single most-used MV pipeline
-(``avgState`` → ``avgMerge``) — and raises a clear
-``NotImplementedError`` for anything outside the table. Adding a new
-function is a few lines: register a reader in ``_READERS``.
+(`avgState` → `avgMerge`) — and raises a clear
+`NotImplementedError` for anything outside the table. Adding a new
+function is a few lines: register a reader in `_READERS`.
 
 Use case: a SELECT against an MV's state column produces opaque
 bytes; feed those bytes directly into an INSERT into another
-``AggregateFunction(...)`` column with the same ``func`` to
+`AggregateFunction(...)` column with the same `func` to
 copy / repartition state. The bytes are never introspectable at
 the Python level.
 """
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 _StateReader = Callable[["AsyncBinaryReader"], Awaitable[bytes]]
 
 # LEB128 varuint continuation marker — bit 7 = "more bytes follow".
-# Mirrored from ``clickhouse_async.protocol.io`` to keep this module
+# Mirrored from `clickhouse_async.protocol.io` to keep this module
 # self-contained (the io module only exposes a decoded-int reader,
 # not a raw-bytes reader).
 _VARUINT_CONTINUATION_BIT = 0x80
@@ -59,10 +59,10 @@ async def _read_varuint_bytes(reader: AsyncBinaryReader) -> bytes:
 
 
 async def _read_avg_state(reader: AsyncBinaryReader) -> bytes:
-    """``avg`` state: ``Float64 numerator`` + ``varuint denominator``.
+    """`avg` state: `Float64 numerator` + `varuint denominator`.
 
     The total length is variable (the denominator is varuint-encoded
-    in upstream ``AggregateFunctionAvgBase::serialize``), so we read
+    in upstream `AggregateFunctionAvgBase::serialize`), so we read
     each piece by hand and return the concatenated bytes.
     """
     numerator = await reader.read_exact(8)
@@ -71,7 +71,7 @@ async def _read_avg_state(reader: AsyncBinaryReader) -> bytes:
 
 
 async def _read_count_state(reader: AsyncBinaryReader) -> bytes:
-    """``count`` state: a single ``UInt64`` row counter (8 bytes)."""
+    """`count` state: a single `UInt64` row counter (8 bytes)."""
     return bytes(await reader.read_exact(8))
 
 
@@ -85,14 +85,14 @@ _READERS: dict[str, _StateReader] = {
 
 
 class AggregateFunction:
-    """``AggregateFunction(func, arg1, arg2, …)`` — opaque per-row state.
+    """`AggregateFunction(func, arg1, arg2, …)` — opaque per-row state.
 
-    ``read`` returns ``list[bytes]``; ``write`` accepts the same and
-    writes the bytes back verbatim — server-side ``deserialize``
-    sees identical bytes to what its own ``serialize`` would have
-    produced. Unknown functions raise ``NotImplementedError`` with
+    `read` returns `list[bytes]`; `write` accepts the same and
+    writes the bytes back verbatim — server-side `deserialize`
+    sees identical bytes to what its own `serialize` would have
+    produced. Unknown functions raise `NotImplementedError` with
     the function name so the user can either upgrade clickhouse-async
-    or run the merge server-side via ``-Merge`` without round-tripping
+    or run the merge server-side via `-Merge` without round-tripping
     the bytes through Python.
     """
 
@@ -104,10 +104,10 @@ class AggregateFunction:
         function_call: str,
         arg_types: list[ColumnCodec],
     ) -> None:
-        # ``function_call`` is the verbatim leading-param string —
-        # ``avg``, ``quantilesTDigest(0.5, 0.9)`` etc. We don't try to
+        # `function_call` is the verbatim leading-param string —
+        # `avg`, `quantilesTDigest(0.5, 0.9)` etc. We don't try to
         # parse the parametric args; only the bare function name
-        # (everything before any ``(``) drives the reader lookup.
+        # (everything before any `(`) drives the reader lookup.
         self.function_call = function_call.strip()
         self.arg_types = arg_types
         # Bare function name — the lookup key for the readers table.
@@ -123,7 +123,7 @@ class AggregateFunction:
 
     def _reader(self) -> _StateReader:
         """Return the per-row state reader for this function or raise
-        ``NotImplementedError`` naming the function and the workaround."""
+        `NotImplementedError` naming the function and the workaround."""
         rd = _READERS.get(self.function_name)
         if rd is None:
             raise NotImplementedError(

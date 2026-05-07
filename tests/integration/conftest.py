@@ -1,9 +1,9 @@
-"""Integration-test fixtures and the ``integration`` marker.
+"""Integration-test fixtures and the `integration` marker.
 
-Every test under ``tests/integration/`` is auto-marked
-``integration`` so the default ``pytest`` invocation (which runs with
-``-m 'not integration'`` per ``pyproject.toml``) skips them. To run
-them explicitly: ``pytest tests/integration`` or ``pytest -m integration``.
+Every test under `tests/integration/` is auto-marked
+`integration` so the default `pytest` invocation (which runs with
+`-m 'not integration'` per `pyproject.toml`) skips them. To run
+them explicitly: `pytest tests/integration` or `pytest -m integration`.
 """
 
 from __future__ import annotations
@@ -22,9 +22,9 @@ if TYPE_CHECKING:
 def pytest_collection_modifyitems(
     config: pytest.Config, items: list[pytest.Item]
 ) -> None:
-    """Auto-mark every test under ``tests/integration/`` with the
-    ``integration`` marker so the default unit run filters them out
-    via ``-m 'not integration'``."""
+    """Auto-mark every test under `tests/integration/` with the
+    `integration` marker so the default unit run filters them out
+    via `-m 'not integration'`."""
     integration_dir = Path(__file__).resolve().parent
     for item in items:
         try:
@@ -37,7 +37,7 @@ def pytest_collection_modifyitems(
 
 @pytest.fixture
 async def client(dsn: str) -> AsyncIterator[ch.Client]:
-    """A freshly-opened, freshly-closed ``Client`` per test."""
+    """A freshly-opened, freshly-closed `Client` per test."""
     async with ch.connect(dsn, connect_timeout=10.0) as c:
         yield c
 
@@ -56,9 +56,9 @@ async def fresh_table(
     """Return a coroutine that drops + recreates a server-side table.
 
     Integration tests clean up **before** they run; the helper is a
-    thin wrapper around ``DROP TABLE IF EXISTS`` + ``CREATE TABLE`` so
+    thin wrapper around `DROP TABLE IF EXISTS` + `CREATE TABLE` so
     each test owns its own table named after itself (avoid collisions
-    under ``pytest-xdist`` / random ordering).
+    under `pytest-xdist` / random ordering).
     """
 
     async def _fresh(name: str, schema: str) -> None:

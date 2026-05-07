@@ -1,6 +1,6 @@
-"""A scripted transport for unit-testing ``Connection`` without a socket.
+"""A scripted transport for unit-testing `Connection` without a socket.
 
-Acts as the ``transport_factory`` argument to ``Connection``, so tests
+Acts as the `transport_factory` argument to `Connection`, so tests
 can drive the connection against pre-recorded server bytes and assert
 the exact bytes the connection wrote in response — handshake, query,
 packet loop, cancel, compression — without spinning up a real socket.
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 class _ScriptedWriter:
     """Captures everything the connection writes and exposes a
-    ``StreamWriter``-shaped surface for the rest of the methods."""
+    `StreamWriter`-shaped surface for the rest of the methods."""
 
     def __init__(self, buf: bytearray) -> None:
         self._buf = buf
@@ -44,16 +44,16 @@ class _ScriptedWriter:
 
 
 class ScriptedTransport:
-    """Hands a ``Connection`` a scripted reader/writer pair.
+    """Hands a `Connection` a scripted reader/writer pair.
 
     Tests:
-    - call ``feed(bytes)`` to enqueue server-to-client bytes,
+    - call `feed(bytes)` to enqueue server-to-client bytes,
     - drive whatever the connection does next (which will read from
-      the queued bytes and write to ``written()``),
-    - inspect ``written()`` for byte-layout assertions.
+      the queued bytes and write to `written()`),
+    - inspect `written()` for byte-layout assertions.
 
-    Use as the ``transport_factory=`` argument when constructing
-    ``Connection``. The factory is the bound ``__call__`` so the
+    Use as the `transport_factory=` argument when constructing
+    `Connection`. The factory is the bound `__call__` so the
     instance can be passed directly.
     """
 

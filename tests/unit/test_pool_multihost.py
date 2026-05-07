@@ -94,7 +94,7 @@ async def test_pool_rotates_first_choice_host_across_acquires() -> None:
 
 
 async def test_pool_skips_known_dead_host_on_subsequent_acquire() -> None:
-    # BEGIN: a 2-host DSN where host ``a`` always refuses and host ``b``
+    # BEGIN: a 2-host DSN where host `a` always refuses and host `b`
     #        is healthy
     transport = _RotatingTransport(
         {
@@ -111,7 +111,7 @@ async def test_pool_skips_known_dead_host_on_subsequent_acquire() -> None:
 
     async with pool:
         # WHEN: the first acquire walks (a, b) and lands on b — failure
-        #       on ``a`` records a cooldown
+        #       on `a` records a cooldown
         ctx_first = pool.acquire()
         await ctx_first.__aenter__()
         first_pass = list(transport.calls)
@@ -120,14 +120,14 @@ async def test_pool_skips_known_dead_host_on_subsequent_acquire() -> None:
 
         # WHEN: a second acquire forces a fresh open (the first client
         #       is still checked out, so the pool can't recycle it).
-        #       The rotation should skip ``a`` because it's cooled
+        #       The rotation should skip `a` because it's cooled
         #       down from the previous failure.
         prev_calls = len(transport.calls)
         ctx_second = pool.acquire()
         await ctx_second.__aenter__()
         second_pass = transport.calls[prev_calls:]
 
-        # THEN: the second open went straight to ``b`` — ``a`` was
+        # THEN: the second open went straight to `b` — `a` was
         #       skipped for being in cooldown
         assert ("a", 9000) not in second_pass
         assert second_pass == [("b", 9000)]

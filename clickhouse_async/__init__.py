@@ -1,7 +1,7 @@
 """Async Python client for ClickHouse."""
 
-# Set the version *before* the re-exports below: ``protocol/handshake.py``
-# reads ``clickhouse_async.__version__`` at import time to populate the
+# Set the version *before* the re-exports below: `protocol/handshake.py`
+# reads `clickhouse_async.__version__` at import time to populate the
 # Hello packet's client_version_{major,minor}. Re-ordering here would
 # trigger a circular import that fails attribute lookup.
 __version__ = "0.3.3"

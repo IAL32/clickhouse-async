@@ -1,11 +1,11 @@
-"""Multi-host failover tests for ``Connection.open()``.
+"""Multi-host failover tests for `Connection.open()`.
 
-The connection takes a candidate list of ``(host, port)`` pairs and
+The connection takes a candidate list of `(host, port)` pairs and
 walks them in order on each open. Per-host failures are recorded;
 the call returns on the first successful handshake. If every
-candidate fails the connection raises ``ConnectError`` (multi-host)
+candidate fails the connection raises `ConnectError` (multi-host)
 or surfaces the underlying error directly (single-host) and ends
-in ``BROKEN``.
+in `BROKEN`.
 """
 
 from __future__ import annotations
@@ -28,9 +28,9 @@ if TYPE_CHECKING:
 class _PerHostTransport:
     """A transport factory that returns scripted readers per (host, port).
 
-    For each candidate the test arms either a ``bytes`` payload (which
-    becomes the server's reply, fed into a fresh ``StreamReader``) or
-    an ``Exception`` that the factory raises on the open call. Every
+    For each candidate the test arms either a `bytes` payload (which
+    becomes the server's reply, fed into a fresh `StreamReader`) or
+    an `Exception` that the factory raises on the open call. Every
     call is recorded for assertion.
     """
 

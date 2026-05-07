@@ -1,10 +1,10 @@
-"""Round-trip and parser tests for ``AggregateFunction`` state columns.
+"""Round-trip and parser tests for `AggregateFunction` state columns.
 
 The codec rounds-trips a small allow-list of fixed-size aggregate
-states (``avg``, ``count``) byte-for-byte; anything else raises a
-clear ``NotImplementedError`` on read/write naming the function. The
-parser handles both bare-identifier function calls (``avg``) and
-parametric ones (``quantilesTDigest(0.5, 0.9)``).
+states (`avg`, `count`) byte-for-byte; anything else raises a
+clear `NotImplementedError` on read/write naming the function. The
+parser handles both bare-identifier function calls (`avg`) and
+parametric ones (`quantilesTDigest(0.5, 0.9)`).
 """
 
 from __future__ import annotations
@@ -43,12 +43,12 @@ def test_aggregate_function_bare_identifier_round_trips_name() -> None:
 
 def test_aggregate_function_parametric_call_round_trips_name() -> None:
     # BEGIN / WHEN: a parametric aggregate call like
-    #     ``quantilesTDigest(0.5, 0.9, 0.99)`` whose literal args are
+    #     `quantilesTDigest(0.5, 0.9, 0.99)` whose literal args are
     #     values, not types
     codec = parse_type("AggregateFunction(quantilesTDigest(0.5, 0.9, 0.99), Float64)")
 
     # THEN: the function-call substring is stored verbatim so the
-    #       output spec round-trips, and the bare ``function_name``
+    #       output spec round-trips, and the bare `function_name`
     #       (used for the size-table lookup) drops the parens
     assert isinstance(codec, AggregateFunction)
     assert codec.function_call == "quantilesTDigest(0.5, 0.9, 0.99)"
@@ -57,7 +57,7 @@ def test_aggregate_function_parametric_call_round_trips_name() -> None:
 
 
 def test_aggregate_function_count_takes_no_arg_types() -> None:
-    # BEGIN / WHEN: ``count`` is the unusual case with no arg types
+    # BEGIN / WHEN: `count` is the unusual case with no arg types
     codec = parse_type("AggregateFunction(count)")
 
     # THEN: arg_types is empty and the spec rendering omits the trailing
@@ -73,9 +73,9 @@ def test_aggregate_function_count_takes_no_arg_types() -> None:
 
 async def test_aggregate_function_avg_state_round_trips_byte_for_byte() -> None:
     # BEGIN: an AggregateFunction(avg, Float64) codec and synthesised
-    #        state values. ``avg`` state is variable-length: 8 bytes
+    #        state values. `avg` state is variable-length: 8 bytes
     #        (Float64 numerator) + varuint (denominator). The codec
-    #        knows the row boundary by parsing the varuint; ``write``
+    #        knows the row boundary by parsing the varuint; `write`
     #        is a passthrough so any byte string we read can be
     #        re-INSERTed verbatim.
     codec = parse_type("AggregateFunction(avg, Float64)")

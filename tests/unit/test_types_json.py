@@ -1,4 +1,4 @@
-"""Tests for the ``JSON`` codec including nested-dict mode and overflow write."""
+"""Tests for the `JSON` codec including nested-dict mode and overflow write."""
 
 from __future__ import annotations
 
@@ -38,7 +38,7 @@ def test_codec_name_round_trips_for_every_spec_shape(spec: str) -> None:
     # WHEN: parsing through the registry
     codec = parse_type(spec)
 
-    # THEN: the codec is a JSON instance and ``codec.name`` reproduces
+    # THEN: the codec is a JSON instance and `codec.name` reproduces
     #       the spec verbatim — important so re-emitting INSERT headers
     #       on the wire doesn't alter the type spec
     assert isinstance(codec, JSON)
@@ -46,7 +46,7 @@ def test_codec_name_round_trips_for_every_spec_shape(spec: str) -> None:
 
 
 def test_bare_json_has_no_hints() -> None:
-    # BEGIN / WHEN: bare ``JSON`` (no parens)
+    # BEGIN / WHEN: bare `JSON` (no parens)
     codec = parse_type("JSON")
 
     # THEN: the codec records no hints
@@ -129,13 +129,13 @@ async def test_paths_missing_in_some_rows_round_trip() -> None:
     # WHEN: round-tripping
     decoded = await _round_trip(codec, values)
 
-    # THEN: missing paths come back as absent keys (not ``{path: None}``)
+    # THEN: missing paths come back as absent keys (not `{path: None}`)
     assert decoded == values
 
 
 async def test_dotted_path_keys_round_trip() -> None:
     # BEGIN: nested input pre-flattened to dotted-path keys —
-    #        upstream stores nested JSON as ``user.id`` etc., so we
+    #        upstream stores nested JSON as `user.id` etc., so we
     #        accept that representation
     codec = parse_type("JSON")
     values: list[dict[str, object]] = [
@@ -169,7 +169,7 @@ async def test_heterogeneous_values_per_path_round_trip() -> None:
 
 
 async def test_all_empty_dicts_round_trip() -> None:
-    # BEGIN: every row is ``{}`` — no paths at all
+    # BEGIN: every row is `{}` — no paths at all
     codec = parse_type("JSON")
     values: list[dict[str, object]] = [{}, {}, {}]
 

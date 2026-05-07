@@ -2,23 +2,23 @@
 
 Values mirror upstream byte-for-byte:
 
-- ``src/Core/Protocol.h``         — ``ClientPacket`` and ``ServerPacket``.
-- ``src/Core/ProtocolDefines.h``  — revision gates and ``OUR_REVISION``.
+- `src/Core/Protocol.h`         — `ClientPacket` and `ServerPacket`.
+- `src/Core/ProtocolDefines.h`  — revision gates and `OUR_REVISION`.
 
-``OUR_REVISION`` is what this client claims in ``Hello``. It's pinned to a
-specific upstream ``DBMS_TCP_PROTOCOL_VERSION`` (see ``.clickhouse-version``
+`OUR_REVISION` is what this client claims in `Hello`. It's pinned to a
+specific upstream `DBMS_TCP_PROTOCOL_VERSION` (see `.clickhouse-version`
 for the matching server image); the negotiated revision against any modern
 server is exactly what we implement, and newer servers downshift at
-handshake. Bumping ``OUR_REVISION`` must come paired with implementing the
+handshake. Bumping `OUR_REVISION` must come paired with implementing the
 fields the higher revision introduces — lifting this number alone produces
 subtly broken handshakes.
 
-Every constant declared below is enforced to be ``≤ OUR_REVISION`` by
-``tests/unit/test_protocol_packets.py``. Add a constant only when this
+Every constant declared below is enforced to be `≤ OUR_REVISION` by
+`tests/unit/test_protocol_packets.py`. Add a constant only when this
 client gates a behaviour on it.
 
-Values cross-checked against ClickHouse 26.5.1 source (``ProtocolDefines.h``
-and ``Protocol.h``). Backward-compat with 24.8 LTS is maintained through
+Values cross-checked against ClickHouse 26.5.1 source (`ProtocolDefines.h`
+and `Protocol.h`). Backward-compat with 24.8 LTS is maintained through
 revision-gated logic — older servers negotiate down to their own revision.
 """
 
@@ -31,7 +31,7 @@ class ClientPacket(IntEnum):
     """Packet types this client sends to the server.
 
     Values are LEB128-encoded on the wire as the first varuint of every
-    client→server packet. Names mirror upstream ``Protocol::Client::Enum``.
+    client→server packet. Names mirror upstream `Protocol::Client::Enum`.
     """
 
     HELLO = 0
@@ -53,7 +53,7 @@ class ServerPacket(IntEnum):
     """Packet types the server sends to this client.
 
     Values are LEB128-encoded on the wire as the first varuint of every
-    server→client packet. Names mirror upstream ``Protocol::Server::Enum``.
+    server→client packet. Names mirror upstream `Protocol::Server::Enum`.
     """
 
     HELLO = 0

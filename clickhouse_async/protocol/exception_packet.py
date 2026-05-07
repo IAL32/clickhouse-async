@@ -1,12 +1,12 @@
-"""Decode the body of a server ``Exception`` packet into a ``ServerError``.
+"""Decode the body of a server `Exception` packet into a `ServerError`.
 
 Shared between the handshake (server may reject Hello with an
 Exception) and the steady-state packet loop (Exception is the
 end-of-query failure path). The packet id (varuint
-``ServerPacket.EXCEPTION``) is consumed by the caller; this function
+`ServerPacket.EXCEPTION`) is consumed by the caller; this function
 reads only the body.
 
-Wire format (per upstream ``Common/Exception.cpp::writeException``):
+Wire format (per upstream `Common/Exception.cpp::writeException`):
 
 - Int32 code (signed, little-endian)
 - String name

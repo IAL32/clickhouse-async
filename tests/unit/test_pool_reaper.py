@@ -1,9 +1,9 @@
 """Reaper tests: idle close + min_size warm + lifecycle.
 
-The reaper sweeps every ``idle_check_interval`` seconds, closing any
-free entry whose ``last_returned_at`` is older than ``max_idle_time``
-provided the pool's ``size`` stays above ``min_size``. After the
-close pass it re-warms the pool back up to ``min_size``.
+The reaper sweeps every `idle_check_interval` seconds, closing any
+free entry whose `last_returned_at` is older than `max_idle_time`
+provided the pool's `size` stays above `min_size`. After the
+close pass it re-warms the pool back up to `min_size`.
 
 Tests use very small intervals (sub-second) so the suite stays fast
 while still exercising the real timing path.
@@ -262,7 +262,7 @@ async def test_enable_reaper_false_skips_starting_the_task() -> None:
 
 
 async def test_min_size_with_disabled_reaper_is_rejected() -> None:
-    # BEGIN / WHEN / THEN: ``min_size`` only gets enforced by the
+    # BEGIN / WHEN / THEN: `min_size` only gets enforced by the
     #                     reaper, so combining the two is meaningless;
     #                     refuse at construction rather than silently
     #                     accept a parameter we won't honour

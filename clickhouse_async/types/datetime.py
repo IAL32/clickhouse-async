@@ -1,35 +1,35 @@
-"""Codecs for ``Date``, ``Date32``, ``DateTime[(tz)]`` and
-``DateTime64(precision[, tz])``.
+"""Codecs for `Date`, `Date32`, `DateTime[(tz)]` and
+`DateTime64(precision[, tz])`.
 
 On-wire layouts:
 
-- ``Date``:        UInt16, days since 1970-01-01 (unsigned).
-- ``Date32``:      Int32,  days since 1970-01-01 (signed; covers 1900-2299).
-- ``DateTime``:    UInt32, seconds since the Unix epoch (UTC). Optional
+- `Date`:        UInt16, days since 1970-01-01 (unsigned).
+- `Date32`:      Int32,  days since 1970-01-01 (signed; covers 1900-2299).
+- `DateTime`:    UInt32, seconds since the Unix epoch (UTC). Optional
                    timezone parameter is *display-only* — storage is UTC.
-- ``DateTime64``:  Int64,  ticks since the Unix epoch where 1 tick =
-                   ``10**-precision`` seconds. Optional timezone is also
+- `DateTime64`:  Int64,  ticks since the Unix epoch where 1 tick =
+                   `10**-precision` seconds. Optional timezone is also
                    display-only.
 
 Returned Python types:
 
-- ``Date`` and ``Date32``                     → ``datetime.date``.
-- ``DateTime``                                → naive ``datetime`` if no
-                                                timezone, aware ``datetime``
+- `Date` and `Date32`                     → `datetime.date`.
+- `DateTime`                                → naive `datetime` if no
+                                                timezone, aware `datetime`
                                                 if a timezone parameter is
                                                 present.
-- ``DateTime64(p ≤ 6)``                       → ``datetime`` (microsecond
+- `DateTime64(p ≤ 6)`                       → `datetime` (microsecond
                                                 resolution covers it).
-- ``DateTime64(p ∈ {7, 8, 9})``               → ``HighPrecisionTimestamp``
+- `DateTime64(p ∈ {7, 8, 9})`               → `HighPrecisionTimestamp`
                                                 so sub-microsecond ticks
                                                 survive the Python boundary.
-                                                Pass ``high_precision=False``
+                                                Pass `high_precision=False`
                                                 to opt out and accept the
-                                                lossy ``datetime`` form.
+                                                lossy `datetime` form.
 
-A bare ``DateTime`` codec without an explicit timezone parameter honours
+A bare `DateTime` codec without an explicit timezone parameter honours
 the connection's session timezone when one is plumbed through
-``parse_type(..., session_timezone=...)``; without it, naive datetimes
+`parse_type(..., session_timezone=...)`; without it, naive datetimes
 fall back to UTC interpretation (the v0 behaviour).
 """
 
@@ -48,9 +48,9 @@ if TYPE_CHECKING:
 
 _EPOCH_DATE = date(1970, 1, 1)
 
-# Python's ``datetime`` only carries microsecond resolution. Anything past
-# scale 6 (microseconds) needs ``HighPrecisionTimestamp``; anything at or
-# below survives a ``datetime`` round-trip exactly.
+# Python's `datetime` only carries microsecond resolution. Anything past
+# scale 6 (microseconds) needs `HighPrecisionTimestamp`; anything at or
+# below survives a `datetime` round-trip exactly.
 _MICROSECOND_SCALE = 6
 # ClickHouse caps DateTime64 precision at 9 (nanoseconds).
 _MAX_DATETIME64_PRECISION = 9
@@ -61,26 +61,26 @@ _MAX_DATETIME64_PRECISION = 9
 
 @dataclass(frozen=True)
 class HighPrecisionTimestamp:
-    """Sub-microsecond timestamp surfaced by ``DateTime64(p > 6)``.
+    """Sub-microsecond timestamp surfaced by `DateTime64(p > 6)`.
 
-    Python's ``datetime`` only carries microsecond resolution (10⁻⁶ s),
-    so ``DateTime64(7..9)`` would lose the bottom digits if forced
-    through it. This dataclass keeps the raw integer ``ticks`` against
-    the codec's ``scale`` (``10⁻ᵖ`` seconds per tick) — round-trips
+    Python's `datetime` only carries microsecond resolution (10⁻⁶ s),
+    so `DateTime64(7..9)` would lose the bottom digits if forced
+    through it. This dataclass keeps the raw integer `ticks` against
+    the codec's `scale` (`10⁻ᵖ` seconds per tick) — round-trips
     are byte-for-byte exact.
 
-    Use ``to_datetime()`` for a lossy conversion to a ``datetime``
+    Use `to_datetime()` for a lossy conversion to a `datetime`
     (truncates anything below microsecond), or
-    ``HighPrecisionTimestamp.from_datetime(dt, scale)`` to build one
-    from a ``datetime`` rounded to the codec's scale.
+    `HighPrecisionTimestamp.from_datetime(dt, scale)` to build one
+    from a `datetime` rounded to the codec's scale.
     """
 
     ticks: int
     scale: int  # power-of-ten exponent: 1 tick == 10**-scale seconds
 
     def to_datetime(self) -> datetime:
-        """Convert to a naive UTC ``datetime``. Lossy when
-        ``scale > _MICROSECOND_SCALE`` — sub-microsecond ticks are
+        """Convert to a naive UTC `datetime`. Lossy when
+        `scale > _MICROSECOND_SCALE` — sub-microsecond ticks are
         truncated."""
         if self.scale <= _MICROSECOND_SCALE:
             us_per_tick = 10 ** (_MICROSECOND_SCALE - self.scale)
@@ -93,8 +93,8 @@ class HighPrecisionTimestamp:
 
     @classmethod
     def from_datetime(cls, dt: datetime, scale: int) -> HighPrecisionTimestamp:
-        """Build a ``HighPrecisionTimestamp`` from a ``datetime`` at
-        ``scale``. Naive ``dt`` is treated as UTC; sub-microsecond
+        """Build a `HighPrecisionTimestamp` from a `datetime` at
+        `scale`. Naive `dt` is treated as UTC; sub-microsecond
         digits are zero (Python doesn't carry them)."""
         if dt.tzinfo is None:
             seconds = int(dt.replace(tzinfo=UTC).timestamp())
@@ -182,17 +182,17 @@ class DateTime:
         *,
         session_timezone: str | None = None,
     ) -> None:
-        # ``timezone`` (the type-spec argument) takes precedence;
-        # ``session_timezone`` is the fallback the connection plumbs in
-        # so naive ``DateTime`` reads land in the server's session zone
+        # `timezone` (the type-spec argument) takes precedence;
+        # `session_timezone` is the fallback the connection plumbs in
+        # so naive `DateTime` reads land in the server's session zone
         # rather than silently UTC.
         self.explicit_timezone = timezone
         effective_tz = timezone if timezone is not None else session_timezone
         self.timezone_name = effective_tz
         self._tz = _resolve_tz(effective_tz)
-        # ``codec.name`` round-trips the *type-spec* form, not the
-        # session-augmented form. ``DateTime('UTC')`` stays
-        # ``DateTime('UTC')``; a bare ``DateTime`` stays ``DateTime``
+        # `codec.name` round-trips the *type-spec* form, not the
+        # session-augmented form. `DateTime('UTC')` stays
+        # `DateTime('UTC')`; a bare `DateTime` stays `DateTime`
         # even when an aware datetime gets surfaced via session_tz.
         self.name = f"DateTime('{timezone}')" if timezone else "DateTime"
         self.null_value = (
@@ -234,11 +234,11 @@ class DateTime:
 
 class DateTime64:
     null_value: datetime | HighPrecisionTimestamp
-    # ``DateTime64`` may surface ``datetime`` (low-precision) or
-    # ``HighPrecisionTimestamp`` (high-precision) values. We declare
-    # ``datetime`` as the variant-resolution type since it's the
-    # common case; high-precision callers can pin via ``Variant.tag``
-    # if they need ``HighPrecisionTimestamp`` to land in this arm.
+    # `DateTime64` may surface `datetime` (low-precision) or
+    # `HighPrecisionTimestamp` (high-precision) values. We declare
+    # `datetime` as the variant-resolution type since it's the
+    # common case; high-precision callers can pin via `Variant.tag`
+    # if they need `HighPrecisionTimestamp` to land in this arm.
     python_type: type = datetime
 
     def __init__(
@@ -265,9 +265,9 @@ class DateTime64:
             self.name = f"DateTime64({precision}, '{timezone}')"
         else:
             self.name = f"DateTime64({precision})"
-        # ``high_precision`` defaults to True iff the codec carries
+        # `high_precision` defaults to True iff the codec carries
         # sub-microsecond resolution; flip it explicitly to opt out
-        # (forcing ``datetime`` returns at the cost of truncation).
+        # (forcing `datetime` returns at the cost of truncation).
         self.high_precision: bool = (
             (precision > _MICROSECOND_SCALE)
             if high_precision is None

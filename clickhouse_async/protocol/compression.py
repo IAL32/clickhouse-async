@@ -1,28 +1,28 @@
 """LZ4 / ZSTD per-block compressed framing.
 
-Wire layout, per upstream ``Compression/CompressedReadBuffer.cpp`` and
-``CompressedWriteBuffer.cpp``:
+Wire layout, per upstream `Compression/CompressedReadBuffer.cpp` and
+`CompressedWriteBuffer.cpp`:
 
 | Bytes  | Field                                                       |
 | ------ | ----------------------------------------------------------- |
 | 16     | CityHash128 over the rest of the frame                      |
-|  1     | method byte (``0x82`` LZ4, ``0x90`` ZSTD, ``0x02`` NONE)    |
-|  4     | ``compressed_size`` UInt32 LE — total framed bytes from the |
+|  1     | method byte (`0x82` LZ4, `0x90` ZSTD, `0x02` NONE)    |
+|  4     | `compressed_size` UInt32 LE — total framed bytes from the |
 |        | method byte onward (so 1 + 4 + 4 + len(compressed_payload)) |
-|  4     | ``decompressed_size`` UInt32 LE                             |
+|  4     | `decompressed_size` UInt32 LE                             |
 |  …     | compressed payload                                          |
 
 The CityHash128 is computed over the bytes starting at the method byte.
-The method byte ``NONE`` (``0x02``) is a passthrough — the payload is
+The method byte `NONE` (`0x02`) is a passthrough — the payload is
 the bytes verbatim, framed and checksummed but not compressed. Useful
 for blocks the server decides not to compress per-frame.
 
-**Optional dependencies.** The compression libraries (``lz4``,
-``zstandard``) and the ``clickhouse_cityhash`` binding are extras —
+**Optional dependencies.** The compression libraries (`lz4`,
+`zstandard`) and the `clickhouse_cityhash` binding are extras —
 the bare install must remain import-clean. Imports happen lazily, on
 first use of each codec or hash; importing this module on a bare
-install never raises. ``MissingExtraError`` surfaces with the exact
-``pip install clickhouse-async[<extra>]`` command if the matching
+install never raises. `MissingExtraError` surfaces with the exact
+`pip install clickhouse-async[<extra>]` command if the matching
 library isn't installed.
 """
 
@@ -53,8 +53,8 @@ _HEADER_BYTES = 1 + 4 + 4  # method + compressed_size + decompressed_size
 
 
 def _require(extra: str, module: str) -> ModuleType:
-    """Lazy-import ``module``, surfacing a documented
-    ``MissingExtraError`` if the matching extra wasn't installed."""
+    """Lazy-import `module`, surfacing a documented
+    `MissingExtraError` if the matching extra wasn't installed."""
     try:
         return importlib.import_module(module)
     except ImportError as exc:
@@ -67,14 +67,14 @@ def _require(extra: str, module: str) -> ModuleType:
 def _cityhash_128(
     data: bytes,
 ) -> bytes:  # pragma: no cover — requires clickhouse-cityhash extra
-    """CityHash128 over ``data``, packed as 16 LE bytes (low64 first,
-    matching upstream ``writeBinaryLittleEndian(checksum.low64);
-    writeBinaryLittleEndian(checksum.high64)``).
+    """CityHash128 over `data`, packed as 16 LE bytes (low64 first,
+    matching upstream `writeBinaryLittleEndian(checksum.low64);
+    writeBinaryLittleEndian(checksum.high64)`).
 
-    ``clickhouse_cityhash.CityHash128`` returns a 128-bit Python integer
-    as ``(low64 << 64) | high64`` — the opposite of what the name
+    `clickhouse_cityhash.CityHash128` returns a 128-bit Python integer
+    as `(low64 << 64) | high64` — the opposite of what the name
     suggests — so we extract the halves explicitly rather than using a
-    plain ``to_bytes`` on the whole value.
+    plain `to_bytes` on the whole value.
     """
     mod = _require("compression", "clickhouse_cityhash.cityhash")
     value = int(mod.CityHash128(data))
@@ -117,7 +117,7 @@ def _decompress(
 
 
 class CompressedBlockReader:
-    """Reads one compressed frame from an ``AsyncBinaryReader``,
+    """Reads one compressed frame from an `AsyncBinaryReader`,
     verifies the CityHash128 checksum, and returns the decompressed
     payload."""
 
@@ -168,9 +168,9 @@ class CompressedBlockReader:
 
 
 class CompressedBlockWriter:
-    """Writes one compressed frame to a ``BinaryWriter``: compresses the
+    """Writes one compressed frame to a `BinaryWriter`: compresses the
     payload, builds the header, computes the CityHash128, emits the
-    full framed bytes in one ``write_raw``."""
+    full framed bytes in one `write_raw`."""
 
     __slots__ = ("_method", "_writer")
 
@@ -196,13 +196,13 @@ class CompressedBlockWriter:
 
 
 class _MultiFrameReader(AsyncBinaryReader):
-    """Wraps a raw ``AsyncBinaryReader`` and reads compressed frames on
+    """Wraps a raw `AsyncBinaryReader` and reads compressed frames on
     demand, presenting the concatenated decompressed stream to the codec
     layer.
 
-    ClickHouse's ``CompressedWriteBuffer`` flushes at ~1 MB compressed,
+    ClickHouse's `CompressedWriteBuffer` flushes at ~1 MB compressed,
     so a block larger than ~1 MB raw spans multiple frames in the same
-    DATA packet. Reading only the first frame leaves ``read_block`` with
+    DATA packet. Reading only the first frame leaves `read_block` with
     partial data. This reader transparently fetches the next frame
     whenever the buffer runs dry.
     """
@@ -238,11 +238,11 @@ async def read_block_framed(
     raw otherwise. Used for the DATA / TOTALS / EXTREMES packet bodies
     on a connection that negotiated compression.
 
-    ``session_timezone`` flows through to the inner ``read_block`` so
-    bare ``DateTime`` codecs in the block's column specs honour the
+    `session_timezone` flows through to the inner `read_block` so
+    bare `DateTime` codecs in the block's column specs honour the
     Connection's session timezone fallback.
 
-    ``json_nested`` flows through to configure ``JSON`` codecs to
+    `json_nested` flows through to configure `JSON` codecs to
     return nested dicts on read.
     """
     if compression == CompressionMethod.NONE:
@@ -268,7 +268,7 @@ def write_block_framed(
     compression: CompressionMethod,
 ) -> None:
     """Write a Block — framed-and-compressed when compression is on,
-    raw otherwise. Counterpart to ``read_block_framed``."""
+    raw otherwise. Counterpart to `read_block_framed`."""
     if compression == CompressionMethod.NONE:
         write_block(writer, block, revision=revision)
         return

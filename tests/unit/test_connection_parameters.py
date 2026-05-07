@@ -1,6 +1,6 @@
-"""Server-side parameter binding for ``Connection.send_query``.
+"""Server-side parameter binding for `Connection.send_query`.
 
-Covers ``send_query(..., params=...)`` and the ``format_param``
+Covers `send_query(..., params=...)` and the `format_param`
 registry it uses to coerce typed Python values into the textual form
 ClickHouse expects.
 """
@@ -36,7 +36,7 @@ def _reader_over(data: bytes) -> AsyncBinaryReader:
 
 
 async def _drain_client_hello(rdr: AsyncBinaryReader) -> None:
-    """Walk past the bytes ``write_client_hello`` writes plus the
+    """Walk past the bytes `write_client_hello` writes plus the
     post-Hello addendum so subsequent reads land at the next packet."""
     assert await rdr.read_varuint() == ClientPacket.HELLO
     await rdr.read_string()  # client_name
@@ -147,12 +147,12 @@ def test_format_param_handles_special_floats() -> None:
 
 
 def test_format_param_none_emits_quoted_null_sentinel() -> None:
-    # BEGIN / WHEN: ``None`` rides the same quoting path as scalar values
-    #     but with the body fixed to ClickHouse's NULL sentinel ``\N``;
-    #     the server unquotes the wire bytes to ``\N`` and resolves it
-    #     to SQL NULL for any ``Nullable(T)`` placeholder. Bare ``\N``
+    # BEGIN / WHEN: `None` rides the same quoting path as scalar values
+    #     but with the body fixed to ClickHouse's NULL sentinel `\N`;
+    #     the server unquotes the wire bytes to `\N` and resolves it
+    #     to SQL NULL for any `Nullable(T)` placeholder. Bare `\N`
     #     without surrounding quotes is rejected by the Field-dump parser.
-    # THEN: the wire form is the 5-byte sequence ``'\\N'``
+    # THEN: the wire form is the 5-byte sequence `'\\N'`
     assert format_param(None) == r"'\\N'"
 
 
@@ -180,17 +180,17 @@ def test_format_param_rejects_unsupported_types() -> None:
         ([True, False], "'[true,false]'"),
         ([1.5, -2.0], f"'[{1.5!r},{-2.0!r}]'"),
         ([Decimal("3.14")], "'[3.14]'"),
-        # String elements get single-quoted; the outer ``_quote`` then
-        # escapes those single quotes — so each ``'`` lands on the wire
-        # as ``\'``.
+        # String elements get single-quoted; the outer `_quote` then
+        # escapes those single quotes — so each `'` lands on the wire
+        # as `\'`.
         (["a", "b"], r"'[\'a\',\'b\']'"),
         # An apostrophe inside a string gets escaped twice: once for the
-        # inner array-element quote (``\'``), and once more by the outer
-        # ``_quote`` pass (``\\\'``).
+        # inner array-element quote (`\'`), and once more by the outer
+        # `_quote` pass (`\\\'`).
         (["it's"], r"'[\'it\\\'s\']'"),
-        # ``None`` inside an array is the literal token ``NULL``, NOT the
-        # scalar ``\N`` sentinel — the array-text parser silently coerces
-        # ``\N`` to ``0`` / ``""`` instead of NULL.
+        # `None` inside an array is the literal token `NULL`, NOT the
+        # scalar `\N` sentinel — the array-text parser silently coerces
+        # `\N` to `0` / `""` instead of NULL.
         ([None, 1], "'[NULL,1]'"),
         ([1, None, 3], "'[1,NULL,3]'"),
         # Nested arrays fall out via the recursive _to_text dispatch.
@@ -338,15 +338,15 @@ async def test_send_query_emits_none_as_quoted_backslash_n_sentinel() -> None:
     transport = ScriptedTransport()
     conn = await _connect(transport)
 
-    # WHEN: sending a parametric query whose value is ``None`` for a
-    #       ``Nullable(String)`` placeholder
+    # WHEN: sending a parametric query whose value is `None` for a
+    #       `Nullable(String)` placeholder
     await conn.send_query(
         "SELECT {x:Nullable(String)}",
         params={"x": None},
     )
 
-    # THEN: the parameter reaches the wire as the 5-byte ``'\\N'``;
-    #       the server unquotes it to ``\N`` and resolves NULL
+    # THEN: the parameter reaches the wire as the 5-byte `'\\N'`;
+    #       the server unquotes it to `\N` and resolves NULL
     rdr = _reader_over(transport.written())
     await _drain_client_hello(rdr)
     await _drain_query_through_sql(rdr)
@@ -363,7 +363,7 @@ async def test_send_query_unsupported_param_type_raises_type_error() -> None:
     conn = await _connect(transport)
 
     # WHEN: passing a parameter of a type the registry doesn't cover
-    #       (a plain ``dict`` — Map(K,V) binding isn't wired up yet)
+    #       (a plain `dict` — Map(K,V) binding isn't wired up yet)
     # THEN: TypeError surfaces from format_param via send_query;
     #       nothing was written for this Query
     pre = len(transport.written())

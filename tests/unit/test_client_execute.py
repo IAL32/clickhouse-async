@@ -1,4 +1,4 @@
-"""Tests for ``Client.execute`` / ``fetch_all`` / ``fetch_one``."""
+"""Tests for `Client.execute` / `fetch_all` / `fetch_one`."""
 
 from __future__ import annotations
 
@@ -151,7 +151,7 @@ async def test_execute_accumulates_written_rows_across_progress_packets() -> Non
     # BEGIN: a SELECT response with three Progress packets carrying
     #        non-zero written_rows increments (3, 7, 5). ClickHouse
     #        emits Progress as deltas — the client must accumulate
-    #        for ``QueryResult.written_rows`` to mean "server-confirmed
+    #        for `QueryResult.written_rows` to mean "server-confirmed
     #        total", not "last increment".
     transport = ScriptedTransport()
     transport.feed(encode_server_hello())

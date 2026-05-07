@@ -1,12 +1,12 @@
 """Composite codecs that wrap or combine other codecs.
 
-- ``Nullable(T)`` — 1-byte-per-row null mask, then the inner body.
-- ``Array(T)``    — UInt64 cumulative-offsets row, then the inner body
+- `Nullable(T)` — 1-byte-per-row null mask, then the inner body.
+- `Array(T)`    — UInt64 cumulative-offsets row, then the inner body
                     holding the flattened values.
-- ``Tuple(T1, T2, …)`` — each component's full column body in order
+- `Tuple(T1, T2, …)` — each component's full column body in order
                     (n_rows of T1, then n_rows of T2, …).
-- ``Map(K, V)``   — same wire format as ``Array(Tuple(K, V))``.
-- ``LowCardinality(T)`` — dictionary-encoded column. See the codec's
+- `Map(K, V)`   — same wire format as `Array(Tuple(K, V))`.
+- `LowCardinality(T)` — dictionary-encoded column. See the codec's
                     docstring for the wire layout.
 """
 
@@ -25,17 +25,17 @@ if TYPE_CHECKING:
 
 class Nullable:
     """Wraps another codec, prefixing the column body with a 1-byte-per-row
-    null mask (``0`` = not null, ``1`` = null).
+    null mask (`0` = not null, `1` = null).
 
     The on-wire format requires the inner codec to write *every* row even
-    when the row is null, so on writes we substitute ``inner.null_value``
-    in place of ``None`` before delegating.
+    when the row is null, so on writes we substitute `inner.null_value`
+    in place of `None` before delegating.
     """
 
     null_value: None = None
-    # Forward the inner codec's ``python_type`` so ``Variant``
-    # resolution sees the wrapped concrete type — ``Nullable(Int64)``
-    # still matches ``int`` values (NULL is handled at the Variant
+    # Forward the inner codec's `python_type` so `Variant`
+    # resolution sees the wrapped concrete type — `Nullable(Int64)`
+    # still matches `int` values (NULL is handled at the Variant
     # discriminator layer, not by Nullable).
     python_type: type
 
@@ -63,12 +63,12 @@ class Nullable:
 
 
 class Array:
-    """``Array(T)`` — cumulative UInt64 offsets followed by the flattened
+    """`Array(T)` — cumulative UInt64 offsets followed by the flattened
     inner column.
 
-    The offsets row holds ``n_rows`` UInt64 values; offsets[i] is the
+    The offsets row holds `n_rows` UInt64 values; offsets[i] is the
     running total of array lengths from row 0 through row i (inclusive).
-    The inner body then holds ``offsets[-1]`` flat values to be sliced
+    The inner body then holds `offsets[-1]` flat values to be sliced
     back into per-row arrays.
     """
 
@@ -104,9 +104,9 @@ class Array:
         n = len(values)
         if n == 0:
             return
-        # Coerce row-level ``None`` to the empty array. Mirrors
-        # ``Nullable.write`` and matches the server's own coercion when a
-        # NULL is inserted into an ``Array(T)`` column at SQL level.
+        # Coerce row-level `None` to the empty array. Mirrors
+        # `Nullable.write` and matches the server's own coercion when a
+        # NULL is inserted into an `Array(T)` column at SQL level.
         rows: list[Sequence[Any]] = [
             self.null_value if v is None else v for v in values
         ]
@@ -123,19 +123,19 @@ class Array:
 
 
 class Tuple:
-    """``Tuple(T1, T2, …)`` — each component's full column body in order.
+    """`Tuple(T1, T2, …)` — each component's full column body in order.
 
     The wire layout is *not* row-major; each component contributes its
-    ``n_rows``-long body sequentially. We read each component's column,
-    then ``zip`` them into Python tuples.
+    `n_rows`-long body sequentially. We read each component's column,
+    then `zip` them into Python tuples.
 
-    ClickHouse also supports a *named* form, ``Tuple(id Int32, name
-    String)``. Names live only in the type-spec string carried by the
+    ClickHouse also supports a *named* form, `Tuple(id Int32, name
+    String)`. Names live only in the type-spec string carried by the
     block header, never in the column body — wire-format-wise the
-    named and unnamed forms are identical. Pass ``names=...`` to
+    named and unnamed forms are identical. Pass `names=...` to
     construct a named tuple; a future Client could surface those names
-    as a ``NamedTuple`` row representation, but for now ``read()``
-    still yields plain ``tuple`` values.
+    as a `NamedTuple` row representation, but for now `read()`
+    still yields plain `tuple` values.
     """
 
     null_value: tuple[Any, ...]
@@ -167,7 +167,7 @@ class Tuple:
 
     @property
     def named(self) -> bool:
-        """``True`` iff this Tuple was constructed with field names."""
+        """`True` iff this Tuple was constructed with field names."""
         return self.names is not None
 
     async def read(
@@ -189,8 +189,8 @@ class Tuple:
         n = len(values)
         if n == 0:
             return
-        # Coerce row-level ``None`` to a tuple of inner null_values, the
-        # same substitution ``Nullable.write`` applies one layer down.
+        # Coerce row-level `None` to a tuple of inner null_values, the
+        # same substitution `Nullable.write` applies one layer down.
         rows: list[Sequence[Any]] = [
             self.null_value if v is None else v for v in values
         ]
@@ -199,20 +199,20 @@ class Tuple:
 
 
 class Nested:
-    """``Nested(name1 T1, name2 T2, …)`` — sugar for ``Array(Tuple(name1
-    T1, name2 T2, …))``.
+    """`Nested(name1 T1, name2 T2, …)` — sugar for `Array(Tuple(name1
+    T1, name2 T2, …))`.
 
-    Wire format is identical to ``Array(Tuple(...))`` so this class is
-    a thin wrapper that delegates ``read`` / ``write`` /
-    ``null_value`` to an inner ``Array(Tuple(*components, names=...))``
-    and overrides ``name`` to render the ``Nested(...)`` spelling. The
-    parser produces this class for the ``Nested(...)`` form and a plain
-    ``Array(Tuple(...))`` for the desugared form — both decode the same
+    Wire format is identical to `Array(Tuple(...))` so this class is
+    a thin wrapper that delegates `read` / `write` /
+    `null_value` to an inner `Array(Tuple(*components, names=...))`
+    and overrides `name` to render the `Nested(...)` spelling. The
+    parser produces this class for the `Nested(...)` form and a plain
+    `Array(Tuple(...))` for the desugared form — both decode the same
     bytes; only the type-spec rendering differs.
 
-    Names are mandatory in the ``Nested`` spelling — ClickHouse
-    rejects ``Nested(T1, T2)`` server-side. The parser surfaces the
-    same constraint via ``_make_named_tuple``'s "all named" rule.
+    Names are mandatory in the `Nested` spelling — ClickHouse
+    rejects `Nested(T1, T2)` server-side. The parser surfaces the
+    same constraint via `_make_named_tuple`'s "all named" rule.
     """
 
     null_value: list[tuple[Any, ...]]
@@ -246,9 +246,9 @@ class Nested:
 
 
 class Map:
-    """``Map(K, V)`` — same wire format as ``Array(Tuple(K, V))``.
+    """`Map(K, V)` — same wire format as `Array(Tuple(K, V))`.
 
-    The Python representation is a ``dict[K, V]`` per row. Repeated keys
+    The Python representation is a `dict[K, V]` per row. Repeated keys
     in the on-wire payload are not preserved by the dict conversion;
     ClickHouse Map columns aren't supposed to contain duplicate keys.
     """
@@ -273,53 +273,53 @@ class Map:
     def write(
         self, writer: BinaryWriter, values: Sequence[dict[Any, Any] | None]
     ) -> None:
-        # Coerce row-level ``None`` to the empty map, matching the
-        # composite-codec convention shared with ``Array`` / ``Tuple``.
+        # Coerce row-level `None` to the empty map, matching the
+        # composite-codec convention shared with `Array` / `Tuple`.
         rows = [list((self.null_value if d is None else d).items()) for d in values]
         self._inner.write(writer, rows)
 
 
 class LowCardinality:
-    """``LowCardinality(T)`` — dictionary-encoded column.
+    """`LowCardinality(T)` — dictionary-encoded column.
 
-    Wire layout (per upstream ``SerializationLowCardinality``):
+    Wire layout (per upstream `SerializationLowCardinality`):
 
-    1. ``UInt64`` key version. Currently always ``1``
-       (``SharedDictionariesWithAdditionalKeys``) — the only key
+    1. `UInt64` key version. Currently always `1`
+       (`SharedDictionariesWithAdditionalKeys`) — the only key
        version ClickHouse currently accepts.
-    2. ``UInt64`` serialization-type bitfield. Low byte is the index
-       width tag (``0``=UInt8, ``1``=UInt16, ``2``=UInt32, ``3``=UInt64);
-       bits ``0x600`` are ``HasAdditionalKeysBit | NeedUpdateDictionary``
+    2. `UInt64` serialization-type bitfield. Low byte is the index
+       width tag (`0`=UInt8, `1`=UInt16, `2`=UInt32, `3`=UInt64);
+       bits `0x600` are `HasAdditionalKeysBit | NeedUpdateDictionary`
        which we always set on writes.
-    3. ``UInt64`` dictionary size.
-    4. Dictionary body — ``dict_size`` rows.
-    5. ``UInt64`` indices count (must equal ``n_rows``).
-    6. Indices body — ``n_rows`` little-endian unsigned ints at the
+    3. `UInt64` dictionary size.
+    4. Dictionary body — `dict_size` rows.
+    5. `UInt64` indices count (must equal `n_rows`).
+    6. Indices body — `n_rows` little-endian unsigned ints at the
        declared width.
 
-    ``LowCardinality(Nullable(T))`` reuses the same wire skeleton with
+    `LowCardinality(Nullable(T))` reuses the same wire skeleton with
     a single twist: dictionary index 0 is **reserved for null** and the
-    dictionary body is encoded at the *unwrapped* ``T`` (not at
-    ``Nullable(T)``). Indices in the data stream point at 0 for null
-    rows and 1+ for the corresponding ``T`` value. The dictionary block
+    dictionary body is encoded at the *unwrapped* `T` (not at
+    `Nullable(T)`). Indices in the data stream point at 0 for null
+    rows and 1+ for the corresponding `T` value. The dictionary block
     therefore prepends a placeholder (the unwrapped codec's
-    ``null_value``) at slot 0; that slot is never referenced by
+    `null_value`) at slot 0; that slot is never referenced by
     non-null rows, so the placeholder's exact byte representation is
     irrelevant — only its presence matters for offset accounting.
     """
 
     null_value: Any
-    # Forward the inner codec's ``python_type`` so ``Variant``
+    # Forward the inner codec's `python_type` so `Variant`
     # resolution sees through the dictionary encoding.
     python_type: type
 
-    # Per upstream ``KeysSerializationVersion``, ``1`` =
-    # ``SharedDictionariesWithAdditionalKeys`` — the only version
+    # Per upstream `KeysSerializationVersion`, `1` =
+    # `SharedDictionariesWithAdditionalKeys` — the only version
     # ClickHouse currently accepts.
     _VERSION = 1
-    # Bit 9 (``HasAdditionalKeysBit``, 0x200) + bit 10
-    # (``NeedUpdateDictionary``, 0x400). These bit positions come
-    # from upstream ``IndexesSerializationType``: bit 8 is the
+    # Bit 9 (`HasAdditionalKeysBit`, 0x200) + bit 10
+    # (`NeedUpdateDictionary`, 0x400). These bit positions come
+    # from upstream `IndexesSerializationType`: bit 8 is the
     # global-dict flag (server-only), bit 9 is HasAdditionalKeys,
     # bit 10 is NeedUpdateDictionary. The low byte is the index-width
     # tag and gets OR'd in per write.
@@ -329,12 +329,12 @@ class LowCardinality:
         self.inner = inner
         # Detect Nullable inner so the read/write paths can switch to
         # the null-at-index-0 layout. Flag is load-bearing for both
-        # branches; we never inspect ``isinstance(inner, Nullable)``
+        # branches; we never inspect `isinstance(inner, Nullable)`
         # again past construction.
         self._inner_is_nullable: bool = isinstance(inner, Nullable)
         self.name = f"LowCardinality({inner.name})"
         # When the inner is Nullable, the column's null sentinel is the
-        # Python ``None`` (matches the wire's index-0 mapping). Otherwise
+        # Python `None` (matches the wire's index-0 mapping). Otherwise
         # we surface the inner type's own null_value so callers that
         # default-fill a column see something type-correct.
         self.null_value = None if self._inner_is_nullable else inner.null_value
@@ -342,8 +342,8 @@ class LowCardinality:
 
     @staticmethod
     def _index_tag_for_size(dict_size: int) -> tuple[int, int]:
-        """Return ``(tag, byte_width)`` for the smallest unsigned int that
-        can index ``dict_size`` entries."""
+        """Return `(tag, byte_width)` for the smallest unsigned int that
+        can index `dict_size` entries."""
         if dict_size <= 2**8:
             return 0, 1
         if dict_size <= 2**16:
@@ -359,8 +359,8 @@ class LowCardinality:
     def _dictionary_codec(self) -> ColumnCodec:
         """Codec used for the dictionary body on the wire.
 
-        For ``LowCardinality(Nullable(T))`` the dictionary stores the
-        unwrapped ``T`` — the null mapping is implicit at index 0 and
+        For `LowCardinality(Nullable(T))` the dictionary stores the
+        unwrapped `T` — the null mapping is implicit at index 0 and
         not encoded in the body itself.
         """
         if self._inner_is_nullable:
@@ -428,13 +428,13 @@ class LowCardinality:
         writer.write_raw(bytes(idx_buf))
 
     def _build_dictionary(self, values: Sequence[Any]) -> tuple[list[Any], list[int]]:
-        """Deduplicate ``values`` in first-seen order and return
-        ``(dictionary, per_row_indices)`` for the wire encoding.
+        """Deduplicate `values` in first-seen order and return
+        `(dictionary, per_row_indices)` for the wire encoding.
 
-        For ``LowCardinality(Nullable(T))``, dictionary slot 0 is
-        reserved for null: ``None`` rows map to index 0, non-null
-        values dedupe into ``[1, 1+k)``. The slot-0 placeholder is the
-        unwrapped codec's ``null_value`` — it travels through the
+        For `LowCardinality(Nullable(T))`, dictionary slot 0 is
+        reserved for null: `None` rows map to index 0, non-null
+        values dedupe into `[1, 1+k)`. The slot-0 placeholder is the
+        unwrapped codec's `null_value` — it travels through the
         wire to keep offsets aligned but is never indexed by a non-null
         row.
         """

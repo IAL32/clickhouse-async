@@ -1,11 +1,11 @@
-"""Codecs for ``Enum8`` and ``Enum16``.
+"""Codecs for `Enum8` and `Enum16`.
 
-On-wire identical to signed ``Int8`` / ``Int16``; the codec layer maps the
-underlying integers to their named labels (``str``) on the Python side.
+On-wire identical to signed `Int8` / `Int16`; the codec layer maps the
+underlying integers to their named labels (`str`) on the Python side.
 
-The block-header spec uses the form ``Enum8('first' = 1, 'second' = 2)``,
-which the parser recognises specially since the ``=`` separator is unique
-to enum bodies — there is no general ``key = value`` param syntax.
+The block-header spec uses the form `Enum8('first' = 1, 'second' = 2)`,
+which the parser recognises specially since the `=` separator is unique
+to enum bodies — there is no general `key = value` param syntax.
 """
 
 from __future__ import annotations

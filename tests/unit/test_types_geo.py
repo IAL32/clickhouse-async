@@ -1,14 +1,14 @@
-"""Round-trip tests for ``Point``, ``Ring``, ``Polygon``, ``MultiPolygon``.
+"""Round-trip tests for `Point`, `Ring`, `Polygon`, `MultiPolygon`.
 
-These are pure aliases over ``Tuple(Float64, Float64)`` and nested
-``Array(...)`` shapes, so the wire bytes match the desugared form
+These are pure aliases over `Tuple(Float64, Float64)` and nested
+`Array(...)` shapes, so the wire bytes match the desugared form
 verbatim. The tests cover three things:
 
-- Each alias parses and ``codec.name`` round-trips the alias spelling.
+- Each alias parses and `codec.name` round-trips the alias spelling.
 - Empty + non-empty values round-trip cleanly.
-- Bytes from a ``Point`` codec match bytes from a hand-built
-  ``Tuple(Float64, Float64)`` codec for the same value (pinning the
-  desugaring so a future ``Point`` change can't silently desync).
+- Bytes from a `Point` codec match bytes from a hand-built
+  `Tuple(Float64, Float64)` codec for the same value (pinning the
+  desugaring so a future `Point` change can't silently desync).
 """
 
 from __future__ import annotations
@@ -46,7 +46,7 @@ async def _round_trip(codec: ColumnCodec, values: Sequence[Any]) -> list[Any]:
 
 def test_geo_aliases_parse_and_render_their_alias_form() -> None:
     # BEGIN / WHEN / THEN: each alias parses to its own class and
-    #     ``.name`` round-trips the alias spelling — not the
+    #     `.name` round-trips the alias spelling — not the
     #     desugared form
     point = parse_type("Point")
     assert isinstance(point, Point)
@@ -148,7 +148,7 @@ async def test_multipolygon_round_trip_two_polygons() -> None:
 
 
 async def test_point_bytes_match_handbuilt_tuple_float64() -> None:
-    # BEGIN: a Point codec and a hand-built ``Tuple(Float64, Float64)``
+    # BEGIN: a Point codec and a hand-built `Tuple(Float64, Float64)`
     point = Point()
     handbuilt = Tuple(Float64(), Float64())
     values: list[tuple[float, float]] = [

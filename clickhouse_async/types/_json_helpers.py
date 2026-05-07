@@ -13,7 +13,7 @@ from typing import Any
 def _nest(flat: dict[str, Any]) -> dict[str, Any]:
     """Reconstruct a nested dict from dotted-path keys.
 
-    ``{"user.id": 7, "user.name": "alice"}`` → ``{"user": {"id": 7, "name": "alice"}}``.
+    `{"user.id": 7, "user.name": "alice"}` → `{"user": {"id": 7, "name": "alice"}}`.
     Keys with no dot pass through unchanged.
     """
     out: dict[str, Any] = {}
@@ -29,8 +29,8 @@ def _nest(flat: dict[str, Any]) -> dict[str, Any]:
 def _flatten(d: dict[str, Any], prefix: str = "") -> dict[str, Any]:
     """Flatten a nested dict to dotted-path keys.
 
-    ``{"user": {"id": 7}}`` → ``{"user.id": 7}``. Already-flat dicts
-    (no values that are ``dict``) pass through unchanged — calling this
+    `{"user": {"id": 7}}` → `{"user.id": 7}`. Already-flat dicts
+    (no values that are `dict`) pass through unchanged — calling this
     on a flat dict is a no-op.
     """
     out: dict[str, Any] = {}

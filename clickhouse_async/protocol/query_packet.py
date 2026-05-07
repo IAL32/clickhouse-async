@@ -1,23 +1,23 @@
-"""Query packet writer and the ``ClientInfo`` block it embeds.
+"""Query packet writer and the `ClientInfo` block it embeds.
 
-Wire layout (from upstream ``Client/Connection.cpp::sendQuery`` and
-mirrored in ``.plans/06-connection.md``):
+Wire layout (from upstream `Client/Connection.cpp::sendQuery` and
+mirrored in `.plans/06-connection.md`):
 
-1. varuint ``ClientPacket.QUERY``
-2. string ``query_id``
-3. (revision ≥ ``DBMS_MIN_REVISION_WITH_CLIENT_INFO``) ``ClientInfo`` block
-4. settings — ``[name, flags-varuint, value]*`` then empty-name terminator
-5. (revision ≥ ``DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET``) interserver
-   secret string — empty for ``InitialQuery`` (which we always are in v0)
-6. varuint query stage = ``Complete`` (2)
+1. varuint `ClientPacket.QUERY`
+2. string `query_id`
+3. (revision ≥ `DBMS_MIN_REVISION_WITH_CLIENT_INFO`) `ClientInfo` block
+4. settings — `[name, flags-varuint, value]*` then empty-name terminator
+5. (revision ≥ `DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET`) interserver
+   secret string — empty for `InitialQuery` (which we always are in v0)
+6. varuint query stage = `Complete` (2)
 7. varuint compression flag (0 or 1)
 8. string SQL
-9. (revision ≥ ``DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS``) parameters —
+9. (revision ≥ `DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS`) parameters —
    same shape as settings, with terminator
-10. trailing empty Data packet — ``Client.Data`` + empty external-table
+10. trailing empty Data packet — `Client.Data` + empty external-table
     name + empty block
 
-``write_query_packet`` accepts settings, parameters, and a compression
+`write_query_packet` accepts settings, parameters, and a compression
 flag; each is gated on the matching protocol revision and emitted in
 the documented order.
 """
@@ -59,7 +59,7 @@ if TYPE_CHECKING:
 
 
 class QueryStage(IntEnum):
-    """Stages a query is processed up to. v0 always sends ``COMPLETE``."""
+    """Stages a query is processed up to. v0 always sends `COMPLETE`."""
 
     FETCH_COLUMNS = 0
     WITH_MERGEABLE_STATE = 1
@@ -94,8 +94,8 @@ def _write_client_info(
     query_id: str,
     user: str,
 ) -> None:
-    """Append the ``ClientInfo`` block (caller has already gated on
-    ``revision >= DBMS_MIN_REVISION_WITH_CLIENT_INFO``)."""
+    """Append the `ClientInfo` block (caller has already gated on
+    `revision >= DBMS_MIN_REVISION_WITH_CLIENT_INFO`)."""
 
     writer.write_byte(_QueryKind.INITIAL_QUERY)
     # initial_user / initial_query_id / initial_address
@@ -161,7 +161,7 @@ def write_query_packet(
 
     Settings and parameters values are strings on the wire — type
     coercion happens at the call site. The trailing empty Data block is
-    framed with the same ``compression`` method as the rest of the
+    framed with the same `compression` method as the rest of the
     connection — the server expects all client-to-server blocks to be
     compressed whenever compression is negotiated.
     """

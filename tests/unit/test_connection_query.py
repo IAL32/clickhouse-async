@@ -1,4 +1,4 @@
-"""Tests for ``Connection.send_query`` + ``iter_packets``."""
+"""Tests for `Connection.send_query` + `iter_packets`."""
 
 from __future__ import annotations
 
@@ -47,7 +47,7 @@ async def _connect(transport: ScriptedTransport) -> Connection:
 
 
 async def _drain_client_hello(rdr: AsyncBinaryReader) -> None:
-    """Walk past the bytes ``write_client_hello`` writes plus the
+    """Walk past the bytes `write_client_hello` writes plus the
     post-Hello addendum so subsequent reads land at the next packet."""
     assert await rdr.read_varuint() == ClientPacket.HELLO
     await rdr.read_string()  # client name

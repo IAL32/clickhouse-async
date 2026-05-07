@@ -20,18 +20,18 @@ codec/module that carries the limitation so a grep finds the on-ramp.
 ### Type system (`clickhouse_async/types/`)
 
 - **`AggregateFunction(...)` only round-trips a small allow-list of
-  known aggregates.** v0.2 ships per-row state readers for ``avg``
-  and ``count``; everything else parses but raises
-  ``NotImplementedError`` on read/write. Adding a function is a
-  one-line registration in ``types/aggregate.py::_READERS``.
+  known aggregates.** v0.2 ships per-row state readers for `avg`
+  and `count`; everything else parses but raises
+  `NotImplementedError` on read/write. Adding a function is a
+  one-line registration in `types/aggregate.py::_READERS`.
 
 - **`JSON` shared-data substream on write.** Reads decode the
-  ``Array(Tuple(String, String))`` shared-data substream and merge
+  `Array(Tuple(String, String))` shared-data substream and merge
   values into the per-row dict, but writes always emit an empty
-  substream — paths that spill past ``max_dynamic_paths`` are silently
+  substream — paths that spill past `max_dynamic_paths` are silently
   dropped. Wire it up so the per-row dict picks up shared paths on
   write.
-  *Code:* ``types/json_type.py``.
+  *Code:* `types/json_type.py`.
 
 ### Protocol primitives
 

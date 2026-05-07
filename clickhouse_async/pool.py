@@ -1,4 +1,4 @@
-"""Bounded async connection pool around ``Client``.
+"""Bounded async connection pool around `Client`.
 
 Ergonomics modeled on asyncpg's:
 
@@ -7,12 +7,12 @@ Ergonomics modeled on asyncpg's:
         async with pool.acquire() as client:
             rows = await client.fetch_all("SELECT 1")
 
-The pool is lazy — connections are opened on first ``acquire()``, never
-at ``create_pool`` time — bounded by ``max_size``, and dispenses
-connections in FIFO order to waiters. ``acquire_timeout`` caps how long
-``acquire()`` will wait when every connection is in use.
+The pool is lazy — connections are opened on first `acquire()`, never
+at `create_pool` time — bounded by `max_size`, and dispenses
+connections in FIFO order to waiters. `acquire_timeout` caps how long
+`acquire()` will wait when every connection is in use.
 
-What the pool deliberately does **not** do (per ``DESIGN.md`` §5):
+What the pool deliberately does **not** do (per `DESIGN.md` §5):
 
 - Automatic query retry — INSERTs are not idempotent, SELECTs may be
   expensive; silently re-running them is a footgun. Connection-level
@@ -57,7 +57,7 @@ _logger = logging.getLogger(__name__)
 @dataclass
 class _PoolEntry:
     """A pooled client plus the metadata the pool uses for health
-    checks (``last_returned_at``) and lifetime caps (``opened_at``)."""
+    checks (`last_returned_at`) and lifetime caps (`opened_at`)."""
 
     client: Client
     opened_at: float
@@ -65,7 +65,7 @@ class _PoolEntry:
 
 
 class Pool:
-    """Lazy-fill, bounded async pool of ``Client`` instances."""
+    """Lazy-fill, bounded async pool of `Client` instances."""
 
     def __init__(
         self,
@@ -110,7 +110,7 @@ class Pool:
             raise ValueError(
                 f"host_failover_cooldown must be ≥ 0, got {host_failover_cooldown}"
             )
-        # ``min_size`` only gets actively warmed by the background reaper —
+        # `min_size` only gets actively warmed by the background reaper —
         # without one nothing opens connections proactively. Refusing the
         # contradiction here is friendlier than silently leaving the
         # parameter unenforced.
@@ -183,7 +183,7 @@ class Pool:
     # ---- acquire / release ----------------------------------------------
 
     def acquire(self) -> _PoolAcquireContext:
-        """Borrow a ``Client`` for the duration of the ``async with``.
+        """Borrow a `Client` for the duration of the `async with`.
 
         On exit the client returns to the pool, or is closed if the
         pool itself was closed in the meantime or if the connection is
@@ -249,7 +249,7 @@ class Pool:
     async def _verify_or_discard(self, entry: _PoolEntry) -> Client | None:
         """Return the underlying client if the entry passes the health
         check (and isn't past its lifetime cap). Otherwise close it,
-        decrement size, and return ``None`` so the caller loops back
+        decrement size, and return `None` so the caller loops back
         to acquire again."""
         now = time.monotonic()
 
@@ -318,16 +318,16 @@ class Pool:
             self._cond.notify()
 
     def _opened_at_for(self, client: Client) -> float:
-        """Read the per-client ``_pool_opened_at`` annotation that
-        ``_open_client`` stamps on freshly-minted clients. Falls back
-        to ``now`` for clients we somehow didn't stamp (defensive)."""
+        """Read the per-client `_pool_opened_at` annotation that
+        `_open_client` stamps on freshly-minted clients. Falls back
+        to `now` for clients we somehow didn't stamp (defensive)."""
         return getattr(client, "_pool_opened_at", time.monotonic())
 
     async def _open_client(self) -> Client:
         # Pull a freshly-rotated, cooldown-filtered candidate list from
         # the rotation; hand it to the Client (and onward to its
         # Connection) by overriding the DSN's hosts for this open. The
-        # ``on_host_attempt`` callback feeds per-host outcomes back into
+        # `on_host_attempt` callback feeds per-host outcomes back into
         # the rotation so dead replicas earn a cooldown.
         candidates = self._rotation.next_candidates()
         per_open_dsn = dataclasses.replace(self._dsn, hosts=candidates)
@@ -359,12 +359,12 @@ class Pool:
     # ---- reaper ---------------------------------------------------------
 
     def _start_reaper(self) -> None:
-        """Spawn the idle reaper task on first ``acquire()``. Idempotent.
+        """Spawn the idle reaper task on first `acquire()`. Idempotent.
 
         Runs only when the pool has actually been used so an idle
-        ``create_pool`` doesn't burn an event-loop task. A no-op if
-        ``enable_reaper=False`` was passed at construction.
-        ``close()`` cancels and awaits the task before returning.
+        `create_pool` doesn't burn an event-loop task. A no-op if
+        `enable_reaper=False` was passed at construction.
+        `close()` cancels and awaits the task before returning.
         """
         if self._reaper_task is not None or self._closed or not self._enable_reaper:
             return
@@ -373,8 +373,8 @@ class Pool:
         )
 
     async def _reaper_loop(self) -> None:
-        """Periodic reaper: closes connections idle past ``max_idle_time``
-        while keeping the population at or above ``min_size``.
+        """Periodic reaper: closes connections idle past `max_idle_time`
+        while keeping the population at or above `min_size`.
 
         Errors during a pass are logged, never raised — the reaper is
         best-effort and shouldn't take the pool down for a transient
@@ -405,8 +405,8 @@ class Pool:
             _logger.debug("pool reaper task finished")
 
     async def _reaper_pass(self) -> None:
-        """One sweep: drop stale free entries above ``min_size``, then
-        warm to ``min_size`` if the pool has fewer connections."""
+        """One sweep: drop stale free entries above `min_size`, then
+        warm to `min_size` if the pool has fewer connections."""
         if (
             self._closed
         ):  # pragma: no cover — reaper exits via loop-close or cancel, not this guard
@@ -522,8 +522,8 @@ class Pool:
         settings: Mapping[str, str] | None = None,
         query_id: str = "",
     ) -> QueryResult:
-        """Acquire, run ``sql``, release. Returns the full
-        ``QueryResult``."""
+        """Acquire, run `sql`, release. Returns the full
+        `QueryResult`."""
         async with self.acquire() as client:
             return await client.execute(
                 sql, params=params, settings=settings, query_id=query_id
@@ -537,7 +537,7 @@ class Pool:
         settings: Mapping[str, str] | None = None,
         query_id: str = "",
     ) -> list[tuple[object, ...]]:
-        """Acquire, run ``sql``, release. Returns just the rows."""
+        """Acquire, run `sql`, release. Returns just the rows."""
         async with self.acquire() as client:
             return await client.fetch_all(
                 sql, params=params, settings=settings, query_id=query_id
@@ -551,26 +551,26 @@ class Pool:
         settings: Mapping[str, str] | None = None,
         query_id: str = "",
     ) -> tuple[object, ...] | None:
-        """Acquire, run ``sql``, release. Returns the first row or
-        ``None`` for an empty result."""
+        """Acquire, run `sql`, release. Returns the first row or
+        `None` for an empty result."""
         async with self.acquire() as client:
             return await client.fetch_one(
                 sql, params=params, settings=settings, query_id=query_id
             )
 
     async def kill_query(self, query_id: str, *, sync: bool = True) -> int:
-        """Cancel a running query identified by ``query_id`` from a
+        """Cancel a running query identified by `query_id` from a
         side-channel connection borrowed from this pool.
 
-        Equivalent to ``async with pool.acquire() as c:
-        await c.kill_query(query_id, sync=sync)`` — pulled out so the
+        Equivalent to `async with pool.acquire() as c:
+        await c.kill_query(query_id, sync=sync)` — pulled out so the
         common case of "I have a query_id, please kill it" doesn't
-        need its own ``async with`` block at the call site.
+        need its own `async with` block at the call site.
 
         Returns the number of queries the server confirmed it
-        targeted (each row in the ``KILL QUERY`` result corresponds
+        targeted (each row in the `KILL QUERY` result corresponds
         to one targeted query). Permissions and sync semantics match
-        ``Client.kill_query``; see that docstring for the details.
+        `Client.kill_query`; see that docstring for the details.
         """
         async with self.acquire() as client:
             return await client.kill_query(query_id, sync=sync)
@@ -583,7 +583,7 @@ class Pool:
         settings: Mapping[str, str] | None = None,
         query_id: str = "",
     ) -> ColumnarResult:
-        """Acquire, run ``sql`` in column-major mode, release."""
+        """Acquire, run `sql` in column-major mode, release."""
         async with self.acquire() as client:
             return await client.fetch_columns(
                 sql, params=params, settings=settings, query_id=query_id
@@ -597,7 +597,7 @@ class Pool:
         settings: Mapping[str, str] | None = None,
         query_id: str = "",
     ) -> AsyncGenerator[ColumnarBlock, None]:
-        """Acquire a client, stream ``ColumnarBlock`` values, release on exhaustion or close."""
+        """Acquire a client, stream `ColumnarBlock` values, release on exhaustion or close."""
         async with self.acquire() as client:
             async for block in client.iter_column_blocks(
                 sql, params=params, settings=settings, query_id=query_id
@@ -606,9 +606,9 @@ class Pool:
 
 
 class _PoolAcquireContext:
-    """Async context manager returned by ``Pool.acquire()``. Wrapping
-    is in its own class so ``async with pool.acquire() as client`` is
-    the natural shape, regardless of whether ``acquire()`` is
+    """Async context manager returned by `Pool.acquire()`. Wrapping
+    is in its own class so `async with pool.acquire() as client` is
+    the natural shape, regardless of whether `acquire()` is
     implemented as async or sync."""
 
     __slots__ = ("_client", "_pool")
@@ -652,34 +652,34 @@ def create_pool(
     compression: CompressionMethod | None = None,
     connect_timeout: float | None = None,
 ) -> Pool:
-    """Build an unopened pool. Connections open on first ``acquire()``.
+    """Build an unopened pool. Connections open on first `acquire()`.
 
-    - ``max_lifetime``: connections older than this (seconds) are
+    - `max_lifetime`: connections older than this (seconds) are
       recycled on release. Defends against server-side session
       timeouts and DNS rotation.
-    - ``max_idle_time``: idle connections sitting in the free deque
+    - `max_idle_time`: idle connections sitting in the free deque
       longer than this are closed by the background reaper, provided
-      ``size > min_size``. Defaults to 5 minutes.
-    - ``idle_check_interval``: how often (seconds) the reaper sweeps
+      `size > min_size`. Defaults to 5 minutes.
+    - `idle_check_interval`: how often (seconds) the reaper sweeps
       the free deque. Default 30 s.
-    - ``enable_reaper``: when ``False``, the background idle reaper
-      task is never started — ``max_idle_time`` and the ``min_size``
+    - `enable_reaper`: when `False`, the background idle reaper
+      task is never started — `max_idle_time` and the `min_size`
       warm aspect become no-ops. Useful in test harnesses or
       short-lived scripts where the per-acquire health check
-      (``health_check_after``) and per-release lifetime cap
-      (``max_lifetime``) are sufficient. Default ``True``.
-    - ``health_check_after``: idle connections older than this are
+      (`health_check_after`) and per-release lifetime cap
+      (`max_lifetime`) are sufficient. Default `True`.
+    - `health_check_after`: idle connections older than this are
       pinged on the way out of the pool; failed pings → discard +
       open fresh.
-    - ``host_failover_cooldown``: for multi-host DSNs, how long
+    - `host_failover_cooldown`: for multi-host DSNs, how long
       (seconds) to skip a host that just failed before considering it
       again. Best-effort: if every host is in cooldown the rotation
       retries them all.
-    - ``connect_timeout``: seconds each per-host TCP connect + Hello
-      handshake may take before the host is treated as failed. ``None``
+    - `connect_timeout`: seconds each per-host TCP connect + Hello
+      handshake may take before the host is treated as failed. `None`
       (the default) means no limit.
 
-    ``transport_factory`` is a test-only injection point for the
+    `transport_factory` is a test-only injection point for the
     underlying socket pair; production callers should leave it unset.
     """
     return Pool(

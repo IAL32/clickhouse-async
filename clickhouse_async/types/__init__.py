@@ -1,12 +1,12 @@
 """ClickHouse type system: parses type spec strings into column codecs.
 
 The block header carries each column's type as a string (e.g.
-``Array(Nullable(String))``). ``parse_type`` is the registry entry point
+`Array(Nullable(String))`). `parse_type` is the registry entry point
 that turns one of those strings into a codec ready to read or write a
 column body.
 
-The parser and registry live in ``types/_parser.py`` so that
-``variant.py`` and ``json_type.py`` can import ``parse_type`` at the
+The parser and registry live in `types/_parser.py` so that
+`variant.py` and `json_type.py` can import `parse_type` at the
 top level without forming an import cycle.
 """
 

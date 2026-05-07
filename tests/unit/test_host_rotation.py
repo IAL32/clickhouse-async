@@ -1,4 +1,4 @@
-"""Tests for ``_HostRotation`` — the round-robin + cooldown helper the
+"""Tests for `_HostRotation` — the round-robin + cooldown helper the
 pool uses to spread acquires across the candidate hosts of a multi-host
 DSN."""
 
@@ -79,10 +79,10 @@ def test_recent_failure_skips_host_within_cooldown_window() -> None:
     hosts = [("a", 9000), ("b", 9000)]
     rot = _HostRotation(hosts, cooldown=60.0)
 
-    # WHEN: host ``a`` is recorded as just-failed
+    # WHEN: host `a` is recorded as just-failed
     rot.record_failure(("a", 9000))
 
-    # THEN: the next rotation drops ``a`` and yields only ``b``
+    # THEN: the next rotation drops `a` and yields only `b`
     assert rot.next_candidates() == (("b", 9000),)
     # and again — still in cooldown
     assert rot.next_candidates() == (("b", 9000),)
@@ -159,7 +159,7 @@ def test_negative_cooldown_rejected() -> None:
 def test_low_monotonic_clock_does_not_cool_down_unfailed_hosts(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # BEGIN: a freshly-booted runner where ``time.monotonic()`` is
+    # BEGIN: a freshly-booted runner where `time.monotonic()` is
     #        still smaller than the cooldown window. The rotation
     #        must not treat unfailed hosts as "in cooldown" just
     #        because (now - 0.0) is less than the cooldown — the

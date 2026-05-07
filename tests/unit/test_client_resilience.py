@@ -1,9 +1,9 @@
-"""Tests for ``Client`` resilience under connection-death scenarios.
+"""Tests for `Client` resilience under connection-death scenarios.
 
 Connections die for many reasons beyond the server sending a clean
-``Exception`` packet.  These tests classify the causes and verify that
-the client surfaces the right exception, sets ``is_alive = False``, and
-allows ``close()`` to complete without raising.
+`Exception` packet.  These tests classify the causes and verify that
+the client surfaces the right exception, sets `is_alive = False`, and
+allows `close()` to complete without raising.
 
 Causes covered
 --------------
@@ -12,32 +12,32 @@ Causes covered
     read.
 2.  **TCP reset (RST)** — abrupt peer closure: load-balancer timeout,
     NAT session expiry, server OOM-kill, Docker network restart, NIC
-    flap.  Manifests as ``ConnectionResetError`` on the next write or
-    ``OSError`` / EOF on the next read (asyncio wraps it).
+    flap.  Manifests as `ConnectionResetError` on the next write or
+    `OSError` / EOF on the next read (asyncio wraps it).
 3.  **Truncated packet body** — server writes a valid packet header but
-    crashes before the full body arrives.  The ``AsyncBinaryReader``
-    raises ``ProtocolError`` inside the body read.
+    crashes before the full body arrives.  The `AsyncBinaryReader`
+    raises `ProtocolError` inside the body read.
 4.  **Write-buffer overflow / slow peer** — the OS send-buffer fills;
-    ``drain()`` raises ``BrokenPipeError`` / ``ConnectionResetError``.
-    Can happen mid-``send_query`` or mid-``send_data`` (INSERT stream).
+    `drain()` raises `BrokenPipeError` / `ConnectionResetError`.
+    Can happen mid-`send_query` or mid-`send_data` (INSERT stream).
 5.  **Firewall / NAT transparent drop** — the TCP session is silently
     terminated by a stateful firewall.  The client sees the connection
     as live until the next IO attempt, which then gets a TCP RST.
 6.  **Half-open connection** — the server's read end is gone but TCP
     state hasn't propagated.  The client's next write raises
-    ``BrokenPipeError``; the next read hangs then RST/EOF arrives.
+    `BrokenPipeError`; the next read hangs then RST/EOF arrives.
 7.  **Server memory-limit exceeded mid-query** — server kills the query
     executor thread and drops the TCP connection instead of sending an
-    ``Exception`` packet.  The client sees EOF mid-result.
+    `Exception` packet.  The client sees EOF mid-result.
 8.  **Malformed / corrupt bytes on the wire** — in-transit data
-    corruption (rare) results in ``ProtocolError`` inside the packet
+    corruption (rare) results in `ProtocolError` inside the packet
     dispatcher (the unknown-packet-id branch or inside a packet body).
 
 For each scenario we assert:
-  * A ``ClickHouseError`` (``ProtocolError``) or transport error
+  * A `ClickHouseError` (`ProtocolError`) or transport error
     propagates to the caller — the error is never silently swallowed.
-  * ``client.is_alive`` is ``False`` immediately after the failure.
-  * ``await client.close()`` does not raise.
+  * `client.is_alive` is `False` immediately after the failure.
+  * `await client.close()` does not raise.
 """
 
 from __future__ import annotations
@@ -331,7 +331,7 @@ async def test_ping_raises_and_marks_broken_on_write_failure() -> None:
 
 async def test_close_after_broken_connection_does_not_raise() -> None:
     # BEGIN: a series of different fatal errors; each time we want to
-    #        confirm ``close()`` completes without a secondary exception.
+    #        confirm `close()` completes without a secondary exception.
     for _, setup in [
         ("eof_before_query", lambda t: t.feed_eof()),
         (

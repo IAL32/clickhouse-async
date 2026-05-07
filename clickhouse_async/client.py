@@ -1,17 +1,17 @@
-"""High-level Client — the user-facing API on top of ``Connection``.
+"""High-level Client — the user-facing API on top of `Connection`.
 
-A ``Client`` wraps one ``Connection``. The lifecycle is owned by
-``async with``:
+A `Client` wraps one `Connection`. The lifecycle is owned by
+`async with`:
 
     import clickhouse_async as ch
 
     async with ch.connect("clickhouse://default:@localhost:9000/default") as client:
         rows = await client.fetch_all("SELECT 1")
 
-``connect(dsn)`` is a sync factory that returns an unopened ``Client``;
-the actual TCP open + Hello handshake happens in ``__aenter__``. Users
-who don't want a context manager can call ``await client.open()``
-explicitly and pair it with ``await client.close()``.
+`connect(dsn)` is a sync factory that returns an unopened `Client`;
+the actual TCP open + Hello handshake happens in `__aenter__`. Users
+who don't want a context manager can call `await client.open()`
+explicitly and pair it with `await client.close()`.
 """
 
 from __future__ import annotations
@@ -45,24 +45,24 @@ if TYPE_CHECKING:
 
 @dataclass
 class QueryResult:
-    """Outcome of an ``execute()`` call.
+    """Outcome of an `execute()` call.
 
-    ``columns`` carries the server's column metadata (taken from the
-    header block); ``rows`` is a row-major list of tuples assembled by
-    transposing each ``DATA`` block. ``progress`` is the *last*
+    `columns` carries the server's column metadata (taken from the
+    header block); `rows` is a row-major list of tuples assembled by
+    transposing each `DATA` block. `progress` is the *last*
     Progress packet received (each carries increments since the
-    previous one), and ``profile_info`` is the single ProfileInfo
-    packet emitted near end-of-stream. ``elapsed`` is the wall-clock
-    duration from ``send_query`` to ``EndOfStream``.
+    previous one), and `profile_info` is the single ProfileInfo
+    packet emitted near end-of-stream. `elapsed` is the wall-clock
+    duration from `send_query` to `EndOfStream`.
 
-    ``written_rows`` is the **server-confirmed** count: the sum of
-    every ``Progress.written_rows`` increment the server sent during
+    `written_rows` is the **server-confirmed** count: the sum of
+    every `Progress.written_rows` increment the server sent during
     the query. For SELECTs this stays at 0; for INSERTs it tracks
     what the server actually wrote (which may differ from
-    ``client_sent_rows`` when a CHECK / DEDUP / partial-write filter
-    drops rows server-side). ``client_sent_rows`` carries the
-    matching client-side count: for ``insert()`` it's how many rows
-    we shipped over the wire, for ``execute()`` it stays at 0.
+    `client_sent_rows` when a CHECK / DEDUP / partial-write filter
+    drops rows server-side). `client_sent_rows` carries the
+    matching client-side count: for `insert()` it's how many rows
+    we shipped over the wire, for `execute()` it stays at 0.
     """
 
     columns: list[ColumnSpec] = field(default_factory=list)
@@ -84,12 +84,12 @@ class QueryResult:
 
 @dataclass(frozen=True)
 class ColumnarBlock:
-    """One server block yielded by ``iter_column_blocks``, column-major.
+    """One server block yielded by `iter_column_blocks`, column-major.
 
-    ``data[col_idx]`` is the decoded value list for that column — the
+    `data[col_idx]` is the decoded value list for that column — the
     native shape the wire delivers, with no row-tuple transpose. When
-    ``column_factories`` are active, individual elements may not be
-    lists (e.g. ``numpy.ndarray``); the factory owns the element type.
+    `column_factories` are active, individual elements may not be
+    lists (e.g. `numpy.ndarray`); the factory owns the element type.
     """
 
     columns: tuple[ColumnSpec, ...]
@@ -99,13 +99,13 @@ class ColumnarBlock:
 
 @dataclass(frozen=True)
 class ColumnarResult:
-    """Full query result from ``fetch_columns``, column-major.
+    """Full query result from `fetch_columns`, column-major.
 
-    ``data[col_idx]`` is the complete value list for that column
-    concatenated across all server blocks. ``rows`` is the total row
-    count (``len(data[0])`` when at least one column is present).
-    ``bytes_read`` and ``rows_read`` come from the last Progress packet.
-    When ``column_factories`` are active, individual elements may not
+    `data[col_idx]` is the complete value list for that column
+    concatenated across all server blocks. `rows` is the total row
+    count (`len(data[0])` when at least one column is present).
+    `bytes_read` and `rows_read` come from the last Progress packet.
+    When `column_factories` are active, individual elements may not
     be lists; the factory owns the element type.
     """
 
@@ -119,9 +119,9 @@ class ColumnarResult:
 
 
 class Client:
-    """User-facing connection wrapper. One ``Client`` owns one
-    ``Connection``; concurrent calls on the same client raise
-    ``ConcurrentQueryError`` (the protocol does not multiplex)."""
+    """User-facing connection wrapper. One `Client` owns one
+    `Connection`; concurrent calls on the same client raise
+    `ConcurrentQueryError` (the protocol does not multiplex)."""
 
     def __init__(
         self,
@@ -143,8 +143,8 @@ class Client:
         # custom CAs hand us a configured context.
         if parsed.secure and ssl_context is None:
             ssl_context = _ssl_module.create_default_context()
-        # Stash the resolved config so ``kill_query`` can mint a fresh
-        # side-channel ``Client`` when the primary connection is busy.
+        # Stash the resolved config so `kill_query` can mint a fresh
+        # side-channel `Client` when the primary connection is busy.
         self._ssl_context = ssl_context
         self._transport_factory = transport_factory
         self._on_host_attempt = on_host_attempt
@@ -194,14 +194,14 @@ class Client:
     # ---- introspection ---------------------------------------------------
 
     async def ping(self) -> None:
-        """Round-trip a ``Ping``/``Pong`` to verify liveness."""
+        """Round-trip a `Ping`/`Pong` to verify liveness."""
         await self._conn.ping()
 
     @property
     def server_info(self) -> ServerInfo:
         """Server identity captured during the Hello handshake.
 
-        Raises if accessed before ``__aenter__`` / ``open()``.
+        Raises if accessed before `__aenter__` / `open()`.
         """
         return self._conn.server_info
 
@@ -211,7 +211,7 @@ class Client:
 
     @property
     def is_alive(self) -> bool:
-        """``True`` iff the underlying connection is in ``READY`` —
+        """`True` iff the underlying connection is in `READY` —
         i.e. usable for the next query. Used by the pool's release
         path to decide whether to recycle a returned client."""
         return self._conn.state == State.READY
@@ -226,14 +226,14 @@ class Client:
         settings: Mapping[str, str] | None = None,
         query_id: str = "",
     ) -> QueryResult:
-        """Run ``sql``, drain the server response, and return a
-        ``QueryResult`` carrying the columns, the rows row-major, and
+        """Run `sql`, drain the server response, and return a
+        `QueryResult` carrying the columns, the rows row-major, and
         the final progress/profile-info packets.
 
         Concurrent calls on the same client raise
-        ``ConcurrentQueryError`` (the wire protocol does not multiplex).
-        Server-reported errors propagate as ``ServerError`` and leave
-        the connection in ``READY`` (reusable for the next query).
+        `ConcurrentQueryError` (the wire protocol does not multiplex).
+        Server-reported errors propagate as `ServerError` and leave
+        the connection in `READY` (reusable for the next query).
         """
         start = time.monotonic()
         await self._conn.send_query(
@@ -246,7 +246,7 @@ class Client:
         captured_profile: ProfileInfo | None = None
         # Progress packets carry *increments* since the previous one;
         # accumulate the per-call totals instead of overwriting so
-        # ``QueryResult.written_rows`` reflects the server's view.
+        # `QueryResult.written_rows` reflects the server's view.
         total_written_rows = 0
 
         prior_progress = self._conn.on_progress
@@ -315,7 +315,7 @@ class Client:
         settings: Mapping[str, str] | None = None,
         query_id: str = "",
     ) -> list[tuple[object, ...]]:
-        """Run ``sql`` and return all rows. Convenience over ``execute``
+        """Run `sql` and return all rows. Convenience over `execute`
         for callers that don't need the surrounding metadata."""
         result = await self.execute(
             sql, params=params, settings=settings, query_id=query_id
@@ -330,7 +330,7 @@ class Client:
         settings: Mapping[str, str] | None = None,
         query_id: str = "",
     ) -> tuple[object, ...] | None:
-        """Run ``sql`` and return the first row, or ``None`` if empty."""
+        """Run `sql` and return the first row, or `None` if empty."""
         rows = await self.fetch_all(
             sql, params=params, settings=settings, query_id=query_id
         )
@@ -346,17 +346,17 @@ class Client:
         settings: Mapping[str, str] | None = None,
         query_id: str = "",
     ) -> AsyncGenerator[Block, None]:
-        """Async-iterate the result of ``sql`` block-by-block.
+        """Async-iterate the result of `sql` block-by-block.
 
-        Header-only blocks (``n_rows == 0``) are filtered out; only
+        Header-only blocks (`n_rows == 0`) are filtered out; only
         data-bearing blocks are yielded. Totals / Extremes are not
         yielded — those need their own typed surface and aren't part
         of the v0 streaming API.
 
         The generator holds the underlying connection until exhausted.
         To break out early without leaking the connection, wrap with
-        ``contextlib.aclosing`` so the cleanup (Cancel + drain) runs
-        deterministically at the ``async with`` exit:
+        `contextlib.aclosing` so the cleanup (Cancel + drain) runs
+        deterministically at the `async with` exit:
 
             from contextlib import aclosing
             async with aclosing(client.iter_blocks("SELECT …")) as blocks:
@@ -364,7 +364,7 @@ class Client:
                     if some_condition:
                         break
 
-        Without ``aclosing``, Python defers async-generator cleanup to
+        Without `aclosing`, Python defers async-generator cleanup to
         GC time — a subsequent operation on the same client may fire
         before cancel completes.
         """
@@ -381,7 +381,7 @@ class Client:
         finally:
             # If the user broke out before EndOfStream, cancel and drain
             # so the connection is reusable for the next operation.
-            # ``cancel()`` always raises ``QueryCancellationError`` with a
+            # `cancel()` always raises `QueryCancellationError` with a
             # reason — we only need its side effects here.
             if self._conn.state == State.IN_FLIGHT:
                 with contextlib.suppress(QueryCancellationError):
@@ -394,10 +394,10 @@ class Client:
         columns: tuple[ColumnSpec, ...],
         raw: list[Any],
     ) -> list[Any]:
-        """Apply per-column factories (if any) to ``raw`` column data.
+        """Apply per-column factories (if any) to `raw` column data.
 
-        Factories are keyed on ``ColumnSpec.type_spec`` — shallow match,
-        so a factory for ``"UInt64"`` does not fire for ``"Array(UInt64)"``.
+        Factories are keyed on `ColumnSpec.type_spec` — shallow match,
+        so a factory for `"UInt64"` does not fire for `"Array(UInt64)"`.
         Columns with no registered factory are returned unchanged.
         """
         if not self._column_factories:
@@ -416,10 +416,10 @@ class Client:
         settings: Mapping[str, str] | None = None,
         query_id: str = "",
     ) -> ColumnarResult:
-        """Run ``sql`` and return the result in column-major order.
+        """Run `sql` and return the result in column-major order.
 
-        Unlike ``execute``, no row-tuple transpose is performed —
-        ``ColumnarResult.data[i]`` is the decoded list for column ``i``,
+        Unlike `execute`, no row-tuple transpose is performed —
+        `ColumnarResult.data[i]` is the decoded list for column `i`,
         exactly as the codec produced it across all server blocks.
         Useful for analytics workloads that pass columns directly to
         numpy / polars / pyarrow without an intermediate row representation.
@@ -487,13 +487,13 @@ class Client:
         settings: Mapping[str, str] | None = None,
         query_id: str = "",
     ) -> AsyncGenerator[ColumnarBlock, None]:
-        """Async-iterate the result of ``sql`` as ``ColumnarBlock`` values.
+        """Async-iterate the result of `sql` as `ColumnarBlock` values.
 
         Each block is yielded column-major with no row-tuple transpose.
-        Header-only blocks (``n_rows == 0``) are filtered out.
+        Header-only blocks (`n_rows == 0`) are filtered out.
 
-        The same ``contextlib.aclosing`` recommendation from ``iter_blocks``
-        applies: wrap with ``aclosing`` for deterministic cleanup on early exit.
+        The same `contextlib.aclosing` recommendation from `iter_blocks`
+        applies: wrap with `aclosing` for deterministic cleanup on early exit.
         """
         await self._conn.send_query(
             sql, query_id=query_id, settings=settings, params=params
@@ -528,31 +528,31 @@ class Client:
         settings: Mapping[str, str] | None = None,
         query_id: str = "",
     ) -> int:
-        """Run ``INSERT INTO t [ (col, …) ] VALUES`` and stream ``rows`` to
-        the server in batches of ``insert_block_size``.
+        """Run `INSERT INTO t [ (col, …) ] VALUES` and stream `rows` to
+        the server in batches of `insert_block_size`.
 
-        ``rows`` is a sync iterable, async iterable, or a single iterable
+        `rows` is a sync iterable, async iterable, or a single iterable
         of tuples / sequences. Each row's length must match
-        ``column_names``. The codec for each column is taken from the
+        `column_names`. The codec for each column is taken from the
         server's INSERT header block — we don't infer types client-side.
 
         Validation runs against the server's header before any DATA
         bytes leave the wire:
 
-        - ``column_names`` is compared to the server's column list
-          (case-sensitive, ordered). Mismatch → ``ValueError``,
+        - `column_names` is compared to the server's column list
+          (case-sensitive, ordered). Mismatch → `ValueError`,
           query cancelled cleanly, no rows sent.
         - Each row's length is checked against the header column
-          count as the row arrives. Mismatch → ``ValueError`` naming
+          count as the row arrives. Mismatch → `ValueError` naming
           the offending row index. Earlier batches that already
           flushed are committed server-side; the query is cancelled
           before the failing row goes out so callers don't end up
           with a half-block of partial data.
 
-        Returns the **server-confirmed** ``written_rows`` — the sum
-        of every ``Progress.written_rows`` increment the server
+        Returns the **server-confirmed** `written_rows` — the sum
+        of every `Progress.written_rows` increment the server
         emitted during the drain phase. Normally equals
-        ``client_sent_rows``; can diverge under CHECK constraints,
+        `client_sent_rows`; can diverge under CHECK constraints,
         DEDUP, or partial-batch failures.
         """
         await self._conn.send_query(sql, query_id=query_id, settings=settings)
@@ -584,8 +584,8 @@ class Client:
                 f"server expects {server_names!r}"
             )
 
-        # Hook in the same accumulator ``execute`` uses so the server's
-        # ``written_rows`` increments roll up across the drain phase.
+        # Hook in the same accumulator `execute` uses so the server's
+        # `written_rows` increments roll up across the drain phase.
         prior_progress = self._conn.on_progress
         total_written_rows = 0
 
@@ -633,7 +633,7 @@ class Client:
             self._conn.on_progress = prior_progress
 
         # Surface the server's view. We fall back to the client-side
-        # count when the server emitted no ``Progress.written_rows``
+        # count when the server emitted no `Progress.written_rows`
         # increments — older servers / specific engines (e.g. Memory
         # with no replication target) sometimes skip them. The two
         # are typically equal; CHECK constraints / DEDUP / partial
@@ -648,10 +648,10 @@ class Client:
         settings: Mapping[str, str] | None = None,
         query_id: str = "",
     ) -> AsyncGenerator[tuple[object, ...], None]:
-        """Async-iterate the result of ``sql`` row-by-row.
+        """Async-iterate the result of `sql` row-by-row.
 
-        A thin transpose around ``iter_blocks``; the same
-        ``contextlib.aclosing`` recommendation applies for
+        A thin transpose around `iter_blocks`; the same
+        `contextlib.aclosing` recommendation applies for
         deterministic cleanup on early exit.
         """
         # Hold the inner generator explicitly so we can aclose() it on
@@ -672,28 +672,28 @@ class Client:
     # ---- query control --------------------------------------------------
 
     async def kill_query(self, query_id: str, *, sync: bool = True) -> int:
-        """Cancel a running query identified by ``query_id`` from a
+        """Cancel a running query identified by `query_id` from a
         side channel.
 
-        Issues ``KILL QUERY WHERE query_id = {qid:String}`` (with
-        ``SYNC`` appended when ``sync=True``, the default) over a
+        Issues `KILL QUERY WHERE query_id = {qid:String}` (with
+        `SYNC` appended when `sync=True`, the default) over a
         separate connection from the one that started the query. The
         return value is the number of queries the server confirmed it
-        targeted — each row in the ``KILL QUERY`` result corresponds
+        targeted — each row in the `KILL QUERY` result corresponds
         to one targeted query.
 
-        ``sync=True`` (default) waits for the server to actually
-        cancel the target query before returning. ``sync=False``
-        drops the ``SYNC`` keyword and returns as soon as the server
+        `sync=True` (default) waits for the server to actually
+        cancel the target query before returning. `sync=False`
+        drops the `SYNC` keyword and returns as soon as the server
         has accepted the request; the original task may briefly keep
         running.
 
         Permissions: requires either the same user that issued the
-        query or a user with the ``KILL QUERY`` access right.
+        query or a user with the `KILL QUERY` access right.
 
-        If the current ``Client``'s connection is ``READY``, the kill
+        If the current `Client`'s connection is `READY`, the kill
         runs over it directly. Otherwise — typically because *this*
-        client is the one mid-query — a fresh side-channel ``Client``
+        client is the one mid-query — a fresh side-channel `Client`
         is opened against the same DSN for the duration of the call
         and closed before returning.
         """
@@ -741,12 +741,12 @@ def _normalise_row_source(
     rows: Iterable[Sequence[object]] | AsyncIterable[Sequence[object]],
 ) -> AsyncGenerator[Sequence[object], None]:
     """Wrap a sync or async iterable in a uniform async-generator
-    interface so the insert loop can ``async for`` over either shape.
+    interface so the insert loop can `async for` over either shape.
 
     Split into two single-purpose helpers because narrowing a
     sync-or-async-iterable union inside one function loses the
     parametric element type at the iteration site (ty observes
-    ``object`` rather than ``Sequence[object]``). The ``cast`` calls
+    `object` rather than `Sequence[object]`). The `cast` calls
     re-attach the parameter ty's isinstance narrowing strips off."""
     if isinstance(rows, AsyncIterable):
         return _async_rows(cast("AsyncIterable[Sequence[object]]", rows))
@@ -756,8 +756,8 @@ def _normalise_row_source(
 async def _enumerate_async(
     source: AsyncIterable[Sequence[object]],
 ) -> AsyncGenerator[tuple[int, Sequence[object]], None]:
-    """Async ``enumerate`` over an async row source. Used by
-    ``Client.insert`` so per-row validation errors can name the
+    """Async `enumerate` over an async row source. Used by
+    `Client.insert` so per-row validation errors can name the
     offending row index."""
     index = 0
     async for row in source:
@@ -768,8 +768,8 @@ async def _enumerate_async(
 def _build_insert_block(
     specs: Sequence[ColumnSpec], rows: Sequence[Sequence[object]]
 ) -> Block:
-    """Transpose row-major ``rows`` into a column-major Block matching
-    ``specs``. Raises ValueError naming the offending row index when a
+    """Transpose row-major `rows` into a column-major Block matching
+    `specs`. Raises ValueError naming the offending row index when a
     row's arity doesn't match."""
     n_cols = len(specs)
     n_rows = len(rows)
@@ -802,30 +802,30 @@ def connect(
     compression: CompressionMethod | None = None,
     connect_timeout: float | None = None,
 ) -> Client:
-    """Build an unopened ``Client``. The handshake happens when you
-    enter the ``async with`` block (or call ``await client.open()``).
+    """Build an unopened `Client`. The handshake happens when you
+    enter the `async with` block (or call `await client.open()`).
 
-    ``column_factories`` maps ClickHouse type-spec strings (e.g.
-    ``"UInt64"``, ``"Nullable(Float32)"``) to callables that transform
-    a plain ``list`` into any type the caller wants (e.g.
-    ``numpy.array``). Applied in ``fetch_columns`` and
-    ``iter_column_blocks``; row-major paths are unaffected.
+    `column_factories` maps ClickHouse type-spec strings (e.g.
+    `"UInt64"`, `"Nullable(Float32)"`) to callables that transform
+    a plain `list` into any type the caller wants (e.g.
+    `numpy.array`). Applied in `fetch_columns` and
+    `iter_column_blocks`; row-major paths are unaffected.
 
-    ``json_nested=True`` makes every ``JSON`` column in the session
-    return nested dicts (``{"user": {"id": 7}}``) instead of flat
-    dotted-path dicts (``{"user.id": 7}``). Write path always accepts
+    `json_nested=True` makes every `JSON` column in the session
+    return nested dicts (`{"user": {"id": 7}}`) instead of flat
+    dotted-path dicts (`{"user.id": 7}`). Write path always accepts
     both shapes transparently.
 
-    ``compression`` overrides the DSN's compression setting. ``None``
+    `compression` overrides the DSN's compression setting. `None`
     (the default) defers to the DSN, or auto-detects LZ4 when the
-    ``[compression]`` extra is installed and the DSN omits
-    ``?compression=``. Pass ``CompressionMethod.NONE`` to force off.
+    `[compression]` extra is installed and the DSN omits
+    `?compression=`. Pass `CompressionMethod.NONE` to force off.
 
-    ``connect_timeout`` limits how long each per-host TCP connect +
-    Hello handshake may take (seconds). ``None`` means no limit. On
+    `connect_timeout` limits how long each per-host TCP connect +
+    Hello handshake may take (seconds). `None` means no limit. On
     timeout the host counts as failed and the next candidate is tried.
 
-    ``transport_factory`` is a test-only injection point for the
+    `transport_factory` is a test-only injection point for the
     underlying socket pair; production callers should leave it unset.
     """
     return Client(

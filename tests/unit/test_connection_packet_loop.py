@@ -1,10 +1,10 @@
 """Tests for the steady-state packet-loop dispatch.
 
-``iter_packets`` handles every server packet a SELECT can produce —
-yields ``DATA`` / ``TOTALS`` / ``EXTREMES`` as ``StreamedBlock``,
+`iter_packets` handles every server packet a SELECT can produce —
+yields `DATA` / `TOTALS` / `EXTREMES` as `StreamedBlock`,
 fires the matching callback for non-yielded packets (Progress,
 ProfileInfo, Log, TableColumns, TimezoneUpdate, ProfileEvents), and
-terminates on ``END_OF_STREAM`` (READY) or ``EXCEPTION`` (raises).
+terminates on `END_OF_STREAM` (READY) or `EXCEPTION` (raises).
 """
 
 from __future__ import annotations

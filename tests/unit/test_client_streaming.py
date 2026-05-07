@@ -1,4 +1,4 @@
-"""Tests for ``Client.iter_blocks`` / ``iter_rows`` and the
+"""Tests for `Client.iter_blocks` / `iter_rows` and the
 cancel-on-break cleanup contract.
 """
 

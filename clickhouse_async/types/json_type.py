@@ -1,35 +1,35 @@
-"""Codec for ClickHouse 24.x's ``JSON`` type.
+"""Codec for ClickHouse 24.x's `JSON` type.
 
 ClickHouse's new JSON column stores schema-on-read documents:
-each unique JSON path becomes its own ``SerializationDynamic``
-sub-column server-side, plus a single shared ``Array(Tuple(String,
-String))`` substream that holds rare paths spilled outside the
-``max_dynamic_paths`` limit. The wire format reflects that
+each unique JSON path becomes its own `SerializationDynamic`
+sub-column server-side, plus a single shared `Array(Tuple(String,
+String))` substream that holds rare paths spilled outside the
+`max_dynamic_paths` limit. The wire format reflects that
 sub-column model — the column body is a concatenation of:
 
 | Bytes                | Meaning                                                |
 | -------------------- | ------------------------------------------------------ |
-| 8                    | ``ObjectSerializationVersion`` (``V1 = 0`` at our      |
-|                      | negotiated revision; ``V2 = 2`` once we negotiate      |
-|                      | ``DBMS_MIN_REVISION_WITH_V2_DYNAMIC_AND_JSON``)        |
-| varuint              | (V1 only) ``max_dynamic_paths`` — column-policy hint   |
+| 8                    | `ObjectSerializationVersion` (`V1 = 0` at our      |
+|                      | negotiated revision; `V2 = 2` once we negotiate      |
+|                      | `DBMS_MIN_REVISION_WITH_V2_DYNAMIC_AND_JSON`)        |
+| varuint              | (V1 only) `max_dynamic_paths` — column-policy hint   |
 |                      | the reader skips past                                  |
-| varuint              | ``num_dynamic_paths`` — number of declared paths in    |
+| varuint              | `num_dynamic_paths` — number of declared paths in    |
 |                      | this block                                             |
-| n length-prefixed    | sorted dotted path names (``user``, ``user.id``, …)    |
-| (then each path's ``Dynamic`` body in *path-name-sorted* order — see          |
-|  ``types/variant.py::Dynamic`` for the per-Dynamic layout. Each path is its   |
+| n length-prefixed    | sorted dotted path names (`user`, `user.id`, …)    |
+| (then each path's `Dynamic` body in *path-name-sorted* order — see          |
+|  `types/variant.py::Dynamic` for the per-Dynamic layout. Each path is its   |
 |  own self-contained Dynamic sub-column with version + max_dynamic_types +     |
 |  num_dynamic_types + type names + Variant body)                               |
-| (then the shared data column: an ``Array(Tuple(String, String))`` body for    |
-|  ``n_rows``. Empty on our writes — we never spill paths to shared.)           |
+| (then the shared data column: an `Array(Tuple(String, String))` body for    |
+|  `n_rows`. Empty on our writes — we never spill paths to shared.)           |
 
-Python representation: each row is a flat ``dict[str, Any]`` keyed by
+Python representation: each row is a flat `dict[str, Any]` keyed by
 the dotted path. We don't auto-nest on reads or auto-flatten nested
 dicts on writes — callers can wrap that ergonomics layer themselves;
 keeping the codec's representation flat means a row's path set is
 exactly what the server materialised, and round-tripping is byte
-loss-less. ``codec.name`` round-trips ``JSON`` and ``JSON(hint, …)``
+loss-less. `codec.name` round-trips `JSON` and `JSON(hint, …)`
 specs verbatim so server-emitted block headers can be re-INSERTed.
 """
 
@@ -61,15 +61,15 @@ if TYPE_CHECKING:
     from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
 
 
-# ``ObjectSerializationVersion`` constants are *different* from
-# ``DynamicSerializationVersion`` despite the similar names — Object's
-# V1 is ``0``, Dynamic's V1 is ``1``. Keep the constants disambiguated.
+# `ObjectSerializationVersion` constants are *different* from
+# `DynamicSerializationVersion` despite the similar names — Object's
+# V1 is `0`, Dynamic's V1 is `1`. Keep the constants disambiguated.
 _OBJECT_VERSION_V1 = 0
 _OBJECT_VERSION_STRING = 1
 _OBJECT_VERSION_V2 = 2
 
-# ClickHouse's default ``max_dynamic_paths`` (per upstream
-# ``DataTypeObject.h::DEFAULT_MAX_SEPARATELY_STORED_PATHS``). Used in
+# ClickHouse's default `max_dynamic_paths` (per upstream
+# `DataTypeObject.h::DEFAULT_MAX_SEPARATELY_STORED_PATHS`). Used in
 # the V1 wire format slot — the reader skips it past, so any
 # reasonable value works on writes; we mirror upstream's default for
 # wire-trace symmetry.
@@ -77,19 +77,19 @@ _DEFAULT_MAX_DYNAMIC_PATHS = 1024
 
 
 class JSON:
-    """``JSON[(hint, hint, …)]`` — schema-on-read JSON column.
+    """`JSON[(hint, hint, …)]` — schema-on-read JSON column.
 
-    Read path: returns one ``dict[str, Any]`` per row, keyed by dotted
-    path; values are whatever the per-path ``Dynamic`` codec yields.
+    Read path: returns one `dict[str, Any]` per row, keyed by dotted
+    path; values are whatever the per-path `Dynamic` codec yields.
     Missing paths are simply absent from the row's dict (NULL on the
-    Dynamic discriminator stream → no entry rather than ``{path:
-    None}``). Empty objects come back as ``{}``.
+    Dynamic discriminator stream → no entry rather than `{path:
+    None}`). Empty objects come back as `{}`.
 
-    Write path: accepts a sequence of ``dict[str, Any]`` rows, walks
+    Write path: accepts a sequence of `dict[str, Any]` rows, walks
     them to discover the path set, and emits each path as its own
-    Dynamic sub-column. Values must be Python types our ``Dynamic``
-    inference covers (``int → Int64``, ``str → String``, etc.) or
-    explicitly tagged via ``Dynamic.tag(value, type_spec)``.
+    Dynamic sub-column. Values must be Python types our `Dynamic`
+    inference covers (`int → Int64`, `str → String`, etc.) or
+    explicitly tagged via `Dynamic.tag(value, type_spec)`.
     """
 
     null_value: ClassVar[None] = None
@@ -137,10 +137,10 @@ class JSON:
         path_names = [await reader.read_string() for _ in range(n_paths)]
 
         # 3. Per-path Dynamic STATE PREFIX, all consumed before any
-        #    bulk body. This mirrors upstream ``SerializationObject``,
-        #    which calls each path's ``deserializeBinaryBulkStatePrefix``
-        #    inside ``deserializeBinaryBulkStatePrefix`` *before*
-        #    looping ``deserializeBinaryBulkWithMultipleStreams`` for
+        #    bulk body. This mirrors upstream `SerializationObject`,
+        #    which calls each path's `deserializeBinaryBulkStatePrefix`
+        #    inside `deserializeBinaryBulkStatePrefix` *before*
+        #    looping `deserializeBinaryBulkWithMultipleStreams` for
         #    bulk reads. For single-path columns the interleaving is
         #    invisible, but with two or more paths the prefix-bulk
         #    boundary moves and you'd read the wrong bytes.
@@ -157,7 +157,7 @@ class JSON:
             n_types = await reader.read_varuint()
             declared_specs = [await reader.read_string() for _ in range(n_types)]
             # Sort declared specs together with the implicit
-            # ``SharedVariant`` arm — same rule as standalone Dynamic.
+            # `SharedVariant` arm — same rule as standalone Dynamic.
             sorted_specs = sorted([*declared_specs, _SHARED_VARIANT_NAME])
             components = [
                 parse_type(_SHARED_VARIANT_TYPE_SPEC)
@@ -173,7 +173,7 @@ class JSON:
                 )
             per_path_components.append(components)
 
-        # 4. shared_data state prefix — ``Array → Tuple → String x2``
+        # 4. shared_data state prefix — `Array → Tuple → String x2`
         #    chain is all base-class no-op. Zero bytes consumed.
 
         # 5. Per-path Dynamic BULK BODY (discs + per-arm bodies in
@@ -183,7 +183,7 @@ class JSON:
             for components in per_path_components
         ]
 
-        # 6. shared_data bulk — ``Array(Tuple(String, String))`` body.
+        # 6. shared_data bulk — `Array(Tuple(String, String))` body.
         #    Each per-row element is a list of (dotted_path, json_str)
         #    pairs for paths that spilled past max_dynamic_paths.
         shared_data_codec = parse_type("Array(Tuple(String, String))")
@@ -192,7 +192,7 @@ class JSON:
         # 7. Reassemble per-row dicts. NULL on a path's Dynamic stream
         #    means "this row had no value for this path" — represent
         #    that as the path being absent from the row's dict, not
-        #    ``{path: None}``.
+        #    `{path: None}`.
         result: list[dict[str, Any]] = [{} for _ in range(n_rows)]
         for path, values in zip(path_names, per_path_values, strict=True):
             for i, v in enumerate(values):
@@ -216,8 +216,8 @@ class JSON:
 
         # Count path occurrences across the batch to decide which paths
         # get their own sub-column vs. spill to shared-data. Sort
-        # alphabetically — upstream ``SerializationObject`` sorts
-        # ``object_state->sorted_dynamic_paths`` before writing.
+        # alphabetically — upstream `SerializationObject` sorts
+        # `object_state->sorted_dynamic_paths` before writing.
         path_counts: Counter[str] = Counter()
         for row in flat_values:
             path_counts.update(row.keys())
@@ -238,8 +238,8 @@ class JSON:
 
         sorted_paths = dynamic_paths
 
-        # For each dynamic path, resolve every row to a ``(spec, payload)``
-        # pair (or ``(None, None)`` for missing). We need this resolution
+        # For each dynamic path, resolve every row to a `(spec, payload)`
+        # pair (or `(None, None)` for missing). We need this resolution
         # twice (once for the state prefix to compute declared types,
         # once for the bulk body to compute discriminators), so cache it
         # up front.
@@ -286,7 +286,7 @@ class JSON:
 
         # 2. Per-path Dynamic STATE PREFIX (interleaved with the
         #    matching shared-data state prefix below). Upstream
-        #    ``SerializationObject`` writes all dynamic-path state
+        #    `SerializationObject` writes all dynamic-path state
         #    prefixes BEFORE any bulk body — for multi-path JSON the
         #    naive "for each path: prefix+bulk" interleaving produces
         #    wrong bytes since the receiver expects all prefixes first.
@@ -306,12 +306,12 @@ class JSON:
             writer.write_int(_VARIANT_VERSION_BASIC, 8, signed=False)
 
         # 3. shared_data state prefix is the chain
-        #    ``Array → Tuple → String x2`` — all of which have
+        #    `Array → Tuple → String x2` — all of which have
         #    base-class no-op state prefixes. Zero bytes. We don't
         #    even need a placeholder write.
 
         # 4. Per-path Dynamic BULK BODY. We build the inner-Variant
-        #    body inline rather than recursing into ``Variant._write_body``
+        #    body inline rather than recursing into `Variant._write_body`
         #    because the discriminator sort key already picks the right
         #    sorted index for each row.
         for resolved, sorted_components, specs in zip(
@@ -330,7 +330,7 @@ class JSON:
             ]
             Variant._write_body(writer, sorted_components, rows_with_disc)
 
-        # 5. shared_data bulk — ``Array(Tuple(String, String))`` body.
+        # 5. shared_data bulk — `Array(Tuple(String, String))` body.
         #    Each element is a list of (dotted_path, json_encoded_value)
         #    pairs for overflow paths present in that row. Empty when all
         #    paths fit within _DEFAULT_MAX_DYNAMIC_PATHS.

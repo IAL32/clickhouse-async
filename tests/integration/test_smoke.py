@@ -105,7 +105,7 @@ async def test_server_side_parameter_binding_none_for_nullable(
     pool: ch.Pool,
 ) -> None:
     # BEGIN: no fixture data needed — exercise the binding via SELECT
-    # WHEN: passing ``None`` against a ``Nullable(T)`` placeholder for
+    # WHEN: passing `None` against a `Nullable(T)` placeholder for
     #       both string and integer types
     rows_str = await pool.fetch_all(
         "SELECT {x:Nullable(String)} AS v",
@@ -120,7 +120,7 @@ async def test_server_side_parameter_binding_none_for_nullable(
         params={"x": "hi"},
     )
 
-    # THEN: the server resolves the ``\N`` sentinel to SQL NULL on the
+    # THEN: the server resolves the `\N` sentinel to SQL NULL on the
     #       way in, and a non-null value through the same placeholder
     #       still binds cleanly — the None path doesn't poison the
     #       Nullable code path
@@ -220,9 +220,9 @@ async def test_kill_query_cancels_query_running_on_another_connection(
     async def runner() -> BaseException | None:
         try:
             async with pool.acquire() as client:
-                # ``sleepEachRow(2.5)`` is the longest single sleep
+                # `sleepEachRow(2.5)` is the longest single sleep
                 # ClickHouse permits per call; we chain 8 rows under a
-                # raised ``function_sleep_max_microseconds_per_block``
+                # raised `function_sleep_max_microseconds_per_block`
                 # cap so the query takes ~20 s. That leaves ample
                 # headroom for the killer task to run.
                 await client.fetch_all(
@@ -351,10 +351,10 @@ async def test_datetime64_nanosecond_precision_round_trips(
     pool: ch.Pool,
     fresh_table: Callable[[str, str], Awaitable[None]],
 ) -> None:
-    # BEGIN: a Memory-engine table with a ``DateTime64(9)`` column —
-    #        nanosecond ticks. Python's ``datetime`` can't hold sub-
+    # BEGIN: a Memory-engine table with a `DateTime64(9)` column —
+    #        nanosecond ticks. Python's `datetime` can't hold sub-
     #        microsecond resolution, so the high_precision codec
-    #        surfaces values as ``HighPrecisionTimestamp`` instead.
+    #        surfaces values as `HighPrecisionTimestamp` instead.
     table = "test_datetime64_nano"
     await fresh_table(
         table,
@@ -384,15 +384,15 @@ async def test_datetime_session_timezone_seeded_from_handshake(
     pool: ch.Pool,
 ) -> None:
     # BEGIN: the Connection's session_timezone is seeded from the
-    #        handshake's ``ServerInfo.timezone``. Naked ``DateTime``
+    #        handshake's `ServerInfo.timezone`. Naked `DateTime`
     #        columns then come back tz-aware in that zone instead of
-    #        as naive ``datetime`` (the v0 behaviour).
+    #        as naive `datetime` (the v0 behaviour).
     async with pool.acquire() as client:
         # The test container reports UTC at handshake, so the seed
         # value is "UTC".
         assert client._conn.session_timezone == "UTC"
 
-        # WHEN: a naked ``DateTime`` SELECT
+        # WHEN: a naked `DateTime` SELECT
         rows = await client.fetch_all("SELECT toDateTime('2026-05-02 12:00:00') AS t")
 
     # THEN: the result is aware in UTC, not naive
@@ -408,7 +408,7 @@ async def test_insert_column_name_mismatch_raises_before_any_data_sent(
 ) -> None:
     # BEGIN: a table that already has rows; an INSERT whose SQL is
     #        valid (no explicit column list, so the server emits the
-    #        full header) but whose ``column_names=`` disagrees with
+    #        full header) but whose `column_names=` disagrees with
     #        the header should raise locally — before any DATA bytes
     #        leave the wire — and leave the existing rows untouched.
     table = "test_insert_column_name_mismatch"
@@ -421,7 +421,7 @@ async def test_insert_column_name_mismatch_raises_before_any_data_sent(
             column_names=["id", "name"],
         )
 
-    # WHEN: ``column_names`` swaps the order on us
+    # WHEN: `column_names` swaps the order on us
     with pytest.raises(ValueError, match="column names mismatch"):
         async with pool.acquire() as client:
             await client.insert(
@@ -470,8 +470,8 @@ async def test_aggregate_function_avg_state_round_trip_through_merge(
     pool: ch.Pool,
     fresh_table: Callable[[str, str], Awaitable[None]],
 ) -> None:
-    # BEGIN: a Memory-engine table holding ``AggregateFunction(avg,
-    #        Float64)`` state bytes, plus a parallel raw-values table
+    # BEGIN: a Memory-engine table holding `AggregateFunction(avg,
+    #        Float64)` state bytes, plus a parallel raw-values table
     #        we'll aggregate from server-side. The pipeline:
     #
     #          values → avgState (server) → state column
@@ -535,13 +535,13 @@ async def test_polygon_column_round_trips_via_server(
     pool: ch.Pool,
     fresh_table: Callable[[str, str], Awaitable[None]],
 ) -> None:
-    # BEGIN: a Memory-engine table with a ``Polygon`` column. The
+    # BEGIN: a Memory-engine table with a `Polygon` column. The
     #        server happily stores polygons as the geo alias and
-    #        emits ``Polygon`` (not the desugared
-    #        ``Array(Array(Tuple(Float64, Float64)))``) in the
+    #        emits `Polygon` (not the desugared
+    #        `Array(Array(Tuple(Float64, Float64)))`) in the
     #        block header, so round-tripping a polygon-with-hole
     #        plus a single-ring polygon exercises the parser, the
-    #        ``Polygon`` codec's delegation, and the server's view.
+    #        `Polygon` codec's delegation, and the server's view.
     table = "test_polygon_column"
     await fresh_table(
         table,
@@ -575,13 +575,13 @@ async def test_polygon_column_round_trips_via_server(
 
 
 async def test_nested_column_round_trips_via_server(pool: ch.Pool) -> None:
-    # BEGIN: a Memory-engine table with a ``Nested`` column created
-    #        under ``flatten_nested = 0`` so the column stays a
-    #        single ``Nested(uid UInt32, tag String)`` instead of
+    # BEGIN: a Memory-engine table with a `Nested` column created
+    #        under `flatten_nested = 0` so the column stays a
+    #        single `Nested(uid UInt32, tag String)` instead of
     #        being flattened to dotted sub-Arrays. With the default
-    #        ``flatten_nested = 1`` the type spec is decomposed at
+    #        `flatten_nested = 1` the type spec is decomposed at
     #        CREATE TABLE time and the server never emits the
-    #        ``Nested(...)`` form back, so we couldn't exercise the
+    #        `Nested(...)` form back, so we couldn't exercise the
     #        sugar.
     table = "test_nested_column"
     async with pool.acquire() as client:
@@ -650,9 +650,9 @@ async def test_named_tuple_column_round_trips_via_server(
 
 
 async def test_variant_column_round_trips_via_server(pool: ch.Pool) -> None:
-    # BEGIN: a Memory-engine table with a ``Variant(Int64, String,
-    #        Date)`` column. Variant is still gated behind the
-    #        ``allow_experimental_variant_type`` setting on 24.x, so
+    # BEGIN: a Memory-engine table with a `Variant(Int64, String,
+    #        Date)` column. Variant is still gated behind the
+    #        `allow_experimental_variant_type` setting on 24.x, so
     #        each statement that touches the column hands the setting
     #        in. Mixed-arm rows + a NULL exercise the discriminator
     #        stream and per-arm body slicing end-to-end against the
@@ -696,12 +696,12 @@ async def test_variant_column_round_trips_via_server(pool: ch.Pool) -> None:
 
 
 async def test_dynamic_column_round_trips_via_server(pool: ch.Pool) -> None:
-    # BEGIN: a Memory-engine table with a ``Dynamic`` column.
-    #        ``Dynamic`` is gated behind ``allow_experimental_dynamic_type``
+    # BEGIN: a Memory-engine table with a `Dynamic` column.
+    #        `Dynamic` is gated behind `allow_experimental_dynamic_type`
     #        on 24.x — same per-statement opt-in as Variant. Mixing
     #        Int64 and String values across rows exercises the
     #        per-block prefix declaring active types and the implicit
-    #        ``SharedVariant`` (String) tail-arm that ClickHouse always
+    #        `SharedVariant` (String) tail-arm that ClickHouse always
     #        carries on the wire for V1 serialization.
     table = "test_dynamic_column"
     dynamic_settings = {"allow_experimental_dynamic_type": "1"}
@@ -739,12 +739,12 @@ async def test_dynamic_column_round_trips_via_server(pool: ch.Pool) -> None:
 
 
 async def test_json_column_round_trips_via_server(pool: ch.Pool) -> None:
-    # BEGIN: a Memory-engine table with a ``JSON`` column. ``JSON`` is
-    #        gated behind ``allow_experimental_json_type`` on 24.x.
+    # BEGIN: a Memory-engine table with a `JSON` column. `JSON` is
+    #        gated behind `allow_experimental_json_type` on 24.x.
     #        Multi-row mixed-path-set INSERT exercises the full
     #        SerializationObject substream cascade end-to-end:
-    #        ``ObjectStructure`` prefix (V1 + path list) → per-path
-    #        Dynamic body → shared-data ``Array(Tuple(String, String))``
+    #        `ObjectStructure` prefix (V1 + path list) → per-path
+    #        Dynamic body → shared-data `Array(Tuple(String, String))`
     #        body. Heterogeneous values per path (Int64 in one row,
     #        String in another) exercise the per-path Dynamic codec's
     #        multi-arm support.

@@ -1,7 +1,7 @@
 """Tests for the INSERT data path.
 
-The Connection-level surface is just ``send_data(block | None)`` plus
-the existing ``iter_packets`` / ``send_query`` machinery. Orchestration
+The Connection-level surface is just `send_data(block | None)` plus
+the existing `iter_packets` / `send_query` machinery. Orchestration
 (consume header → send batches → terminator → drain) lives at the
 Client layer; these tests cover the wire bytes and state behaviour
 of the building blocks.
@@ -42,7 +42,7 @@ def _reader_over(data: bytes) -> AsyncBinaryReader:
 async def _open_in_flight(transport: ScriptedTransport) -> Connection:
     """Open a connection and put it in IN_FLIGHT for an INSERT-shaped
     test. Server replies with a header block as the first response so
-    callers can immediately consume it via ``iter_packets``."""
+    callers can immediately consume it via `iter_packets`."""
     transport.feed(encode_server_hello())
     conn = Connection([("h", 9000)], transport_factory=transport)
     await conn.open()

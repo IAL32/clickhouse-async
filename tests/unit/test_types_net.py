@@ -1,4 +1,4 @@
-"""Round-trip and byte-layout tests for ``UUID``, ``IPv4``, ``IPv6``."""
+"""Round-trip and byte-layout tests for `UUID`, `IPv4`, `IPv6`."""
 
 from __future__ import annotations
 

@@ -4,7 +4,7 @@ These tests exercise the full round-trip path:
   client → compressed frame (CityHash128 + method header) → server
   server → compressed frame → client (decompress + checksum verify)
 
-They are guarded by ``pytest.importorskip`` so a ``bare`` install
+They are guarded by `pytest.importorskip` so a `bare` install
 (no extras) skips cleanly rather than errors.
 """
 

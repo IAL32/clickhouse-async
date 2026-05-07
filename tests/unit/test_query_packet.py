@@ -1,7 +1,7 @@
-"""Unit tests for ``write_query_packet`` and its revision-gated branches.
+"""Unit tests for `write_query_packet` and its revision-gated branches.
 
-OS-error fallback tests for ``_safe_os_user`` / ``_safe_hostname`` live
-in ``test_client_env.py`` alongside the helpers themselves.
+OS-error fallback tests for `_safe_os_user` / `_safe_hostname` live
+in `test_client_env.py` alongside the helpers themselves.
 """
 
 from __future__ import annotations

@@ -13,8 +13,8 @@ from zoneinfo import ZoneInfo
 def _resolve_tz(name: str | None) -> timezone | ZoneInfo | None:
     """Resolve a ClickHouse timezone name to a Python timezone object.
 
-    Returns ``None`` for ``None`` input (naive datetime), ``UTC`` for
-    the string ``"UTC"``, and a ``ZoneInfo`` for any other IANA name.
+    Returns `None` for `None` input (naive datetime), `UTC` for
+    the string `"UTC"`, and a `ZoneInfo` for any other IANA name.
     """
     if name is None:
         return None
@@ -24,9 +24,9 @@ def _resolve_tz(name: str | None) -> timezone | ZoneInfo | None:
 
 
 def _naive_utc_from_ts(ts: int) -> datetime:
-    """Naive datetime representing the UTC instant at ``ts`` Unix seconds.
+    """Naive datetime representing the UTC instant at `ts` Unix seconds.
 
-    ``datetime.utcfromtimestamp`` is deprecated; we get the same value
+    `datetime.utcfromtimestamp` is deprecated; we get the same value
     by resolving in UTC and stripping the tzinfo.
     """
     return datetime.fromtimestamp(ts, tz=UTC).replace(tzinfo=None)

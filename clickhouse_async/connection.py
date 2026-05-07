@@ -1,25 +1,25 @@
 """The native-protocol Connection.
 
-A ``Connection`` owns one TCP socket and one protocol state machine. It
-is the layer the high-level ``Client`` is thin over. Responsibilities:
-TCP open/close, the Hello handshake (which sets ``server_info`` and
-``negotiated_revision``), the Query packet, the steady-state packet
+A `Connection` owns one TCP socket and one protocol state machine. It
+is the layer the high-level `Client` is thin over. Responsibilities:
+TCP open/close, the Hello handshake (which sets `server_info` and
+`negotiated_revision`), the Query packet, the steady-state packet
 loop with optional callbacks for the non-yielded packets, the INSERT
-``send_data`` path, server-side parameter binding, cooperative
+`send_data` path, server-side parameter binding, cooperative
 cancellation with bounded drain, and per-block LZ4 / ZSTD framing
 when compression is enabled.
 
-INSERT sequence (orchestrated by the higher-level ``Client``):
+INSERT sequence (orchestrated by the higher-level `Client`):
 
-1. ``await conn.send_query("INSERT INTO t VALUES", ...)``
-2. ``async for streamed in conn.iter_packets(): ...`` — the server
-   replies with a header-only Data block (``n_rows == 0``) describing
-   the table schema. ``break`` out of the loop after consuming it.
-3. For each batch: ``await conn.send_data(block)`` where ``block``'s
+1. `await conn.send_query("INSERT INTO t VALUES", ...)`
+2. `async for streamed in conn.iter_packets(): ...` — the server
+   replies with a header-only Data block (`n_rows == 0`) describing
+   the table schema. `break` out of the loop after consuming it.
+3. For each batch: `await conn.send_data(block)` where `block`'s
    columns match the header.
-4. ``await conn.send_data(None)`` to write the empty terminator block.
+4. `await conn.send_data(None)` to write the empty terminator block.
 5. Re-enter the iterator to drain any remaining server packets
-   (``Progress``, ``ProfileInfo``, eventually ``EndOfStream``); the
+   (`Progress`, `ProfileInfo`, eventually `EndOfStream`); the
    connection returns to READY.
 
 Single-task model: the connection never spawns a background reader
@@ -92,9 +92,9 @@ _logger = logging.getLogger(__name__)
 def _default_compression() -> CompressionMethod:
     """Return the auto-detected default compression method.
 
-    Checks ``CLICKHOUSE_ASYNC_DEFAULT_COMPRESSION`` first (any of
-    ``off``, ``none``, ``false``, ``0`` disables); then tries a lazy
-    ``import lz4.block`` — returns LZ4 on success, NONE on ImportError.
+    Checks `CLICKHOUSE_ASYNC_DEFAULT_COMPRESSION` first (any of
+    `off`, `none`, `false`, `0` disables); then tries a lazy
+    `import lz4.block` — returns LZ4 on success, NONE on ImportError.
     Never called at module import time so a bare install stays clean.
     """
     if os.environ.get("CLICKHOUSE_ASYNC_DEFAULT_COMPRESSION", "").lower() in (
@@ -125,10 +125,10 @@ BlockKind = Literal["data", "totals", "extremes"]
 
 @dataclass
 class StreamedBlock:
-    """A block yielded by ``iter_packets`` together with its kind tag.
+    """A block yielded by `iter_packets` together with its kind tag.
 
-    ClickHouse can interleave the regular result rows (``DATA``) with
-    aggregate ``TOTALS`` and ``EXTREMES`` blocks before ``EndOfStream``;
+    ClickHouse can interleave the regular result rows (`DATA`) with
+    aggregate `TOTALS` and `EXTREMES` blocks before `EndOfStream`;
     the kind tag lets callers route them appropriately without parsing
     packet ids themselves.
     """
@@ -138,9 +138,9 @@ class StreamedBlock:
 
 
 class _WriterLike(Protocol):
-    """The slice of ``asyncio.StreamWriter`` we actually call.
+    """The slice of `asyncio.StreamWriter` we actually call.
 
-    A test ``ScriptedTransport`` matches this protocol structurally so
+    A test `ScriptedTransport` matches this protocol structurally so
     we can drive the connection without a real socket.
     """
 
@@ -170,15 +170,15 @@ async def _default_transport_factory(
 class Connection:
     """Native-protocol connection skeleton.
 
-    ``open()`` brings the transport up and runs the Hello handshake;
-    on success the connection ends in ``READY``. With multiple
+    `open()` brings the transport up and runs the Hello handshake;
+    on success the connection ends in `READY`. With multiple
     candidate hosts the open walks them in order, returning on the
-    first success and raising ``ConnectError`` (with every per-host
-    error attached) only if every candidate fails. ``close()`` is
+    first success and raising `ConnectError` (with every per-host
+    error attached) only if every candidate fails. `close()` is
     idempotent and safe from any state, including mid-open.
 
-    ``connect_timeout`` limits how long each per-host TCP connect +
-    handshake may take (seconds). ``None`` means no limit. On timeout
+    `connect_timeout` limits how long each per-host TCP connect +
+    handshake may take (seconds). `None` means no limit. On timeout
     the host is treated as a failure and the next candidate is tried.
     """
 
@@ -204,9 +204,9 @@ class Connection:
         self._transport_factory: TransportFactory = (
             transport_factory or _default_transport_factory
         )
-        # Hook called once per candidate at end-of-attempt. ``exc`` is
-        # ``None`` on success, the underlying exception on failure.
-        # Used by the pool's ``_HostRotation`` to track per-host
+        # Hook called once per candidate at end-of-attempt. `exc` is
+        # `None` on success, the underlying exception on failure.
+        # Used by the pool's `_HostRotation` to track per-host
         # cooldowns without having to peek at private state.
         self._on_host_attempt = on_host_attempt
         self._connect_timeout = connect_timeout
@@ -230,9 +230,9 @@ class Connection:
         self.on_table_columns: Callable[[str, str], None] | None = None
         self.on_timezone_update: Callable[[str], None] | None = None
         # The server's last-emitted session timezone via the
-        # ``TIMEZONE_UPDATE`` packet (or the handshake's static
-        # ``ServerInfo.timezone`` until that fires). Threaded down to
-        # ``read_block_packet_body`` so naive ``DateTime`` columns
+        # `TIMEZONE_UPDATE` packet (or the handshake's static
+        # `ServerInfo.timezone` until that fires). Threaded down to
+        # `read_block_packet_body` so naive `DateTime` columns
         # honour the session zone instead of silently UTC.
         self._session_timezone: str | None = None
         # Session-level JSON nested-dict mode. When True, every JSON
@@ -251,8 +251,8 @@ class Connection:
 
     @property
     def hosts(self) -> tuple[tuple[str, int], ...]:
-        """Candidate host list as configured. ``open()`` walks these
-        in order; whichever wins is exposed via ``host`` / ``port``."""
+        """Candidate host list as configured. `open()` walks these
+        in order; whichever wins is exposed via `host` / `port`."""
         return self._hosts
 
     @property
@@ -293,20 +293,20 @@ class Connection:
 
     @property
     def negotiated_revision(self) -> int:
-        """``min(OUR_REVISION, server_revision)`` — the revision used to
+        """`min(OUR_REVISION, server_revision)` — the revision used to
         gate every wire-format decision past the handshake."""
         return self._negotiated_revision
 
     @property
     def session_timezone(self) -> str | None:
         """The server's session timezone — seeded from the handshake's
-        ``ServerInfo.timezone`` and refined by any ``TIMEZONE_UPDATE``
+        `ServerInfo.timezone` and refined by any `TIMEZONE_UPDATE`
         packets received mid-query.
 
-        ``None`` until the handshake completes; thereafter usually the
-        IANA zone name the server reports (``"UTC"`` /
-        ``"Europe/Berlin"`` / etc.). ``read_block`` threads this
-        through ``parse_type`` so naive ``DateTime`` reads land in
+        `None` until the handshake completes; thereafter usually the
+        IANA zone name the server reports (`"UTC"` /
+        `"Europe/Berlin"` / etc.). `read_block` threads this
+        through `parse_type` so naive `DateTime` reads land in
         this zone instead of silently UTC.
         """
         return self._session_timezone
@@ -325,20 +325,20 @@ class Connection:
         With multiple candidate hosts, walks them in order and returns
         on the first successful handshake. Per-host failures are
         recorded; if every candidate fails the call raises
-        ``ConnectError`` whose message names every attempted
-        ``host:port`` and the underlying error class.
+        `ConnectError` whose message names every attempted
+        `host:port` and the underlying error class.
 
-        On success the connection ends in ``READY`` with ``server_info``
-        populated and ``negotiated_revision`` set to
-        ``min(OUR_REVISION, server.revision)``. ``host`` / ``port``
+        On success the connection ends in `READY` with `server_info`
+        populated and `negotiated_revision` set to
+        `min(OUR_REVISION, server.revision)`. `host` / `port`
         report the candidate that won.
 
         A server-side rejection of our Hello (the server replies
-        ``Exception``) counts as a per-host failure and falls through
+        `Exception`) counts as a per-host failure and falls through
         to the next candidate just like a transport error. The
-        connection is left ``BROKEN`` with the writer closed when every
+        connection is left `BROKEN` with the writer closed when every
         candidate fails; cancellation during open propagates as
-        ``CancelledError`` without converting to ``ConnectError``.
+        `CancelledError` without converting to `ConnectError`.
         """
         if self._state != State.IDLE:
             raise RuntimeError(f"open() requires IDLE state, got {self._state.name}")
@@ -387,7 +387,7 @@ class Connection:
                 f"{stage} failed for {host}:{port}: {exc!r}",
             )
             # Surface the underlying error directly so callers can
-            # ``except ServerError`` / ``except ConnectionRefusedError``
+            # `except ServerError` / `except ConnectionRefusedError`
             # the way v0 documented.
             raise exc
         self._transition(
@@ -395,7 +395,7 @@ class Connection:
             f"all {len(host_errors)} candidate host(s) failed",
         )
         # Multi-host: wrap so the message names every attempted candidate
-        # and the per-host exceptions are preserved on ``host_errors``.
+        # and the per-host exceptions are preserved on `host_errors`.
         raise ConnectError([(h, p, e) for (h, p, _stage, e) in host_errors])
 
     async def _open_host(
@@ -458,19 +458,19 @@ class Connection:
         settings: Mapping[str, str] | None = None,
         params: Mapping[str, object] | None = None,
     ) -> None:
-        """Send a Query packet for ``sql``. Transitions ``READY → IN_FLIGHT``.
+        """Send a Query packet for `sql`. Transitions `READY → IN_FLIGHT`.
 
-        ``params`` are server-side query parameters: each value is
-        formatted via ``format_param`` and emitted in the parameters
+        `params` are server-side query parameters: each value is
+        formatted via `format_param` and emitted in the parameters
         block of the Query packet. The placeholder *type* lives in the
-        SQL itself (``WHERE day = {d:Date}``); the wire only carries
+        SQL itself (`WHERE day = {d:Date}`); the wire only carries
         textual values. The negotiated revision must be at or above
-        ``DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS`` — older servers
-        raise ``UnsupportedFeatureError`` rather than silently falling
+        `DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS` — older servers
+        raise `UnsupportedFeatureError` rather than silently falling
         back to client-side string interpolation.
 
         Concurrent calls on the same connection raise
-        ``ConcurrentQueryError`` rather than queueing or fanning out.
+        `ConcurrentQueryError` rather than queueing or fanning out.
         """
         if self._state == State.IN_FLIGHT:
             raise ConcurrentQueryError(
@@ -522,15 +522,15 @@ class Connection:
     async def send_data(self, block: Block | None) -> None:
         """Send a Data packet during an INSERT.
 
-        Pass ``None`` for the empty-block terminator that signals
+        Pass `None` for the empty-block terminator that signals
         end-of-data. State stays IN_FLIGHT — the call returns to READY
-        only when the user resumes ``iter_packets`` and the server
-        emits ``EndOfStream``.
+        only when the user resumes `iter_packets` and the server
+        emits `EndOfStream`.
 
         v0 does not validate the block's columns against the header
         the server emitted; misaligned schemas surface as a
-        ``ServerError`` from the next ``iter_packets`` read. Header
-        validation lives at the higher-level ``Client`` where the
+        `ServerError` from the next `iter_packets` read. Header
+        validation lives at the higher-level `Client` where the
         full header→block flow is owned.
         """
         if self._state != State.IN_FLIGHT:
@@ -557,13 +557,13 @@ class Connection:
             raise
 
     async def ping(self) -> None:
-        """Send a ``Ping`` packet and read the matching ``Pong``.
+        """Send a `Ping` packet and read the matching `Pong`.
 
         Used by the pool's health-check path on acquire and by user
         code that wants to verify the connection is alive without
-        running a query. Requires ``READY``; remains ``READY`` on
+        running a query. Requires `READY`; remains `READY` on
         success. A non-Pong response, IO error, or unexpected packet
-        marks the connection ``BROKEN`` and raises.
+        marks the connection `BROKEN` and raises.
         """
         if self._state != State.READY:
             raise RuntimeError(f"ping() requires READY state, got {self._state.name}")
@@ -597,25 +597,25 @@ class Connection:
     async def cancel(self, *, drain_timeout: float = 5.0) -> None:
         """Cancel the current query.
 
-        Always raises ``QueryCancellationError`` describing the outcome
+        Always raises `QueryCancellationError` describing the outcome
         — never returns silently. The reason on the raised error tells
         the caller which path the cancel took:
 
-        - ``READY``: no-op return (the only path that doesn't raise).
+        - `READY`: no-op return (the only path that doesn't raise).
           Cancel is meaningful only mid-query.
-        - ``IN_FLIGHT``: send a ``Cancel`` packet, drain whatever the
+        - `IN_FLIGHT`: send a `Cancel` packet, drain whatever the
           server emits afterwards (Progress / EndOfStream / Exception)
-          bounded by ``drain_timeout``. Clean drain → ``READY`` plus
-          ``reason="drained"``. Timeout → close the writer, transition
-          to ``BROKEN``, raise ``reason="timeout"``.
-        - Another ``cancel()`` is in flight: raise
-          ``reason="already_cancelled"`` without disturbing the first.
-        - ``BROKEN`` / ``CLOSED``: raise ``reason="not_in_flight"`` —
+          bounded by `drain_timeout`. Clean drain → `READY` plus
+          `reason="drained"`. Timeout → close the writer, transition
+          to `BROKEN`, raise `reason="timeout"`.
+        - Another `cancel()` is in flight: raise
+          `reason="already_cancelled"` without disturbing the first.
+        - `BROKEN` / `CLOSED`: raise `reason="not_in_flight"` —
           there's nothing to cancel.
 
-        Cancellation safety: every ``await`` inside leaves the
+        Cancellation safety: every `await` inside leaves the
         connection in a state callers can reason about — either still
-        mid-cancel (we'll raise on completion) or ``BROKEN`` (the
+        mid-cancel (we'll raise on completion) or `BROKEN` (the
         writer is closed). No half-broken state.
         """
         if self._state == State.READY:
@@ -683,25 +683,25 @@ class Connection:
             self._cancel_in_flight = False
 
     async def iter_packets(self) -> AsyncIterator[StreamedBlock]:
-        """Yield each block-bearing packet until ``EndOfStream`` or
-        ``Exception``.
+        """Yield each block-bearing packet until `EndOfStream` or
+        `Exception`.
 
-        Block-bearing packets — ``DATA`` / ``TOTALS`` / ``EXTREMES`` —
-        are yielded as ``StreamedBlock`` so callers can route them by
+        Block-bearing packets — `DATA` / `TOTALS` / `EXTREMES` —
+        are yielded as `StreamedBlock` so callers can route them by
         kind without parsing packet ids.
 
-        Non-yielding packets fire the matching callback (``on_progress``,
-        ``on_profile_info``, ``on_profile_events``, ``on_log``,
-        ``on_table_columns``, ``on_timezone_update``) and the loop
-        continues. Setting a callback to ``None`` (the default) drops
+        Non-yielding packets fire the matching callback (`on_progress`,
+        `on_profile_info`, `on_profile_events`, `on_log`,
+        `on_table_columns`, `on_timezone_update`) and the loop
+        continues. Setting a callback to `None` (the default) drops
         the data on the floor — every packet's body is still consumed
         so the wire stays in sync.
 
-        ``EXCEPTION`` mid-query raises ``ServerError`` and returns the
+        `EXCEPTION` mid-query raises `ServerError` and returns the
         connection to READY (a query-level error isn't a transport
-        failure). ``END_OF_STREAM`` terminates cleanly. Distributed-read
-        packets (``PART_UUIDS``, ``READ_TASK_REQUEST``,
-        ``MERGE_TREE_*``) and any unrecognised id mark the connection
+        failure). `END_OF_STREAM` terminates cleanly. Distributed-read
+        packets (`PART_UUIDS`, `READ_TASK_REQUEST`,
+        `MERGE_TREE_*`) and any unrecognised id mark the connection
         BROKEN — initial-query connections shouldn't see those.
         """
         if self._state != State.IN_FLIGHT:
@@ -808,7 +808,7 @@ class Connection:
                 elif packet_id == ServerPacket.TIMEZONE_UPDATE:
                     tz = await read_timezone_update(self._reader)
                     # Capture before firing the user callback so a hook
-                    # that introspects ``conn.session_timezone`` sees the
+                    # that introspects `conn.session_timezone` sees the
                     # new value, not the stale one.
                     self._session_timezone = tz or None
                     if self.on_timezone_update is not None:
@@ -833,9 +833,9 @@ class Connection:
     async def _send_addendum(self) -> None:
         """Send the post-Hello addendum the server expects from clients
         whose negotiated revision is at or above
-        ``DBMS_MIN_PROTOCOL_VERSION_WITH_ADDENDUM``.
+        `DBMS_MIN_PROTOCOL_VERSION_WITH_ADDENDUM`.
 
-        Fields are written in the order ``TCPHandler::receiveAddendum``
+        Fields are written in the order `TCPHandler::receiveAddendum`
         reads them. Old servers (< 54458) skip the whole addendum.
         """
         if self._negotiated_revision < DBMS_MIN_PROTOCOL_VERSION_WITH_ADDENDUM:
@@ -866,7 +866,7 @@ class Connection:
             await writer.wait_closed()
 
     async def close(self) -> None:
-        """Close the transport and transition to ``CLOSED``.
+        """Close the transport and transition to `CLOSED`.
 
         Idempotent and safe to call from any state, including mid-open.
         """

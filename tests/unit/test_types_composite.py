@@ -1,4 +1,4 @@
-"""Round-trip and byte-layout tests for ``Array``, ``Tuple``, ``Map``."""
+"""Round-trip and byte-layout tests for `Array`, `Tuple`, `Map`."""
 
 from __future__ import annotations
 
@@ -109,14 +109,14 @@ async def test_nested_array_of_array_round_trip() -> None:
 
 async def test_array_write_coerces_row_level_none_to_empty_array() -> None:
     # BEGIN: an Array(Nullable(String)) codec and a row source with one
-    #        ``None`` (caller's "no array" sentinel) alongside a real list
+    #        `None` (caller's "no array" sentinel) alongside a real list
     codec = parse_type("Array(Nullable(String))")
     values: list[Any] = [None, ["a", "b"], None]
 
     # WHEN: round-tripping
     decoded = await _round_trip(codec, values)
 
-    # THEN: each ``None`` lands as the codec's ``null_value`` (``[]``),
+    # THEN: each `None` lands as the codec's `null_value` (`[]`),
     #       matching what the server itself does for a NULL inserted
     #       into an Array column at SQL level. The interior Nullable
     #       layer continues to handle element-level None on its own.
@@ -165,7 +165,7 @@ async def test_tuple_write_coerces_row_level_none_to_default_tuple() -> None:
     # WHEN: round-tripping
     decoded = await _round_trip(codec, values)
 
-    # THEN: the None lands as the codec's ``null_value`` — a tuple of
+    # THEN: the None lands as the codec's `null_value` — a tuple of
     #       per-component defaults (Int32 → 0, String → "")
     assert decoded == [(1, "a"), (0, ""), (3, "c")]
 
@@ -196,7 +196,7 @@ def test_named_tuple_round_trips_through_parse_and_name() -> None:
     # BEGIN / WHEN: parsing a named Tuple spec
     codec = parse_type("Tuple(id UInt32, name String)")
 
-    # THEN: the codec is named and ``codec.name`` reproduces the input
+    # THEN: the codec is named and `codec.name` reproduces the input
     assert isinstance(codec, Tuple)
     assert codec.named is True
     assert codec.names == ("id", "name")
@@ -207,7 +207,7 @@ def test_unnamed_tuple_keeps_named_false() -> None:
     # BEGIN / WHEN: parsing an unnamed Tuple
     codec = parse_type("Tuple(UInt32, String)")
 
-    # THEN: ``.named`` is False and the rendering matches input
+    # THEN: `.named` is False and the rendering matches input
     assert isinstance(codec, Tuple)
     assert codec.named is False
     assert codec.names is None
@@ -268,7 +268,7 @@ def test_nested_parses_and_renders_nested_form() -> None:
     codec = parse_type("Nested(uid UInt32, label String)")
 
     # THEN: a Nested codec comes back with the original spelling on
-    #       ``codec.name`` (not the desugared ``Array(Tuple(...))``)
+    #       `codec.name` (not the desugared `Array(Tuple(...))`)
     assert isinstance(codec, Nested)
     assert codec.name == "Nested(uid UInt32, label String)"
     assert codec.names == ("uid", "label")
@@ -299,7 +299,7 @@ def test_nested_rejects_empty_components() -> None:
 async def test_nested_round_trips_values_through_codec() -> None:
     # BEGIN: a Nested codec and rows holding lists of (uid, label)
     #        tuples — the wire format is identical to
-    #        ``Array(Tuple(...))`` so this exercises the delegation
+    #        `Array(Tuple(...))` so this exercises the delegation
     codec = parse_type("Nested(uid UInt32, label String)")
     values: list[list[tuple[int, str]]] = [
         [(1, "alpha"), (2, "beta")],
@@ -325,9 +325,9 @@ def test_desugared_array_tuple_named_still_decodes() -> None:
     # BEGIN: the desugared form server-emits in some edge paths
     codec = parse_type("Array(Tuple(uid UInt32, label String))")
 
-    # THEN: it parses to ``Array(Tuple(..., names=...))`` with the
+    # THEN: it parses to `Array(Tuple(..., names=...))` with the
     #       desugared rendering — the parser doesn't re-spell either
-    #       way; whichever form arrived is what ``codec.name`` gives back
+    #       way; whichever form arrived is what `codec.name` gives back
     assert isinstance(codec, Array)
     inner = codec.inner
     assert isinstance(inner, Tuple)
@@ -364,7 +364,7 @@ async def test_map_write_coerces_row_level_none_to_empty_map() -> None:
     # WHEN: round-tripping
     decoded = await _round_trip(codec, values)
 
-    # THEN: the None lands as the codec's ``null_value`` (``{}``), the
+    # THEN: the None lands as the codec's `null_value` (`{}`), the
     #       same convention Array and Tuple now follow
     assert decoded == [{"a": 1}, {}, {"b": 2}]
 

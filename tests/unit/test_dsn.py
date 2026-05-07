@@ -1,4 +1,4 @@
-"""Tests for ``parse_dsn`` — every documented edge case in the DSN
+"""Tests for `parse_dsn` — every documented edge case in the DSN
 grammar."""
 
 from __future__ import annotations

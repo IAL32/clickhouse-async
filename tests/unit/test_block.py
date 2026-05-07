@@ -281,7 +281,7 @@ async def test_custom_serialization_unknown_kind_raises() -> None:
 
 # Bit-62 flag the server OR-s into the **last** sparse-offset varuint to
 # mark end-of-granule. The remaining low 62 bits are the trailing-defaults
-# count. Mirrors ``_SPARSE_END_OF_GRANULE_FLAG`` in ``protocol/block.py``.
+# count. Mirrors `_SPARSE_END_OF_GRANULE_FLAG` in `protocol/block.py`.
 _SPARSE_END_OF_GRANULE_FLAG = 1 << 62
 
 
@@ -289,7 +289,7 @@ def _write_empty_block_header(
     writer: BinaryWriter, *, n_columns: int, n_rows: int
 ) -> None:
     """Emit the BlockInfo + (n_columns, n_rows) prefix used by every
-    block test that doesn't go through ``write_block`` directly."""
+    block test that doesn't go through `write_block` directly."""
     writer.write_varuint(1)  # BlockInfo field 1: is_overflows
     writer.write_byte(0)
     writer.write_varuint(2)  # BlockInfo field 2: bucket_num
@@ -308,9 +308,9 @@ def _write_sparse_uint8_column(
 ) -> None:
     """Encode the body of a sparse UInt8 column past its has_custom byte.
 
-    ``group_sizes[i]`` is the number of default-valued rows before the
-    i-th non-default; ``trailing_defaults`` is the count after the last
-    non-default. ``values`` carries the non-default UInt8 payloads.
+    `group_sizes[i]` is the number of default-valued rows before the
+    i-th non-default; `trailing_defaults` is the count after the last
+    non-default. `values` carries the non-default UInt8 payloads.
     """
     writer.write_byte(1)  # has_custom = 1
     writer.write_byte(1)  # kind = 1 (Sparse)

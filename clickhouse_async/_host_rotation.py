@@ -1,7 +1,7 @@
 """Round-robin host rotation with per-host failure cooldowns.
 
-Used by ``Pool`` to spread acquires across the candidate list of a
-multi-host DSN. Every ``next_candidates()`` call advances the start
+Used by `Pool` to spread acquires across the candidate list of a
+multi-host DSN. Every `next_candidates()` call advances the start
 position so concurrent acquires don't all hammer the same host;
 hosts that just failed are skipped for a short cooldown so a single
 dead replica doesn't burn every acquire on a connect-and-fail loop.
@@ -67,7 +67,7 @@ class _HostRotation:
         # A host is eligible if it has no recorded failure, or if its
         # failure timestamp is older than the cooldown window. Falling
         # back to a numeric sentinel (e.g. 0.0) is a footgun because
-        # ``time.monotonic()`` on a freshly-booted Linux runner can
+        # `time.monotonic()` on a freshly-booted Linux runner can
         # return a value smaller than the cooldown — every host would
         # then look "recently failed" and the filter would do nothing.
         eligible: list[tuple[str, int]] = []
@@ -78,7 +78,7 @@ class _HostRotation:
         return tuple(eligible) if eligible else tuple(rotated)
 
     def record_failure(self, host: tuple[str, int]) -> None:
-        """Mark ``host`` as recently-failed. The next ``cooldown``
+        """Mark `host` as recently-failed. The next `cooldown`
         seconds of rotations will skip it (unless every host is in
         cooldown)."""
         if host not in set(self._hosts):
@@ -88,6 +88,6 @@ class _HostRotation:
         self._failures[host] = time.monotonic()
 
     def record_success(self, host: tuple[str, int]) -> None:
-        """Clear ``host``'s failure timestamp — a successful connect
+        """Clear `host`'s failure timestamp — a successful connect
         proves the replica is live again."""
         self._failures.pop(host, None)

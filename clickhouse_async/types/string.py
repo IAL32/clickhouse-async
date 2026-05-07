@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from clickhouse_async import _fast
 from clickhouse_async.protocol.io_sync import (
     _VARUINT_CONTINUATION_BIT,
     BufferUnderflow,
@@ -28,13 +29,22 @@ class String:
     python_type: type = str
 
     def read(self, reader: SyncBinaryReader, n_rows: int) -> list[str]:
-        # Hot path: hoist `_buf` and `_pos` into locals and inline the
-        # varuint + slice + decode so we avoid the per-row method-call
-        # overhead of `read_string` → `read_varuint` → `read_byte`.
-        # The 1M-row read benchmark spends ~45% here, so a constant
-        # factor matters.
         if n_rows == 0:
             return []
+        # C path: tight loop over the buffer doing varuint + UTF-8
+        # decode without bytecode dispatch per row. Same BufferUnderflow
+        # contract as the pure-Python implementation below, so the
+        # outer retry loop in `read_block_buffered` is unaffected.
+        fast = _fast.module
+        if fast is not None:
+            rows, new_pos = fast.decode_strings(reader._buf, reader._pos, n_rows)
+            reader._pos = new_pos
+            return rows
+        # Pure-Python fallback: hoist `_buf` and `_pos` into locals and
+        # inline the varuint + slice + decode so we avoid the per-row
+        # method-call overhead of `read_string` → `read_varuint` →
+        # `read_byte`. The 1M-row read benchmark spends ~45% here, so
+        # a constant factor matters.
         buf = reader._buf
         pos = reader._pos
         buflen = len(buf)

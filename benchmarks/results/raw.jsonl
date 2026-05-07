@@ -1,0 +1,1155 @@
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 0, "elapsed_ms": 2.0336247980594635, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 1, "elapsed_ms": 1.5558339655399323, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 2, "elapsed_ms": 1.2095412239432335, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 3, "elapsed_ms": 1.2043751776218414, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 4, "elapsed_ms": 1.1638333089649677, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 5, "elapsed_ms": 1.0289172641932964, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 6, "elapsed_ms": 1.3307919725775719, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 7, "elapsed_ms": 1.1752918362617493, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 8, "elapsed_ms": 1.2464160099625587, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 9, "elapsed_ms": 1.1854581534862518, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 10, "elapsed_ms": 1.1041252873837948, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 11, "elapsed_ms": 1.1001667007803917, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 12, "elapsed_ms": 1.0726670734584332, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 13, "elapsed_ms": 1.063875388354063, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 14, "elapsed_ms": 1.099207904189825, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 15, "elapsed_ms": 1.237957738339901, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 16, "elapsed_ms": 0.9897500276565552, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 17, "elapsed_ms": 0.979958102107048, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 18, "elapsed_ms": 1.0075001046061516, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 19, "elapsed_ms": 1.0043750517070293, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 20, "elapsed_ms": 0.9529590606689453, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 21, "elapsed_ms": 1.0032081045210361, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 22, "elapsed_ms": 0.9985421784222126, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 23, "elapsed_ms": 1.0234578512609005, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 24, "elapsed_ms": 0.974167138338089, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 25, "elapsed_ms": 1.018209382891655, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 26, "elapsed_ms": 0.969666987657547, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 27, "elapsed_ms": 1.0623331181704998, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 28, "elapsed_ms": 1.1367090046405792, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 29, "elapsed_ms": 1.094541046768427, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 30, "elapsed_ms": 1.0339580476284027, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 31, "elapsed_ms": 1.0974998585879803, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 32, "elapsed_ms": 0.9931670501828194, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 33, "elapsed_ms": 0.9656250476837158, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 34, "elapsed_ms": 1.0082907974720001, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 35, "elapsed_ms": 0.966791994869709, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 36, "elapsed_ms": 0.9520421735942364, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 37, "elapsed_ms": 0.9473748505115509, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 38, "elapsed_ms": 0.9302501566708088, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 39, "elapsed_ms": 0.970334280282259, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 40, "elapsed_ms": 0.9942906908690929, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 41, "elapsed_ms": 1.0097078047692776, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 42, "elapsed_ms": 3.1357919797301292, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 43, "elapsed_ms": 4.141625016927719, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 44, "elapsed_ms": 5.364874843508005, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 45, "elapsed_ms": 3.8628331385552883, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 46, "elapsed_ms": 1.7777499742805958, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 47, "elapsed_ms": 2.0122500136494637, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 48, "elapsed_ms": 1.3103331439197063, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 49, "elapsed_ms": 1.665750052779913, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 50, "elapsed_ms": 1.9144169054925442, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 51, "elapsed_ms": 3.166249953210354, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 52, "elapsed_ms": 2.612791955471039, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 53, "elapsed_ms": 1.3496670871973038, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 54, "elapsed_ms": 1.0632090270519257, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 55, "elapsed_ms": 1.1241249740123749, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 56, "elapsed_ms": 0.9622923098504543, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 57, "elapsed_ms": 1.0410826653242111, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 58, "elapsed_ms": 1.0437089949846268, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 59, "elapsed_ms": 1.0118749924004078, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 60, "elapsed_ms": 1.0099592618644238, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 61, "elapsed_ms": 0.9917495772242546, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 62, "elapsed_ms": 0.9382921271026134, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 63, "elapsed_ms": 1.0962076485157013, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 64, "elapsed_ms": 1.020041760057211, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 65, "elapsed_ms": 0.9704590775072575, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 66, "elapsed_ms": 0.9695831686258316, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 67, "elapsed_ms": 0.9748339653015137, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 68, "elapsed_ms": 0.9730001911520958, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 69, "elapsed_ms": 1.0455832816660404, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 70, "elapsed_ms": 0.95354113727808, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 71, "elapsed_ms": 0.9583327919244766, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 72, "elapsed_ms": 1.0276250541210175, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 73, "elapsed_ms": 0.9951251558959484, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 74, "elapsed_ms": 0.9291660971939564, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 75, "elapsed_ms": 0.9527080692350864, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 76, "elapsed_ms": 0.9531248360872269, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 77, "elapsed_ms": 1.0010828264057636, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 78, "elapsed_ms": 0.9945002384483814, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 79, "elapsed_ms": 0.9633330628275871, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 80, "elapsed_ms": 1.0685422457754612, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 81, "elapsed_ms": 0.9365002624690533, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 82, "elapsed_ms": 0.9632082656025887, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 83, "elapsed_ms": 1.0001659393310547, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 84, "elapsed_ms": 1.0836250148713589, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 85, "elapsed_ms": 0.9635002352297306, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 86, "elapsed_ms": 0.9811669588088989, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 87, "elapsed_ms": 0.96483388915658, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 88, "elapsed_ms": 0.9616659954190254, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 89, "elapsed_ms": 1.0234997607767582, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 90, "elapsed_ms": 0.9460421279072762, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 91, "elapsed_ms": 0.9947079233825207, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 92, "elapsed_ms": 1.0063336230814457, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 93, "elapsed_ms": 1.0470408014953136, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 94, "elapsed_ms": 0.9842501021921635, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 95, "elapsed_ms": 1.6870410181581974, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 96, "elapsed_ms": 0.9935828857123852, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 97, "elapsed_ms": 0.9544170461595058, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 98, "elapsed_ms": 0.9761247783899307, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 99, "elapsed_ms": 1.018583308905363, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 100, "elapsed_ms": 1.0070833377540112, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 101, "elapsed_ms": 0.9514172561466694, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 102, "elapsed_ms": 1.023625023663044, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 103, "elapsed_ms": 0.9725410491228104, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 104, "elapsed_ms": 0.9197499603033066, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 105, "elapsed_ms": 0.9556668810546398, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 106, "elapsed_ms": 1.026832964271307, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 107, "elapsed_ms": 0.9768749587237835, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 108, "elapsed_ms": 0.9951251558959484, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 109, "elapsed_ms": 1.0023340582847595, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 110, "elapsed_ms": 1.0470841079950333, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 111, "elapsed_ms": 0.9745419956743717, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 112, "elapsed_ms": 1.019833143800497, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 113, "elapsed_ms": 1.788791734725237, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 114, "elapsed_ms": 1.638708170503378, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 115, "elapsed_ms": 0.9902501478791237, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 116, "elapsed_ms": 0.9693331085145473, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 117, "elapsed_ms": 1.2900419533252716, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 118, "elapsed_ms": 0.9276252239942551, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 119, "elapsed_ms": 0.9790826588869095, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 120, "elapsed_ms": 1.0260832495987415, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 121, "elapsed_ms": 0.9994995780289173, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 122, "elapsed_ms": 0.9477501735091209, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 123, "elapsed_ms": 1.1842497624456882, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 124, "elapsed_ms": 1.5059160068631172, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 125, "elapsed_ms": 1.0144580155611038, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 126, "elapsed_ms": 0.9702080860733986, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 127, "elapsed_ms": 0.9533748961985111, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 128, "elapsed_ms": 1.034165732562542, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 129, "elapsed_ms": 1.04591716080904, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 130, "elapsed_ms": 1.0231672786176205, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 131, "elapsed_ms": 0.970042310655117, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 132, "elapsed_ms": 1.0144999250769615, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 133, "elapsed_ms": 1.0850410908460617, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 134, "elapsed_ms": 1.0341671295464039, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 135, "elapsed_ms": 1.2065833434462547, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 136, "elapsed_ms": 1.1152089573442936, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 137, "elapsed_ms": 1.0734996758401394, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 138, "elapsed_ms": 1.1235829442739487, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 139, "elapsed_ms": 1.1443747207522392, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 140, "elapsed_ms": 1.1062496341764927, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 141, "elapsed_ms": 1.0433751158416271, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 142, "elapsed_ms": 1.0401657782495022, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 143, "elapsed_ms": 1.0528331622481346, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 144, "elapsed_ms": 1.0431250557303429, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 145, "elapsed_ms": 0.9919581934809685, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 146, "elapsed_ms": 1.14100007340312, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 147, "elapsed_ms": 1.041417010128498, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 148, "elapsed_ms": 1.004084013402462, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 149, "elapsed_ms": 1.3127923011779785, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 150, "elapsed_ms": 1.1282078921794891, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 151, "elapsed_ms": 0.983125064522028, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 152, "elapsed_ms": 0.9767087176442146, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 153, "elapsed_ms": 1.1040419340133667, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 154, "elapsed_ms": 1.1682910844683647, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 155, "elapsed_ms": 1.1554579250514507, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 156, "elapsed_ms": 0.9517502039670944, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 157, "elapsed_ms": 1.035749912261963, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 158, "elapsed_ms": 1.1221249587833881, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 159, "elapsed_ms": 2.2971252910792828, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 160, "elapsed_ms": 2.4732090532779694, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 161, "elapsed_ms": 1.709749922156334, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 162, "elapsed_ms": 1.505499705672264, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 163, "elapsed_ms": 1.1330829001963139, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 164, "elapsed_ms": 1.0505826212465763, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 165, "elapsed_ms": 1.2302501127123833, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 166, "elapsed_ms": 1.005125232040882, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 167, "elapsed_ms": 1.0894169099628925, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 168, "elapsed_ms": 1.0044998489320278, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 169, "elapsed_ms": 1.194874756038189, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 170, "elapsed_ms": 1.072790939360857, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 171, "elapsed_ms": 1.005750149488449, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 172, "elapsed_ms": 1.0633752681314945, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 173, "elapsed_ms": 0.9893747046589851, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 174, "elapsed_ms": 0.998958945274353, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 175, "elapsed_ms": 0.9393328800797462, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 176, "elapsed_ms": 1.0061250068247318, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 177, "elapsed_ms": 0.9872918017208576, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 178, "elapsed_ms": 1.1583329178392887, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 179, "elapsed_ms": 1.074375119060278, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 180, "elapsed_ms": 1.084457617253065, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 181, "elapsed_ms": 1.0728342458605766, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 182, "elapsed_ms": 0.9836661629378796, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 183, "elapsed_ms": 1.0058749467134476, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 184, "elapsed_ms": 1.0256669484078884, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 185, "elapsed_ms": 1.076000276952982, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 186, "elapsed_ms": 1.0067075490951538, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 187, "elapsed_ms": 1.0824580676853657, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 188, "elapsed_ms": 1.161082647740841, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 189, "elapsed_ms": 1.1027920991182327, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 190, "elapsed_ms": 1.0252497158944607, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 191, "elapsed_ms": 1.0989592410624027, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 192, "elapsed_ms": 1.1593750678002834, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 193, "elapsed_ms": 1.2451671063899994, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 194, "elapsed_ms": 1.0664588771760464, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 195, "elapsed_ms": 1.0684998705983162, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 196, "elapsed_ms": 1.0522915981709957, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 197, "elapsed_ms": 1.040625385940075, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 198, "elapsed_ms": 0.9731249883770943, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "ping_latency", "run": 199, "elapsed_ms": 1.0484997183084488, "rows": 1, "extra": {}}
+{"library": "clickhouse-async", "scenario": "read_throughput", "run": 0, "elapsed_ms": 1591.4444169029593, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-async", "scenario": "read_throughput", "run": 1, "elapsed_ms": 1597.8028331883252, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-async", "scenario": "read_throughput", "run": 2, "elapsed_ms": 1602.0580842159688, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-async", "scenario": "read_throughput", "run": 3, "elapsed_ms": 1602.4794592522085, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-async", "scenario": "read_throughput", "run": 4, "elapsed_ms": 1599.7048332355917, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-async", "scenario": "read_throughput", "run": 5, "elapsed_ms": 1596.38616675511, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-async", "scenario": "read_throughput", "run": 6, "elapsed_ms": 1590.3407079167664, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-async", "scenario": "read_throughput", "run": 7, "elapsed_ms": 1594.5081673562527, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-async", "scenario": "read_throughput", "run": 8, "elapsed_ms": 1595.5679998733103, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-async", "scenario": "read_throughput", "run": 9, "elapsed_ms": 1595.666917040944, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-async", "scenario": "insert_throughput", "run": 0, "elapsed_ms": 135.18108427524567, "rows": 100000, "extra": {}}
+{"library": "clickhouse-async", "scenario": "insert_throughput", "run": 1, "elapsed_ms": 136.9041665457189, "rows": 100000, "extra": {}}
+{"library": "clickhouse-async", "scenario": "insert_throughput", "run": 2, "elapsed_ms": 132.8726247884333, "rows": 100000, "extra": {}}
+{"library": "clickhouse-async", "scenario": "insert_throughput", "run": 3, "elapsed_ms": 134.30654210969806, "rows": 100000, "extra": {}}
+{"library": "clickhouse-async", "scenario": "insert_throughput", "run": 4, "elapsed_ms": 136.41908299177885, "rows": 100000, "extra": {}}
+{"library": "clickhouse-async", "scenario": "insert_throughput", "run": 5, "elapsed_ms": 130.8154589496553, "rows": 100000, "extra": {}}
+{"library": "clickhouse-async", "scenario": "insert_throughput", "run": 6, "elapsed_ms": 129.44141682237387, "rows": 100000, "extra": {}}
+{"library": "clickhouse-async", "scenario": "insert_throughput", "run": 7, "elapsed_ms": 127.55979085341096, "rows": 100000, "extra": {}}
+{"library": "clickhouse-async", "scenario": "insert_throughput", "run": 8, "elapsed_ms": 128.04262526333332, "rows": 100000, "extra": {}}
+{"library": "clickhouse-async", "scenario": "insert_throughput", "run": 9, "elapsed_ms": 123.7196670845151, "rows": 100000, "extra": {}}
+{"library": "clickhouse-async", "scenario": "concurrent_reads", "run": 0, "elapsed_ms": 13.969833962619305, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-async", "scenario": "concurrent_reads", "run": 1, "elapsed_ms": 13.01554124802351, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-async", "scenario": "concurrent_reads", "run": 2, "elapsed_ms": 12.421082705259323, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-async", "scenario": "concurrent_reads", "run": 3, "elapsed_ms": 12.256249785423279, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-async", "scenario": "concurrent_reads", "run": 4, "elapsed_ms": 14.279458206146955, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-async", "scenario": "concurrent_reads", "run": 5, "elapsed_ms": 13.790333177894354, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-async", "scenario": "concurrent_reads", "run": 6, "elapsed_ms": 13.855332974344492, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-async", "scenario": "concurrent_reads", "run": 7, "elapsed_ms": 13.998624868690968, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-async", "scenario": "concurrent_reads", "run": 8, "elapsed_ms": 11.758666951209307, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-async", "scenario": "concurrent_reads", "run": 9, "elapsed_ms": 11.381791904568672, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-async", "scenario": "memory_ceiling", "run": 0, "elapsed_ms": 1335.150834172964, "rows": 5000000, "extra": {"rss_samples": [{"t_ms": 0.0, "rss_mib": 30.53}, {"t_ms": 0.08, "rss_mib": 30.56}, {"t_ms": 52.64, "rss_mib": 52.56}, {"t_ms": 112.4, "rss_mib": 79.47}, {"t_ms": 163.65, "rss_mib": 100.16}, {"t_ms": 224.97, "rss_mib": 125.67}, {"t_ms": 286.28, "rss_mib": 151.05}, {"t_ms": 338.07, "rss_mib": 171.8}, {"t_ms": 395.97, "rss_mib": 196.11}, {"t_ms": 449.8, "rss_mib": 217.38}, {"t_ms": 511.11, "rss_mib": 242.88}, {"t_ms": 572.43, "rss_mib": 268.36}, {"t_ms": 624.13, "rss_mib": 288.98}, {"t_ms": 685.43, "rss_mib": 314.31}, {"t_ms": 735.87, "rss_mib": 334.59}, {"t_ms": 796.75, "rss_mib": 359.84}, {"t_ms": 858.05, "rss_mib": 385.19}, {"t_ms": 910.75, "rss_mib": 406.23}, {"t_ms": 972.05, "rss_mib": 431.58}, {"t_ms": 1033.35, "rss_mib": 456.95}, {"t_ms": 1085.0, "rss_mib": 477.84}, {"t_ms": 1146.3, "rss_mib": 503.45}, {"t_ms": 1207.59, "rss_mib": 528.75}, {"t_ms": 1335.31, "rss_mib": 146.83}, {"t_ms": 1335.43, "rss_mib": 146.8}], "sample_interval_ms": 50.0, "rss_baseline_mib": 30.53, "rss_peak_mib": 528.75, "rss_delta_mib": 498.22}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 0, "elapsed_ms": 2.411416731774807, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 1, "elapsed_ms": 1.9690832123160362, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 2, "elapsed_ms": 1.9495831802487373, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 3, "elapsed_ms": 2.0372080616652966, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 4, "elapsed_ms": 1.9622915424406528, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 5, "elapsed_ms": 1.9756248220801353, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 6, "elapsed_ms": 2.4223332293331623, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 7, "elapsed_ms": 2.512542065232992, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 8, "elapsed_ms": 1.9667502492666245, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 9, "elapsed_ms": 1.947999931871891, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 10, "elapsed_ms": 2.0783343352377415, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 11, "elapsed_ms": 1.9692499190568924, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 12, "elapsed_ms": 1.9352911040186882, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 13, "elapsed_ms": 1.9604158587753773, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 14, "elapsed_ms": 2.0535001531243324, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 15, "elapsed_ms": 2.068042289465666, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 16, "elapsed_ms": 1.8496247939765453, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 17, "elapsed_ms": 1.9937497563660145, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 18, "elapsed_ms": 1.7811250872910023, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 19, "elapsed_ms": 1.9287080504000187, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 20, "elapsed_ms": 1.9383332692086697, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 21, "elapsed_ms": 1.9620000384747982, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 22, "elapsed_ms": 1.9891252741217613, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 23, "elapsed_ms": 1.9436669535934925, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 24, "elapsed_ms": 1.9558328203856945, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 25, "elapsed_ms": 1.9596251659095287, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 26, "elapsed_ms": 2.080750185996294, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 27, "elapsed_ms": 2.0167501643300056, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 28, "elapsed_ms": 2.0383750088512897, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 29, "elapsed_ms": 2.0113750360906124, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 30, "elapsed_ms": 2.1825837902724743, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 31, "elapsed_ms": 2.1959999576210976, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 32, "elapsed_ms": 2.085791900753975, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 33, "elapsed_ms": 1.9519156776368618, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 34, "elapsed_ms": 2.070875372737646, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 35, "elapsed_ms": 1.9195419736206532, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 36, "elapsed_ms": 1.9844998605549335, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 37, "elapsed_ms": 1.9918750040233135, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 38, "elapsed_ms": 2.027499955147505, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 39, "elapsed_ms": 1.9574579782783985, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 40, "elapsed_ms": 2.0764577202498913, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 41, "elapsed_ms": 2.073624636977911, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 42, "elapsed_ms": 2.178584225475788, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 43, "elapsed_ms": 2.0267502404749393, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 44, "elapsed_ms": 1.9910000264644623, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 45, "elapsed_ms": 2.0059170201420784, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 46, "elapsed_ms": 1.916500274091959, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 47, "elapsed_ms": 1.9551669247448444, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 48, "elapsed_ms": 2.052624709904194, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 49, "elapsed_ms": 1.965917181223631, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 50, "elapsed_ms": 1.9345004111528397, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 51, "elapsed_ms": 1.8419581465423107, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 52, "elapsed_ms": 2.1247081458568573, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 53, "elapsed_ms": 1.970707904547453, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 54, "elapsed_ms": 1.846041064709425, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 55, "elapsed_ms": 1.9684168510138988, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 56, "elapsed_ms": 1.9073341973125935, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 57, "elapsed_ms": 1.988041214644909, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 58, "elapsed_ms": 1.9307909533381462, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 59, "elapsed_ms": 1.9378340803086758, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 60, "elapsed_ms": 1.9661658443510532, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 61, "elapsed_ms": 1.9797077402472496, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 62, "elapsed_ms": 1.9778748974204063, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 63, "elapsed_ms": 1.966207753866911, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 64, "elapsed_ms": 1.9926666282117367, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 65, "elapsed_ms": 1.9160406664013863, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 66, "elapsed_ms": 2.002834342420101, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 67, "elapsed_ms": 1.8543330952525139, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 68, "elapsed_ms": 2.1663750521838665, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 69, "elapsed_ms": 1.9166669808328152, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 70, "elapsed_ms": 1.8646251410245895, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 71, "elapsed_ms": 1.9155829213559628, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 72, "elapsed_ms": 1.9020424224436283, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 73, "elapsed_ms": 2.0057079382240772, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 74, "elapsed_ms": 1.9262908026576042, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 75, "elapsed_ms": 1.9885418005287647, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 76, "elapsed_ms": 1.9812500104308128, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 77, "elapsed_ms": 1.9957497715950012, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 78, "elapsed_ms": 1.9603329710662365, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 79, "elapsed_ms": 1.9982918165624142, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 80, "elapsed_ms": 2.0107082091271877, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 81, "elapsed_ms": 2.519416157156229, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 82, "elapsed_ms": 2.460125368088484, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 83, "elapsed_ms": 2.4442500434815884, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 84, "elapsed_ms": 2.4804999120533466, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 85, "elapsed_ms": 2.358958125114441, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 86, "elapsed_ms": 2.5941249914467335, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 87, "elapsed_ms": 2.435083035379648, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 88, "elapsed_ms": 2.4138339795172215, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 89, "elapsed_ms": 2.353082876652479, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 90, "elapsed_ms": 2.4512079544365406, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 91, "elapsed_ms": 2.44729220867157, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 92, "elapsed_ms": 2.126667182892561, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 93, "elapsed_ms": 2.194667235016823, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 94, "elapsed_ms": 2.189499791711569, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 95, "elapsed_ms": 2.2253752686083317, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 96, "elapsed_ms": 2.049750182777643, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 97, "elapsed_ms": 2.197500318288803, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 98, "elapsed_ms": 2.36866669729352, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 99, "elapsed_ms": 2.1899580024182796, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 100, "elapsed_ms": 2.3557497188448906, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 101, "elapsed_ms": 2.392374910414219, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 102, "elapsed_ms": 2.31741601601243, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 103, "elapsed_ms": 2.6020831428468227, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 104, "elapsed_ms": 3.4078340977430344, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 105, "elapsed_ms": 3.1054173596203327, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 106, "elapsed_ms": 2.6537077501416206, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 107, "elapsed_ms": 3.1210826709866524, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 108, "elapsed_ms": 3.3527500927448273, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 109, "elapsed_ms": 3.475834149867296, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 110, "elapsed_ms": 3.3686249516904354, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 111, "elapsed_ms": 3.4907502122223377, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 112, "elapsed_ms": 3.67041677236557, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 113, "elapsed_ms": 3.6578751169145107, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 114, "elapsed_ms": 3.5229590721428394, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 115, "elapsed_ms": 3.6379159428179264, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 116, "elapsed_ms": 3.426416777074337, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 117, "elapsed_ms": 3.4839999862015247, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 118, "elapsed_ms": 3.4432909451425076, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 119, "elapsed_ms": 3.233749885112047, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 120, "elapsed_ms": 3.36650013923645, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 121, "elapsed_ms": 3.342833835631609, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 122, "elapsed_ms": 3.279999829828739, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 123, "elapsed_ms": 3.483708016574383, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 124, "elapsed_ms": 3.6722496151924133, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 125, "elapsed_ms": 3.888083156198263, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 126, "elapsed_ms": 3.551249857991934, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 127, "elapsed_ms": 3.5015419125556946, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 128, "elapsed_ms": 3.715166822075844, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 129, "elapsed_ms": 3.6200829781591892, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 130, "elapsed_ms": 3.6970842629671097, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 131, "elapsed_ms": 3.791125025600195, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 132, "elapsed_ms": 4.023917019367218, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 133, "elapsed_ms": 3.8910419680178165, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 134, "elapsed_ms": 3.3541247248649597, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 135, "elapsed_ms": 3.3502080477774143, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 136, "elapsed_ms": 3.194625023752451, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 137, "elapsed_ms": 2.8047501109540462, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 138, "elapsed_ms": 2.5257496163249016, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 139, "elapsed_ms": 2.6764157228171825, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 140, "elapsed_ms": 2.3474162444472313, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 141, "elapsed_ms": 2.444291952997446, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 142, "elapsed_ms": 2.318291924893856, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 143, "elapsed_ms": 2.42404080927372, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 144, "elapsed_ms": 2.4108337238430977, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 145, "elapsed_ms": 2.2556670010089874, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 146, "elapsed_ms": 2.2860406897962093, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 147, "elapsed_ms": 2.4970839731395245, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 148, "elapsed_ms": 2.5338749401271343, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 149, "elapsed_ms": 2.610041294246912, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 150, "elapsed_ms": 2.3012077435851097, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 151, "elapsed_ms": 2.0932499319314957, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 152, "elapsed_ms": 2.348375041037798, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 153, "elapsed_ms": 2.1849172189831734, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 154, "elapsed_ms": 2.186624798923731, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 155, "elapsed_ms": 2.5261249393224716, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 156, "elapsed_ms": 2.4019996635615826, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 157, "elapsed_ms": 2.404749859124422, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 158, "elapsed_ms": 2.6097921654582024, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 159, "elapsed_ms": 2.643667161464691, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 160, "elapsed_ms": 2.488084137439728, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 161, "elapsed_ms": 2.6887496933341026, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 162, "elapsed_ms": 2.211915794759989, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 163, "elapsed_ms": 2.40516709163785, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 164, "elapsed_ms": 3.0442504212260246, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 165, "elapsed_ms": 2.9667499475181103, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 166, "elapsed_ms": 2.7193748392164707, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 167, "elapsed_ms": 3.484582994133234, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 168, "elapsed_ms": 2.741625066846609, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 169, "elapsed_ms": 2.423542086035013, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 170, "elapsed_ms": 3.382541239261627, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 171, "elapsed_ms": 3.465666901320219, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 172, "elapsed_ms": 2.684958279132843, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 173, "elapsed_ms": 2.5870841927826405, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 174, "elapsed_ms": 2.2053327411413193, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 175, "elapsed_ms": 1.882040873169899, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 176, "elapsed_ms": 1.7218338325619698, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 177, "elapsed_ms": 1.922875177115202, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 178, "elapsed_ms": 1.5543331392109394, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 179, "elapsed_ms": 1.5332088805735111, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 180, "elapsed_ms": 1.5586670488119125, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 181, "elapsed_ms": 1.3660420663654804, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 182, "elapsed_ms": 1.328333280980587, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 183, "elapsed_ms": 1.4094170182943344, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 184, "elapsed_ms": 1.5137498266994953, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 185, "elapsed_ms": 1.3307500630617142, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 186, "elapsed_ms": 1.823917031288147, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 187, "elapsed_ms": 1.4204592444002628, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 188, "elapsed_ms": 1.7499160021543503, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 189, "elapsed_ms": 1.7258329316973686, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 190, "elapsed_ms": 1.500250305980444, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 191, "elapsed_ms": 1.3907919637858868, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 192, "elapsed_ms": 1.7518331296741962, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 193, "elapsed_ms": 1.58287538215518, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 194, "elapsed_ms": 1.578665804117918, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 195, "elapsed_ms": 1.442666631191969, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 196, "elapsed_ms": 1.6472497954964638, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 197, "elapsed_ms": 1.7485832795500755, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 198, "elapsed_ms": 1.5149591490626335, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "ping_latency", "run": 199, "elapsed_ms": 1.565583050251007, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "read_throughput", "run": 0, "elapsed_ms": 1084.6995413303375, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "read_throughput", "run": 1, "elapsed_ms": 1077.2688752040267, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "read_throughput", "run": 2, "elapsed_ms": 1094.691707752645, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "read_throughput", "run": 3, "elapsed_ms": 1082.3444998823106, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "read_throughput", "run": 4, "elapsed_ms": 1070.0402921065688, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "read_throughput", "run": 5, "elapsed_ms": 1081.3026670366526, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "read_throughput", "run": 6, "elapsed_ms": 1095.7852499559522, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "read_throughput", "run": 7, "elapsed_ms": 1101.9667498767376, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "read_throughput", "run": 8, "elapsed_ms": 1081.4310000278056, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "read_throughput", "run": 9, "elapsed_ms": 1064.0462921001017, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "insert_throughput", "run": 0, "elapsed_ms": 84.09770810976624, "rows": 100000, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "insert_throughput", "run": 1, "elapsed_ms": 87.08324981853366, "rows": 100000, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "insert_throughput", "run": 2, "elapsed_ms": 85.06970899179578, "rows": 100000, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "insert_throughput", "run": 3, "elapsed_ms": 95.02983279526234, "rows": 100000, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "insert_throughput", "run": 4, "elapsed_ms": 100.72016716003418, "rows": 100000, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "insert_throughput", "run": 5, "elapsed_ms": 94.88874999806285, "rows": 100000, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "insert_throughput", "run": 6, "elapsed_ms": 92.10183285176754, "rows": 100000, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "insert_throughput", "run": 7, "elapsed_ms": 95.24345817044377, "rows": 100000, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "insert_throughput", "run": 8, "elapsed_ms": 93.30779081210494, "rows": 100000, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "insert_throughput", "run": 9, "elapsed_ms": 90.01429099589586, "rows": 100000, "extra": {}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "concurrent_reads", "run": 0, "elapsed_ms": 11.365167330950499, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "concurrent_reads", "run": 1, "elapsed_ms": 13.53295799344778, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "concurrent_reads", "run": 2, "elapsed_ms": 12.213082984089851, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "concurrent_reads", "run": 3, "elapsed_ms": 12.204124592244625, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "concurrent_reads", "run": 4, "elapsed_ms": 11.97766698896885, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "concurrent_reads", "run": 5, "elapsed_ms": 11.678833048790693, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "concurrent_reads", "run": 6, "elapsed_ms": 11.728208046406507, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "concurrent_reads", "run": 7, "elapsed_ms": 14.894458930939436, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "concurrent_reads", "run": 8, "elapsed_ms": 11.236208956688643, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "concurrent_reads", "run": 9, "elapsed_ms": 11.776499915868044, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-connect (thread-pool)", "scenario": "memory_ceiling", "run": 0, "elapsed_ms": 1178.8575830869377, "rows": 5000000, "extra": {"rss_samples": [{"t_ms": 0.0, "rss_mib": 37.91}, {"t_ms": 0.1, "rss_mib": 37.94}, {"t_ms": 53.45, "rss_mib": 38.0}, {"t_ms": 104.79, "rss_mib": 38.0}, {"t_ms": 157.14, "rss_mib": 40.08}, {"t_ms": 207.38, "rss_mib": 42.12}, {"t_ms": 264.71, "rss_mib": 69.41}, {"t_ms": 329.07, "rss_mib": 145.55}, {"t_ms": 400.59, "rss_mib": 214.47}, {"t_ms": 471.72, "rss_mib": 266.58}, {"t_ms": 546.63, "rss_mib": 313.69}, {"t_ms": 616.09, "rss_mib": 371.23}, {"t_ms": 688.31, "rss_mib": 410.33}, {"t_ms": 751.74, "rss_mib": 444.02}, {"t_ms": 832.69, "rss_mib": 483.08}, {"t_ms": 894.48, "rss_mib": 536.59}, {"t_ms": 965.84, "rss_mib": 570.06}, {"t_ms": 1032.16, "rss_mib": 627.56}, {"t_ms": 1097.87, "rss_mib": 653.61}, {"t_ms": 1172.87, "rss_mib": 679.66}, {"t_ms": 1179.12, "rss_mib": 683.02}], "sample_interval_ms": 50.0, "rss_baseline_mib": 37.91, "rss_peak_mib": 683.02, "rss_delta_mib": 645.11}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 0, "elapsed_ms": 1.7442088574171066, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 1, "elapsed_ms": 1.6000829637050629, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 2, "elapsed_ms": 1.4643329195678234, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 3, "elapsed_ms": 1.5717088244855404, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 4, "elapsed_ms": 1.6017910093069077, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 5, "elapsed_ms": 1.486708875745535, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 6, "elapsed_ms": 1.5107919462025166, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 7, "elapsed_ms": 1.5708748251199722, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 8, "elapsed_ms": 1.5440001152455807, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 9, "elapsed_ms": 1.491541974246502, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 10, "elapsed_ms": 1.6614580526947975, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 11, "elapsed_ms": 1.6292077489197254, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 12, "elapsed_ms": 1.6134590841829777, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 13, "elapsed_ms": 1.572874840348959, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 14, "elapsed_ms": 1.6278340481221676, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 15, "elapsed_ms": 1.615332905203104, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 16, "elapsed_ms": 1.5708748251199722, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 17, "elapsed_ms": 1.5879999846220016, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 18, "elapsed_ms": 1.5496253035962582, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 19, "elapsed_ms": 1.527541782706976, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 20, "elapsed_ms": 1.5953341498970985, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 21, "elapsed_ms": 1.4669997617602348, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 22, "elapsed_ms": 1.519333105534315, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 23, "elapsed_ms": 1.531457994133234, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 24, "elapsed_ms": 1.5221252106130123, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 25, "elapsed_ms": 1.6474169678986073, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 26, "elapsed_ms": 1.4777090400457382, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 27, "elapsed_ms": 1.481375191360712, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 28, "elapsed_ms": 1.4345827512443066, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 29, "elapsed_ms": 1.4480422250926495, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 30, "elapsed_ms": 1.4915000647306442, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 31, "elapsed_ms": 1.4284998178482056, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 32, "elapsed_ms": 1.6114586032927036, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 33, "elapsed_ms": 1.496999990195036, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 34, "elapsed_ms": 1.8311250023543835, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 35, "elapsed_ms": 2.03316705301404, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 36, "elapsed_ms": 2.2632917389273643, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 37, "elapsed_ms": 2.429666928946972, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 38, "elapsed_ms": 2.3277499713003635, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 39, "elapsed_ms": 2.0292080007493496, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 40, "elapsed_ms": 1.771625131368637, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 41, "elapsed_ms": 1.6852081753313541, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 42, "elapsed_ms": 1.8619578331708908, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 43, "elapsed_ms": 1.8244166858494282, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 44, "elapsed_ms": 1.8779579550027847, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 45, "elapsed_ms": 2.3799999617040157, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 46, "elapsed_ms": 1.7543751746416092, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 47, "elapsed_ms": 1.315124798566103, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 48, "elapsed_ms": 1.2622922658920288, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 49, "elapsed_ms": 1.3616248033940792, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 50, "elapsed_ms": 1.289332751184702, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 51, "elapsed_ms": 1.0036672465503216, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 52, "elapsed_ms": 1.1633331887423992, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 53, "elapsed_ms": 1.5842076390981674, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 54, "elapsed_ms": 1.1359998025000095, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 55, "elapsed_ms": 1.1807079426944256, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 56, "elapsed_ms": 1.3324166648089886, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 57, "elapsed_ms": 1.2770416215062141, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 58, "elapsed_ms": 1.039625145494938, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 59, "elapsed_ms": 1.0607917793095112, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 60, "elapsed_ms": 1.044583972543478, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 61, "elapsed_ms": 0.9845001623034477, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 62, "elapsed_ms": 1.0052500292658806, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 63, "elapsed_ms": 1.12062506377697, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 64, "elapsed_ms": 1.0367501527071, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 65, "elapsed_ms": 0.9620832279324532, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 66, "elapsed_ms": 0.9834161028265953, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 67, "elapsed_ms": 0.9097917936742306, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 68, "elapsed_ms": 0.9897090494632721, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 69, "elapsed_ms": 1.039625145494938, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 70, "elapsed_ms": 1.1643338948488235, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 71, "elapsed_ms": 1.015624962747097, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 72, "elapsed_ms": 1.1338749900460243, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 73, "elapsed_ms": 1.4026672579348087, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 74, "elapsed_ms": 1.2686247937381268, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 75, "elapsed_ms": 1.1960826814174652, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 76, "elapsed_ms": 1.1062081903219223, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 77, "elapsed_ms": 1.1228336952626705, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 78, "elapsed_ms": 1.2880838476121426, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 79, "elapsed_ms": 1.1352910660207272, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 80, "elapsed_ms": 1.1693751439452171, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 81, "elapsed_ms": 1.1277077719569206, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 82, "elapsed_ms": 1.0126670822501183, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 83, "elapsed_ms": 1.0658749379217625, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 84, "elapsed_ms": 1.0668328031897545, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 85, "elapsed_ms": 1.0684579610824585, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 86, "elapsed_ms": 1.3669999316334724, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 87, "elapsed_ms": 1.1479579843580723, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 88, "elapsed_ms": 1.0135839693248272, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 89, "elapsed_ms": 1.0169590823352337, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 90, "elapsed_ms": 1.1352919973433018, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 91, "elapsed_ms": 1.173290889710188, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 92, "elapsed_ms": 1.2672082521021366, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 93, "elapsed_ms": 1.2411251664161682, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 94, "elapsed_ms": 1.165209338068962, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 95, "elapsed_ms": 1.230000052601099, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 96, "elapsed_ms": 1.1146250180900097, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 97, "elapsed_ms": 1.11324992030859, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 98, "elapsed_ms": 1.311624888330698, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 99, "elapsed_ms": 1.023916993290186, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 100, "elapsed_ms": 1.250667031854391, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 101, "elapsed_ms": 1.137792132794857, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 102, "elapsed_ms": 1.1658333241939545, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 103, "elapsed_ms": 1.1738329194486141, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 104, "elapsed_ms": 1.133000012487173, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 105, "elapsed_ms": 1.146999653428793, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 106, "elapsed_ms": 1.1791670694947243, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 107, "elapsed_ms": 1.1245422065258026, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 108, "elapsed_ms": 1.1699162423610687, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 109, "elapsed_ms": 1.166250091046095, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 110, "elapsed_ms": 1.1120419949293137, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 111, "elapsed_ms": 1.1456245556473732, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 112, "elapsed_ms": 1.1497498489916325, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 113, "elapsed_ms": 1.1585410684347153, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 114, "elapsed_ms": 1.2729167938232422, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 115, "elapsed_ms": 1.3290829956531525, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 116, "elapsed_ms": 1.351666171103716, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 117, "elapsed_ms": 1.2387917377054691, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 118, "elapsed_ms": 1.3102921657264233, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 119, "elapsed_ms": 1.3777082785964012, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 120, "elapsed_ms": 1.305209007114172, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 121, "elapsed_ms": 1.2526661157608032, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 122, "elapsed_ms": 1.183458138257265, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 123, "elapsed_ms": 1.3012080453336239, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 124, "elapsed_ms": 1.2336247600615025, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 125, "elapsed_ms": 1.5995418652892113, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 126, "elapsed_ms": 1.2241248041391373, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 127, "elapsed_ms": 1.2177079916000366, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 128, "elapsed_ms": 1.1864583939313889, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 129, "elapsed_ms": 1.18208397179842, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 130, "elapsed_ms": 1.396875362843275, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 131, "elapsed_ms": 1.3363752514123917, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 132, "elapsed_ms": 1.2992089614272118, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 133, "elapsed_ms": 1.2492500245571136, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 134, "elapsed_ms": 1.3359999284148216, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 135, "elapsed_ms": 1.3952497392892838, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 136, "elapsed_ms": 1.4913328923285007, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 137, "elapsed_ms": 1.3625407591462135, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 138, "elapsed_ms": 1.6762078739702702, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 139, "elapsed_ms": 1.3625840656459332, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 140, "elapsed_ms": 1.3698330149054527, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 141, "elapsed_ms": 1.1614589020609856, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 142, "elapsed_ms": 1.1462918482720852, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 143, "elapsed_ms": 1.2015001848340034, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 144, "elapsed_ms": 1.3262499123811722, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 145, "elapsed_ms": 1.3890410773456097, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 146, "elapsed_ms": 1.3504172675311565, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 147, "elapsed_ms": 1.2954999692738056, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 148, "elapsed_ms": 1.2813750654459, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 149, "elapsed_ms": 1.1912919580936432, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 150, "elapsed_ms": 1.2650000862777233, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 151, "elapsed_ms": 1.1501661501824856, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 152, "elapsed_ms": 1.100208144634962, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 153, "elapsed_ms": 1.10662542283535, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 154, "elapsed_ms": 1.1175419203937054, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 155, "elapsed_ms": 1.0419581085443497, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 156, "elapsed_ms": 0.9997077286243439, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 157, "elapsed_ms": 1.0840422473847866, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 158, "elapsed_ms": 1.0151248425245285, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 159, "elapsed_ms": 1.0273749940097332, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 160, "elapsed_ms": 1.0564173571765423, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 161, "elapsed_ms": 1.1182921007275581, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 162, "elapsed_ms": 1.1801249347627163, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 163, "elapsed_ms": 1.0107499547302723, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 164, "elapsed_ms": 1.0572499595582485, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 165, "elapsed_ms": 1.087334007024765, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 166, "elapsed_ms": 1.1078747920691967, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 167, "elapsed_ms": 1.0102908127009869, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 168, "elapsed_ms": 0.969999935477972, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 169, "elapsed_ms": 1.1261249892413616, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 170, "elapsed_ms": 1.035457942634821, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 171, "elapsed_ms": 1.3339999131858349, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 172, "elapsed_ms": 1.066083088517189, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 173, "elapsed_ms": 1.3444162905216217, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 174, "elapsed_ms": 1.089000143110752, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 175, "elapsed_ms": 1.0639578104019165, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 176, "elapsed_ms": 1.0230420157313347, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 177, "elapsed_ms": 1.2259162031114101, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 178, "elapsed_ms": 1.1589997448027134, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 179, "elapsed_ms": 1.18312519043684, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 180, "elapsed_ms": 1.0081250220537186, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 181, "elapsed_ms": 1.028583850711584, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 182, "elapsed_ms": 1.0546250268816948, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 183, "elapsed_ms": 1.004416961222887, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 184, "elapsed_ms": 0.9158328175544739, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 185, "elapsed_ms": 1.1519589461386204, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 186, "elapsed_ms": 0.9855832904577255, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 187, "elapsed_ms": 0.9099161252379417, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 188, "elapsed_ms": 1.0688337497413158, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 189, "elapsed_ms": 1.0333331301808357, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 190, "elapsed_ms": 1.1030831374228, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 191, "elapsed_ms": 1.0915836319327354, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 192, "elapsed_ms": 1.169667113572359, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 193, "elapsed_ms": 0.998165924102068, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 194, "elapsed_ms": 1.002166885882616, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 195, "elapsed_ms": 0.9102500043809414, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 196, "elapsed_ms": 1.032958272844553, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 197, "elapsed_ms": 1.0005831718444824, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 198, "elapsed_ms": 0.9602080099284649, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "ping_latency", "run": 199, "elapsed_ms": 0.9255004115402699, "rows": 1, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "read_throughput", "run": 0, "elapsed_ms": 314.9723750539124, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "read_throughput", "run": 1, "elapsed_ms": 320.4183327034116, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "read_throughput", "run": 2, "elapsed_ms": 324.78254195302725, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "read_throughput", "run": 3, "elapsed_ms": 323.50004091858864, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "read_throughput", "run": 4, "elapsed_ms": 316.2673329934478, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "read_throughput", "run": 5, "elapsed_ms": 315.8855000510812, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "read_throughput", "run": 6, "elapsed_ms": 317.3561249859631, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "read_throughput", "run": 7, "elapsed_ms": 309.7875411622226, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "read_throughput", "run": 8, "elapsed_ms": 312.64308420941234, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "read_throughput", "run": 9, "elapsed_ms": 313.3472912013531, "rows": 1000000, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "insert_throughput", "run": 0, "elapsed_ms": 95.16112506389618, "rows": 100000, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "insert_throughput", "run": 1, "elapsed_ms": 99.5367499999702, "rows": 100000, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "insert_throughput", "run": 2, "elapsed_ms": 91.07825020328164, "rows": 100000, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "insert_throughput", "run": 3, "elapsed_ms": 105.93112464994192, "rows": 100000, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "insert_throughput", "run": 4, "elapsed_ms": 104.43383315578103, "rows": 100000, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "insert_throughput", "run": 5, "elapsed_ms": 95.4838334582746, "rows": 100000, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "insert_throughput", "run": 6, "elapsed_ms": 95.81541689112782, "rows": 100000, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "insert_throughput", "run": 7, "elapsed_ms": 90.96379205584526, "rows": 100000, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "insert_throughput", "run": 8, "elapsed_ms": 94.40249996259809, "rows": 100000, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "insert_throughput", "run": 9, "elapsed_ms": 101.18841705843806, "rows": 100000, "extra": {}}
+{"library": "clickhouse-connect (native async)", "scenario": "concurrent_reads", "run": 0, "elapsed_ms": 46.41474969685078, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-connect (native async)", "scenario": "concurrent_reads", "run": 1, "elapsed_ms": 48.000375274568796, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-connect (native async)", "scenario": "concurrent_reads", "run": 2, "elapsed_ms": 50.2707501873374, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-connect (native async)", "scenario": "concurrent_reads", "run": 3, "elapsed_ms": 45.75783293694258, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-connect (native async)", "scenario": "concurrent_reads", "run": 4, "elapsed_ms": 50.48991600051522, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-connect (native async)", "scenario": "concurrent_reads", "run": 5, "elapsed_ms": 47.88470780476928, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-connect (native async)", "scenario": "concurrent_reads", "run": 6, "elapsed_ms": 49.27745787426829, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-connect (native async)", "scenario": "concurrent_reads", "run": 7, "elapsed_ms": 46.709499787539244, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-connect (native async)", "scenario": "concurrent_reads", "run": 8, "elapsed_ms": 49.18929236009717, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-connect (native async)", "scenario": "concurrent_reads", "run": 9, "elapsed_ms": 46.05420771986246, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "clickhouse-connect (native async)", "scenario": "memory_ceiling", "run": 0, "elapsed_ms": 1039.3737079575658, "rows": 5000000, "extra": {"rss_samples": [{"t_ms": 0.0, "rss_mib": 48.62}, {"t_ms": 0.07, "rss_mib": 48.66}, {"t_ms": 53.03, "rss_mib": 48.66}, {"t_ms": 103.67, "rss_mib": 48.66}, {"t_ms": 163.46, "rss_mib": 124.39}, {"t_ms": 221.03, "rss_mib": 180.45}, {"t_ms": 295.65, "rss_mib": 240.36}, {"t_ms": 364.53, "rss_mib": 281.56}, {"t_ms": 435.55, "rss_mib": 320.61}, {"t_ms": 515.82, "rss_mib": 359.72}, {"t_ms": 598.25, "rss_mib": 398.77}, {"t_ms": 657.68, "rss_mib": 425.31}, {"t_ms": 720.97, "rss_mib": 450.86}, {"t_ms": 784.29, "rss_mib": 476.91}, {"t_ms": 851.0, "rss_mib": 502.94}, {"t_ms": 918.56, "rss_mib": 528.98}, {"t_ms": 999.55, "rss_mib": 555.03}, {"t_ms": 1039.58, "rss_mib": 571.41}], "sample_interval_ms": 50.0, "rss_baseline_mib": 48.62, "rss_peak_mib": 571.41, "rss_delta_mib": 522.79}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 0, "elapsed_ms": 1.319375354796648, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 1, "elapsed_ms": 1.3992907479405403, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 2, "elapsed_ms": 1.360500231385231, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 3, "elapsed_ms": 1.3120830990374088, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 4, "elapsed_ms": 1.4502080157399178, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 5, "elapsed_ms": 1.3162498362362385, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 6, "elapsed_ms": 1.420042011886835, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 7, "elapsed_ms": 1.5526670031249523, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 8, "elapsed_ms": 1.6460828483104706, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 9, "elapsed_ms": 1.5805000439286232, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 10, "elapsed_ms": 1.523708924651146, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 11, "elapsed_ms": 1.5859156847000122, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 12, "elapsed_ms": 1.5495829284191132, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 13, "elapsed_ms": 1.4993748627603054, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 14, "elapsed_ms": 1.4594169333577156, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 15, "elapsed_ms": 1.4975410886108875, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 16, "elapsed_ms": 1.7085000872612, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 17, "elapsed_ms": 1.4934162609279156, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 18, "elapsed_ms": 1.6148751601576805, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 19, "elapsed_ms": 1.4322907663881779, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 20, "elapsed_ms": 1.408458687365055, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 21, "elapsed_ms": 1.46566703915596, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 22, "elapsed_ms": 1.45333306863904, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 23, "elapsed_ms": 1.4499998651444912, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 24, "elapsed_ms": 1.491874922066927, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 25, "elapsed_ms": 1.4814171008765697, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 26, "elapsed_ms": 1.421791035681963, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 27, "elapsed_ms": 1.3599582016468048, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 28, "elapsed_ms": 1.3881656341254711, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 29, "elapsed_ms": 1.4915000647306442, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 30, "elapsed_ms": 1.5480001457035542, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 31, "elapsed_ms": 1.3661659322679043, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 32, "elapsed_ms": 1.4763749204576015, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 33, "elapsed_ms": 1.4305412769317627, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 34, "elapsed_ms": 1.3500410132110119, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 35, "elapsed_ms": 1.4345832169055939, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 36, "elapsed_ms": 1.3651656918227673, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 37, "elapsed_ms": 1.5084580518305302, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 38, "elapsed_ms": 1.4759590849280357, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 39, "elapsed_ms": 1.4071250334382057, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 40, "elapsed_ms": 1.356290653347969, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 41, "elapsed_ms": 1.3976660557091236, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 42, "elapsed_ms": 1.4559170231223106, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 43, "elapsed_ms": 1.367792021483183, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 44, "elapsed_ms": 1.4256667345762253, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 45, "elapsed_ms": 1.3991249725222588, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 46, "elapsed_ms": 1.3557076454162598, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 47, "elapsed_ms": 1.362999901175499, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 48, "elapsed_ms": 1.4173751696944237, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 49, "elapsed_ms": 1.5524588525295258, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 50, "elapsed_ms": 1.6104169189929962, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 51, "elapsed_ms": 1.6370839439332485, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 52, "elapsed_ms": 1.539125107228756, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 53, "elapsed_ms": 1.5986659564077854, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 54, "elapsed_ms": 1.5996661968529224, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 55, "elapsed_ms": 1.4808750711381435, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 56, "elapsed_ms": 1.4496250078082085, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 57, "elapsed_ms": 1.4681657776236534, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 58, "elapsed_ms": 1.3530002906918526, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 59, "elapsed_ms": 1.3434579595923424, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 60, "elapsed_ms": 1.4010826125741005, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 61, "elapsed_ms": 1.3498752377927303, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 62, "elapsed_ms": 1.3178326189517975, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 63, "elapsed_ms": 1.4679580926895142, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 64, "elapsed_ms": 1.364917028695345, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 65, "elapsed_ms": 1.4357496984302998, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 66, "elapsed_ms": 1.4199577271938324, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 67, "elapsed_ms": 1.3432921841740608, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 68, "elapsed_ms": 1.3662907294929028, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 69, "elapsed_ms": 1.5386668965220451, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 70, "elapsed_ms": 1.3381666503846645, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 71, "elapsed_ms": 1.4146668836474419, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 72, "elapsed_ms": 1.3837502337992191, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 73, "elapsed_ms": 1.3764998875558376, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 74, "elapsed_ms": 1.425625290721655, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 75, "elapsed_ms": 1.355667132884264, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 76, "elapsed_ms": 1.400708220899105, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 77, "elapsed_ms": 1.3546659611165524, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 78, "elapsed_ms": 1.4021671377122402, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 79, "elapsed_ms": 1.3143750838935375, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 80, "elapsed_ms": 1.4196671545505524, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 81, "elapsed_ms": 1.4560422860085964, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 82, "elapsed_ms": 1.374708954244852, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 83, "elapsed_ms": 1.4207917265594006, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 84, "elapsed_ms": 1.471084076911211, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 85, "elapsed_ms": 1.3941251672804356, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 86, "elapsed_ms": 1.33229186758399, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 87, "elapsed_ms": 1.4171251095831394, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 88, "elapsed_ms": 1.5124157071113586, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 89, "elapsed_ms": 1.3899579644203186, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 90, "elapsed_ms": 1.3930411078035831, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 91, "elapsed_ms": 1.2933327816426754, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 92, "elapsed_ms": 1.3875830918550491, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 93, "elapsed_ms": 1.4050421305000782, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 94, "elapsed_ms": 1.3325000181794167, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 95, "elapsed_ms": 1.3540834188461304, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 96, "elapsed_ms": 1.52283301576972, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 97, "elapsed_ms": 1.4639166183769703, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 98, "elapsed_ms": 1.5656668692827225, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 99, "elapsed_ms": 1.614332664757967, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 100, "elapsed_ms": 1.7475825734436512, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 101, "elapsed_ms": 1.5517091378569603, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 102, "elapsed_ms": 1.5337923541665077, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 103, "elapsed_ms": 1.6134576871991158, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 104, "elapsed_ms": 1.5441249124705791, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 105, "elapsed_ms": 1.5934589318931103, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 106, "elapsed_ms": 1.5562502667307854, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 107, "elapsed_ms": 1.5994580462574959, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 108, "elapsed_ms": 1.5652920119464397, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 109, "elapsed_ms": 1.565542072057724, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 110, "elapsed_ms": 1.543249934911728, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 111, "elapsed_ms": 1.579917035996914, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 112, "elapsed_ms": 1.4832918532192707, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 113, "elapsed_ms": 1.5474166721105576, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 114, "elapsed_ms": 1.577750314027071, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 115, "elapsed_ms": 1.487791072577238, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 116, "elapsed_ms": 1.6811247915029526, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 117, "elapsed_ms": 1.4775837771594524, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 118, "elapsed_ms": 1.6097920015454292, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 119, "elapsed_ms": 1.4958330430090427, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 120, "elapsed_ms": 1.6445424407720566, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 121, "elapsed_ms": 1.5702499076724052, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 122, "elapsed_ms": 1.5062079764902592, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 123, "elapsed_ms": 1.604459248483181, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 124, "elapsed_ms": 1.5120417810976505, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 125, "elapsed_ms": 1.5727500431239605, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 126, "elapsed_ms": 1.7302501946687698, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 127, "elapsed_ms": 1.5681665390729904, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 128, "elapsed_ms": 1.5428750775754452, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 129, "elapsed_ms": 1.6277497634291649, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 130, "elapsed_ms": 1.5207910910248756, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 131, "elapsed_ms": 1.5558749437332153, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 132, "elapsed_ms": 1.574499998241663, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 133, "elapsed_ms": 1.5287082642316818, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 134, "elapsed_ms": 1.8167076632380486, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 135, "elapsed_ms": 1.638166606426239, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 136, "elapsed_ms": 1.558166928589344, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 137, "elapsed_ms": 1.5082918107509613, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 138, "elapsed_ms": 1.5252907760441303, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 139, "elapsed_ms": 1.5780837275087833, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 140, "elapsed_ms": 1.5251659788191319, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 141, "elapsed_ms": 1.553417183458805, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 142, "elapsed_ms": 1.6043325886130333, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 143, "elapsed_ms": 1.5823747962713242, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 144, "elapsed_ms": 1.6407081857323647, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 145, "elapsed_ms": 1.5978747978806496, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 146, "elapsed_ms": 1.57933309674263, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 147, "elapsed_ms": 1.5626251697540283, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 148, "elapsed_ms": 1.5914170071482658, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 149, "elapsed_ms": 1.5712501481175423, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 150, "elapsed_ms": 1.4825002290308475, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 151, "elapsed_ms": 1.5704999677836895, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 152, "elapsed_ms": 1.5466250479221344, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 153, "elapsed_ms": 1.5683341771364212, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 154, "elapsed_ms": 1.6179587692022324, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 155, "elapsed_ms": 1.5418748371303082, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 156, "elapsed_ms": 1.5494590625166893, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 157, "elapsed_ms": 1.5206667594611645, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 158, "elapsed_ms": 1.625625416636467, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 159, "elapsed_ms": 1.5755831263959408, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 160, "elapsed_ms": 1.5250411815941334, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 161, "elapsed_ms": 1.567124854773283, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 162, "elapsed_ms": 1.571584027260542, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 163, "elapsed_ms": 1.5782923437654972, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 164, "elapsed_ms": 1.55195826664567, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 165, "elapsed_ms": 1.5618749894201756, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 166, "elapsed_ms": 1.5203747898340225, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 167, "elapsed_ms": 1.321832649409771, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 168, "elapsed_ms": 1.3484586961567402, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 169, "elapsed_ms": 1.2749996967613697, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 170, "elapsed_ms": 1.3407496735453606, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 171, "elapsed_ms": 1.3462500646710396, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 172, "elapsed_ms": 1.298542134463787, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 173, "elapsed_ms": 1.4340840280056, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 174, "elapsed_ms": 1.3857088051736355, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 175, "elapsed_ms": 1.3241670094430447, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 176, "elapsed_ms": 2.147417049854994, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 177, "elapsed_ms": 1.3962076045572758, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 178, "elapsed_ms": 1.3424158096313477, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 179, "elapsed_ms": 1.3195001520216465, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 180, "elapsed_ms": 1.4774161390960217, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 181, "elapsed_ms": 1.3227090239524841, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 182, "elapsed_ms": 1.280125230550766, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 183, "elapsed_ms": 1.2987498193979263, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 184, "elapsed_ms": 1.2839999981224537, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 185, "elapsed_ms": 1.3539157807826996, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 186, "elapsed_ms": 1.4335419982671738, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 187, "elapsed_ms": 1.3296669349074364, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 188, "elapsed_ms": 1.344500109553337, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 189, "elapsed_ms": 1.3542920351028442, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 190, "elapsed_ms": 1.344915945082903, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 191, "elapsed_ms": 1.3924580998718739, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 192, "elapsed_ms": 1.4372910372912884, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 193, "elapsed_ms": 1.2467498891055584, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 194, "elapsed_ms": 1.2948750518262386, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 195, "elapsed_ms": 1.3038329780101776, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 196, "elapsed_ms": 1.3156668283045292, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 197, "elapsed_ms": 1.386917196214199, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 198, "elapsed_ms": 1.343834213912487, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "ping_latency", "run": 199, "elapsed_ms": 1.350416336208582, "rows": 1, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "read_throughput", "run": 0, "elapsed_ms": 1961.9061658158898, "rows": 1000000, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "read_throughput", "run": 1, "elapsed_ms": 2028.7999580614269, "rows": 1000000, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "read_throughput", "run": 2, "elapsed_ms": 1989.41233381629, "rows": 1000000, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "read_throughput", "run": 3, "elapsed_ms": 1986.7114159278572, "rows": 1000000, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "read_throughput", "run": 4, "elapsed_ms": 1985.1902080699801, "rows": 1000000, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "read_throughput", "run": 5, "elapsed_ms": 1969.877582974732, "rows": 1000000, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "read_throughput", "run": 6, "elapsed_ms": 1977.2394997999072, "rows": 1000000, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "read_throughput", "run": 7, "elapsed_ms": 1981.3703750260174, "rows": 1000000, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "read_throughput", "run": 8, "elapsed_ms": 1994.0146249718964, "rows": 1000000, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "read_throughput", "run": 9, "elapsed_ms": 1982.120499946177, "rows": 1000000, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "insert_throughput", "run": 0, "elapsed_ms": 130.67366695031524, "rows": 100000, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "insert_throughput", "run": 1, "elapsed_ms": 121.34408298879862, "rows": 100000, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "insert_throughput", "run": 2, "elapsed_ms": 130.80054195597768, "rows": 100000, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "insert_throughput", "run": 3, "elapsed_ms": 129.92566730827093, "rows": 100000, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "insert_throughput", "run": 4, "elapsed_ms": 123.14475001767278, "rows": 100000, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "insert_throughput", "run": 5, "elapsed_ms": 124.59529098123312, "rows": 100000, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "insert_throughput", "run": 6, "elapsed_ms": 120.90212479233742, "rows": 100000, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "insert_throughput", "run": 7, "elapsed_ms": 120.8952502347529, "rows": 100000, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "insert_throughput", "run": 8, "elapsed_ms": 121.1736248806119, "rows": 100000, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "insert_throughput", "run": 9, "elapsed_ms": 125.407624989748, "rows": 100000, "extra": {}}
+{"library": "asynch (PyPI)", "scenario": "concurrent_reads", "run": 0, "elapsed_ms": 17.90062477812171, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "asynch (PyPI)", "scenario": "concurrent_reads", "run": 1, "elapsed_ms": 15.163833275437355, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "asynch (PyPI)", "scenario": "concurrent_reads", "run": 2, "elapsed_ms": 12.275333050638437, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "asynch (PyPI)", "scenario": "concurrent_reads", "run": 3, "elapsed_ms": 14.140792191028595, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "asynch (PyPI)", "scenario": "concurrent_reads", "run": 4, "elapsed_ms": 12.381167151033878, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "asynch (PyPI)", "scenario": "concurrent_reads", "run": 5, "elapsed_ms": 13.238624669611454, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "asynch (PyPI)", "scenario": "concurrent_reads", "run": 6, "elapsed_ms": 13.724000193178654, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "asynch (PyPI)", "scenario": "concurrent_reads", "run": 7, "elapsed_ms": 12.09595799446106, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "asynch (PyPI)", "scenario": "concurrent_reads", "run": 8, "elapsed_ms": 12.52329209819436, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "asynch (PyPI)", "scenario": "concurrent_reads", "run": 9, "elapsed_ms": 14.27649985998869, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "asynch (PyPI)", "scenario": "memory_ceiling", "run": 0, "elapsed_ms": 733.8591245934367, "rows": 5000000, "extra": {"rss_samples": [{"t_ms": 0.0, "rss_mib": 30.92}, {"t_ms": 0.1, "rss_mib": 30.95}, {"t_ms": 57.26, "rss_mib": 108.86}, {"t_ms": 112.43, "rss_mib": 167.45}, {"t_ms": 169.29, "rss_mib": 226.08}, {"t_ms": 225.48, "rss_mib": 271.64}, {"t_ms": 278.7, "rss_mib": 311.33}, {"t_ms": 333.77, "rss_mib": 350.41}, {"t_ms": 390.08, "rss_mib": 389.45}, {"t_ms": 450.44, "rss_mib": 428.53}, {"t_ms": 513.29, "rss_mib": 467.58}, {"t_ms": 579.25, "rss_mib": 506.66}, {"t_ms": 734.02, "rss_mib": 136.59}, {"t_ms": 734.21, "rss_mib": 136.56}], "sample_interval_ms": 50.0, "rss_baseline_mib": 30.92, "rss_peak_mib": 506.66, "rss_delta_mib": 475.74}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 0, "elapsed_ms": 1.353709027171135, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 1, "elapsed_ms": 1.3350420631468296, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 2, "elapsed_ms": 1.2607923708856106, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 3, "elapsed_ms": 1.3465001247823238, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 4, "elapsed_ms": 1.2535839341580868, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 5, "elapsed_ms": 1.3524172827601433, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 6, "elapsed_ms": 1.3422081246972084, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 7, "elapsed_ms": 1.2946249917149544, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 8, "elapsed_ms": 1.185624860227108, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 9, "elapsed_ms": 1.261708326637745, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 10, "elapsed_ms": 1.2630829587578773, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 11, "elapsed_ms": 1.319249626249075, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 12, "elapsed_ms": 1.3640420511364937, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 13, "elapsed_ms": 1.4137919060885906, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 14, "elapsed_ms": 1.2916671112179756, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 15, "elapsed_ms": 1.2812078930437565, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 16, "elapsed_ms": 1.2065423652529716, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 17, "elapsed_ms": 1.2726252898573875, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 18, "elapsed_ms": 1.3259579427540302, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 19, "elapsed_ms": 1.2133745476603508, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 20, "elapsed_ms": 1.3902923092246056, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 21, "elapsed_ms": 1.20066711679101, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 22, "elapsed_ms": 1.2150839902460575, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 23, "elapsed_ms": 1.2460830621421337, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 24, "elapsed_ms": 1.2494581751525402, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 25, "elapsed_ms": 1.2176670134067535, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 26, "elapsed_ms": 1.1917082592844963, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 27, "elapsed_ms": 1.3132919557392597, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 28, "elapsed_ms": 1.2070001102983952, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 29, "elapsed_ms": 1.2709996663033962, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 30, "elapsed_ms": 1.2244172394275665, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 31, "elapsed_ms": 1.2492500245571136, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 32, "elapsed_ms": 1.363957766443491, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 33, "elapsed_ms": 1.2403330765664577, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 34, "elapsed_ms": 1.230333000421524, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 35, "elapsed_ms": 1.359250396490097, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 36, "elapsed_ms": 1.1963327415287495, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 37, "elapsed_ms": 1.2342496775090694, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 38, "elapsed_ms": 1.3139578513801098, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 39, "elapsed_ms": 1.2134173884987831, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 40, "elapsed_ms": 1.1989576742053032, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 41, "elapsed_ms": 1.2601250782608986, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 42, "elapsed_ms": 1.1924169957637787, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 43, "elapsed_ms": 1.1700419709086418, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 44, "elapsed_ms": 1.1731660924851894, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 45, "elapsed_ms": 1.21749984100461, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 46, "elapsed_ms": 1.2033339589834213, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 47, "elapsed_ms": 1.1761253699660301, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 48, "elapsed_ms": 1.234457828104496, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 49, "elapsed_ms": 1.2771668843925, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 50, "elapsed_ms": 1.2044170871376991, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 51, "elapsed_ms": 1.2774169445037842, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 52, "elapsed_ms": 1.2709577567875385, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 53, "elapsed_ms": 1.1774580925703049, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 54, "elapsed_ms": 1.2102089822292328, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 55, "elapsed_ms": 1.2974170967936516, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 56, "elapsed_ms": 1.1901669204235077, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 57, "elapsed_ms": 1.2576673179864883, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 58, "elapsed_ms": 1.190374605357647, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 59, "elapsed_ms": 1.2638750486075878, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 60, "elapsed_ms": 1.2527499347925186, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 61, "elapsed_ms": 1.2530828826129436, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 62, "elapsed_ms": 1.2313751503825188, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 63, "elapsed_ms": 1.2344163842499256, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 64, "elapsed_ms": 1.1481661349534988, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 65, "elapsed_ms": 1.2788325548171997, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 66, "elapsed_ms": 1.2559592723846436, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 67, "elapsed_ms": 1.2476672418415546, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 68, "elapsed_ms": 1.292749773710966, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 69, "elapsed_ms": 1.269542146474123, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 70, "elapsed_ms": 1.256749965250492, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 71, "elapsed_ms": 1.2510837987065315, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 72, "elapsed_ms": 1.1436250060796738, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 73, "elapsed_ms": 1.2007919140160084, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 74, "elapsed_ms": 1.3210424222052097, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 75, "elapsed_ms": 1.2215827591717243, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 76, "elapsed_ms": 1.2225829996168613, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 77, "elapsed_ms": 1.1530416086316109, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 78, "elapsed_ms": 1.315500121563673, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 79, "elapsed_ms": 1.2512500397861004, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 80, "elapsed_ms": 1.1857920326292515, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 81, "elapsed_ms": 1.1961250565946102, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 82, "elapsed_ms": 1.2559168972074986, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 83, "elapsed_ms": 1.3024578802287579, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 84, "elapsed_ms": 1.2115002609789371, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 85, "elapsed_ms": 1.2189173139631748, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 86, "elapsed_ms": 1.359832938760519, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 87, "elapsed_ms": 1.1883326806128025, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 88, "elapsed_ms": 1.1906670406460762, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 89, "elapsed_ms": 1.2321253307163715, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 90, "elapsed_ms": 1.19012501090765, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 91, "elapsed_ms": 1.2823748402297497, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 92, "elapsed_ms": 1.201292034238577, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 93, "elapsed_ms": 1.1882497929036617, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 94, "elapsed_ms": 1.2964592315256596, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 95, "elapsed_ms": 1.313582994043827, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 96, "elapsed_ms": 1.2004580348730087, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 97, "elapsed_ms": 1.1619580909609795, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 98, "elapsed_ms": 1.1143749579787254, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 99, "elapsed_ms": 1.2380420230329037, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 100, "elapsed_ms": 1.1750408448278904, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 101, "elapsed_ms": 1.1875000782310963, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 102, "elapsed_ms": 1.255749724805355, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 103, "elapsed_ms": 1.1370833963155746, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 104, "elapsed_ms": 1.175333745777607, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 105, "elapsed_ms": 1.129167154431343, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 106, "elapsed_ms": 1.1405833065509796, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 107, "elapsed_ms": 1.1514169164001942, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 108, "elapsed_ms": 1.1944579891860485, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 109, "elapsed_ms": 1.209333073347807, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 110, "elapsed_ms": 1.2840419076383114, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 111, "elapsed_ms": 1.196499913930893, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 112, "elapsed_ms": 1.2968750670552254, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 113, "elapsed_ms": 1.1759172193706036, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 114, "elapsed_ms": 1.105292234569788, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 115, "elapsed_ms": 1.2876247055828571, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 116, "elapsed_ms": 1.209499780088663, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 117, "elapsed_ms": 1.2197080068290234, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 118, "elapsed_ms": 1.1624577455222607, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 119, "elapsed_ms": 1.1436250060796738, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 120, "elapsed_ms": 1.2337500229477882, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 121, "elapsed_ms": 1.1247503571212292, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 122, "elapsed_ms": 1.1304998770356178, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 123, "elapsed_ms": 1.2115836143493652, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 124, "elapsed_ms": 1.1495831422507763, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 125, "elapsed_ms": 1.1469591408967972, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 126, "elapsed_ms": 1.14520825445652, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 127, "elapsed_ms": 1.1488329619169235, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 128, "elapsed_ms": 1.2297909706830978, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 129, "elapsed_ms": 1.2153750285506248, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 130, "elapsed_ms": 1.154750119894743, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 131, "elapsed_ms": 1.1753751896321774, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 132, "elapsed_ms": 1.2276656925678253, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 133, "elapsed_ms": 1.1684582568705082, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 134, "elapsed_ms": 1.141916960477829, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 135, "elapsed_ms": 1.208833884447813, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 136, "elapsed_ms": 1.1622076854109764, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 137, "elapsed_ms": 1.2278752401471138, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 138, "elapsed_ms": 1.14762457087636, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 139, "elapsed_ms": 1.1191251687705517, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 140, "elapsed_ms": 1.1951248161494732, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 141, "elapsed_ms": 1.1900831013917923, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 142, "elapsed_ms": 1.1141248978674412, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 143, "elapsed_ms": 1.1756247840821743, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 144, "elapsed_ms": 1.2671672739088535, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 145, "elapsed_ms": 1.1330829001963139, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 146, "elapsed_ms": 1.2760418467223644, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 147, "elapsed_ms": 1.154125202447176, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 148, "elapsed_ms": 1.205457840114832, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 149, "elapsed_ms": 1.1752089485526085, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 150, "elapsed_ms": 1.1594169773161411, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 151, "elapsed_ms": 1.1562909930944443, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 152, "elapsed_ms": 1.130916178226471, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 153, "elapsed_ms": 1.2211250141263008, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 154, "elapsed_ms": 1.1096252128481865, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 155, "elapsed_ms": 1.3402090407907963, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 156, "elapsed_ms": 1.3020839542150497, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 157, "elapsed_ms": 1.2184996157884598, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 158, "elapsed_ms": 1.2083747424185276, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 159, "elapsed_ms": 1.1386671103537083, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 160, "elapsed_ms": 1.1441670358181, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 161, "elapsed_ms": 1.1817081831395626, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 162, "elapsed_ms": 1.15499971434474, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 163, "elapsed_ms": 1.143540721386671, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 164, "elapsed_ms": 1.2382911518216133, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 165, "elapsed_ms": 1.1327923275530338, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 166, "elapsed_ms": 1.1833342723548412, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 167, "elapsed_ms": 1.1780420318245888, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 168, "elapsed_ms": 1.161792315542698, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 169, "elapsed_ms": 1.1517498642206192, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 170, "elapsed_ms": 1.1726669035851955, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 171, "elapsed_ms": 1.1363746598362923, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 172, "elapsed_ms": 1.1227498762309551, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 173, "elapsed_ms": 1.2075826525688171, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 174, "elapsed_ms": 1.2076250277459621, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 175, "elapsed_ms": 1.1928752064704895, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 176, "elapsed_ms": 1.152541022747755, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 177, "elapsed_ms": 1.1461670510470867, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 178, "elapsed_ms": 1.126874703913927, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 179, "elapsed_ms": 1.2269159778952599, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 180, "elapsed_ms": 1.1793752200901508, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 181, "elapsed_ms": 1.247958280146122, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 182, "elapsed_ms": 1.1822502128779888, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 183, "elapsed_ms": 1.2333332560956478, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 184, "elapsed_ms": 1.2797079980373383, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 185, "elapsed_ms": 1.1772909201681614, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 186, "elapsed_ms": 1.1572078801691532, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 187, "elapsed_ms": 1.1622910387814045, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 188, "elapsed_ms": 1.1978750117123127, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 189, "elapsed_ms": 1.180499792098999, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 190, "elapsed_ms": 1.2170001864433289, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 191, "elapsed_ms": 1.1666668578982353, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 192, "elapsed_ms": 1.2427088804543018, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 193, "elapsed_ms": 1.2110830284655094, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 194, "elapsed_ms": 1.2113330885767937, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 195, "elapsed_ms": 1.8688328564167023, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 196, "elapsed_ms": 1.2326249852776527, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 197, "elapsed_ms": 1.1485842987895012, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 198, "elapsed_ms": 1.2390408664941788, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "ping_latency", "run": 199, "elapsed_ms": 1.2050829827785492, "rows": 1, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "read_throughput", "run": 0, "elapsed_ms": 1994.778500404209, "rows": 1000000, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "read_throughput", "run": 1, "elapsed_ms": 1970.2417920343578, "rows": 1000000, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "read_throughput", "run": 2, "elapsed_ms": 1974.458834156394, "rows": 1000000, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "read_throughput", "run": 3, "elapsed_ms": 1968.7729580327868, "rows": 1000000, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "read_throughput", "run": 4, "elapsed_ms": 1976.0179580189288, "rows": 1000000, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "read_throughput", "run": 5, "elapsed_ms": 1958.939041942358, "rows": 1000000, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "read_throughput", "run": 6, "elapsed_ms": 1953.888540621847, "rows": 1000000, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "read_throughput", "run": 7, "elapsed_ms": 1973.632666748017, "rows": 1000000, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "read_throughput", "run": 8, "elapsed_ms": 1991.864874958992, "rows": 1000000, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "read_throughput", "run": 9, "elapsed_ms": 1972.9692917317152, "rows": 1000000, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "insert_throughput", "run": 0, "elapsed_ms": 123.58641717582941, "rows": 100000, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "insert_throughput", "run": 1, "elapsed_ms": 128.89704201370478, "rows": 100000, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "insert_throughput", "run": 2, "elapsed_ms": 135.7840420678258, "rows": 100000, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "insert_throughput", "run": 3, "elapsed_ms": 130.6806248612702, "rows": 100000, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "insert_throughput", "run": 4, "elapsed_ms": 122.63141619041562, "rows": 100000, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "insert_throughput", "run": 5, "elapsed_ms": 121.16441735997796, "rows": 100000, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "insert_throughput", "run": 6, "elapsed_ms": 122.31320794671774, "rows": 100000, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "insert_throughput", "run": 7, "elapsed_ms": 122.86587478592992, "rows": 100000, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "insert_throughput", "run": 8, "elapsed_ms": 116.99562519788742, "rows": 100000, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "insert_throughput", "run": 9, "elapsed_ms": 121.58870790153742, "rows": 100000, "extra": {}}
+{"library": "asynch (tacto fork)", "scenario": "concurrent_reads", "run": 0, "elapsed_ms": 15.346667263656855, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "asynch (tacto fork)", "scenario": "concurrent_reads", "run": 1, "elapsed_ms": 14.316750224679708, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "asynch (tacto fork)", "scenario": "concurrent_reads", "run": 2, "elapsed_ms": 15.311624854803085, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "asynch (tacto fork)", "scenario": "concurrent_reads", "run": 3, "elapsed_ms": 15.125374775379896, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "asynch (tacto fork)", "scenario": "concurrent_reads", "run": 4, "elapsed_ms": 14.109458308666945, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "asynch (tacto fork)", "scenario": "concurrent_reads", "run": 5, "elapsed_ms": 12.2938328422606, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "asynch (tacto fork)", "scenario": "concurrent_reads", "run": 6, "elapsed_ms": 12.065999675542116, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "asynch (tacto fork)", "scenario": "concurrent_reads", "run": 7, "elapsed_ms": 13.197500258684158, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "asynch (tacto fork)", "scenario": "concurrent_reads", "run": 8, "elapsed_ms": 12.708667200058699, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "asynch (tacto fork)", "scenario": "concurrent_reads", "run": 9, "elapsed_ms": 12.8903747536242, "rows": 1600000, "extra": {"concurrency": 16}}
+{"library": "asynch (tacto fork)", "scenario": "memory_ceiling", "run": 0, "elapsed_ms": 725.3268747590482, "rows": 5000000, "extra": {"rss_samples": [{"t_ms": 0.0, "rss_mib": 30.86}, {"t_ms": 0.07, "rss_mib": 30.89}, {"t_ms": 51.16, "rss_mib": 102.34}, {"t_ms": 110.48, "rss_mib": 167.44}, {"t_ms": 164.42, "rss_mib": 219.55}, {"t_ms": 223.34, "rss_mib": 271.62}, {"t_ms": 275.78, "rss_mib": 317.23}, {"t_ms": 333.19, "rss_mib": 356.91}, {"t_ms": 389.05, "rss_mib": 395.97}, {"t_ms": 444.14, "rss_mib": 428.53}, {"t_ms": 505.51, "rss_mib": 467.59}, {"t_ms": 569.07, "rss_mib": 506.69}, {"t_ms": 725.46, "rss_mib": 139.59}, {"t_ms": 725.64, "rss_mib": 139.56}], "sample_interval_ms": 50.0, "rss_baseline_mib": 30.86, "rss_peak_mib": 506.69, "rss_delta_mib": 475.83}}

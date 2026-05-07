@@ -12,16 +12,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Lint and type-check. Runs once on the lowest supported Python; the
-  # lint rules don't depend on Python minor.
+  # Lint and type-check on a bare install — matches the surface the
+  # README's "pip install clickhouse-async" footprint actually has.
+  # Runs once on the lowest supported Python; the lint rules don't
+  # depend on Python minor.
   lint:
     name: Lint + types
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
 
       - uses: astral-sh/setup-uv@v6
         with:
@@ -31,11 +30,11 @@ jobs:
             pyproject.toml
             uv.lock
 
-      - name: Install
+      - name: Install (no extras)
+        # `uv sync` excludes optional extras by default — pulling them
+        # in requires an explicit `--extra <name>`. The bare install
+        # is what `pip install clickhouse-async` users land on.
         run: uv sync --frozen
-
-      - name: Build the Rust extension into the venv
-        run: uv run maturin develop --uv
 
       - name: Ruff
         run: uv run ruff check
@@ -43,11 +42,12 @@ jobs:
       - name: Ty
         run: uv run ty check
 
-  # Unit tests on every supported Python. Since v0.4 the Rust extension
-  # is mandatory — the previous "bare install stays import-clean" guard
-  # has been replaced by a build-the-extension step.
-  unit:
-    name: Unit — Python ${{ matrix.python }}
+  # Unit tests against the bare install on every supported Python.
+  # No optional libs installed — exercises the import-clean discipline
+  # (compression imports must stay lazy) and the MissingExtraError
+  # paths (mocked via monkeypatch in the unit suite).
+  unit-bare:
+    name: Unit (bare) — Python ${{ matrix.python }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -55,9 +55,6 @@ jobs:
         python: ["3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
-
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
 
       - uses: astral-sh/setup-uv@v6
         with:
@@ -67,16 +64,15 @@ jobs:
             pyproject.toml
             uv.lock
 
-      - name: Install
+      - name: Install (no extras)
+        # `uv sync` excludes optional extras by default — pulling them
+        # in requires an explicit `--extra <name>`. The bare install
+        # is what `pip install clickhouse-async` users land on.
         run: uv sync --frozen
 
-      - name: Build the Rust extension into the venv
-        run: uv run maturin develop --uv
-
-      - name: Verify the install imports cleanly
+      - name: Verify the bare install stays import-clean
         run: |
           uv run python -c "import clickhouse_async; print('version:', clickhouse_async.__version__)"
-          uv run python -c "from clickhouse_async import _fast; print('fast:', _fast)"
 
       - name: Unit tests
         run: uv run pytest tests/unit -q --timeout=10 --cov --cov-branch --cov-report=term-missing --cov-report=html
@@ -105,9 +101,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: ${{ matrix.python }}
@@ -118,9 +111,6 @@ jobs:
 
       - name: Install (with compression extra)
         run: uv sync --frozen --extra compression
-
-      - name: Build the Rust extension into the venv
-        run: uv run maturin develop --uv
 
       - name: Start ClickHouse ${{ matrix.clickhouse }}
         run: ./scripts/clickhouse.sh up
@@ -167,9 +157,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.11"
@@ -180,9 +167,6 @@ jobs:
 
       - name: Install (with compression extra)
         run: uv sync --frozen --extra compression
-
-      - name: Build the Rust extension into the venv
-        run: uv run maturin develop --uv
 
       - name: Start ClickHouse
         run: ./scripts/clickhouse.sh up

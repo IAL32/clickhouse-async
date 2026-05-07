@@ -2,7 +2,7 @@
 ## Environment
 | Field | Value |
 |---|---|
-| Run timestamp (UTC) | 2026-05-07T18:54:25Z |
+| Run timestamp (UTC) | 2026-05-07T19:10:18Z |
 | OS | Darwin 25.2.0 arm64 |
 | CPU | Apple M3 Pro — 11P/11L cores |
 | RAM | 36.0 GiB |
@@ -15,7 +15,7 @@
 | asynch (tacto fork) | 0.3.1 |
 | clickhouse-connect (thread-pool) | 0.15.1 |
 | clickhouse-connect (native async) | 1.0.0rc2 |
-| Repo SHA | 389e33f |
+| Repo SHA | 73cbcd4 |
 | Working tree | dirty |
 
 ## Results
@@ -25,11 +25,11 @@ _Latency (ms, lower is better)_
 
 | Library | n | p50 | p95 | p99 | min | max | mean |
 |---|---|---|---|---|---|---|---|
-| clickhouse-async | 200 | 0.905 | 1.014 | 1.048 | 0.803 | 1.064 | 0.913 |
-| asynch (PyPI) | 200 | 1.344 | 1.700 | 1.972 | 1.116 | 2.430 | 1.366 |
-| asynch (tacto fork) | 200 | 1.225 | 1.363 | 1.493 | 1.101 | 1.901 | 1.237 |
-| clickhouse-connect (thread-pool) | 200 | 2.077 | 3.334 | 3.620 | 1.151 | 5.516 | 2.158 |
-| clickhouse-connect (native async) | 200 | 1.480 | 2.247 | 3.796 | 0.979 | 4.469 | 1.573 |
+| clickhouse-async | 200 | 0.969 | 1.165 | 1.304 | 0.870 | 1.405 | 0.990 |
+| asynch (PyPI) | 200 | 1.298 | 1.635 | 2.064 | 1.115 | 2.377 | 1.337 |
+| asynch (tacto fork) | 200 | 1.286 | 1.660 | 2.120 | 1.146 | 2.563 | 1.335 |
+| clickhouse-connect (thread-pool) | 200 | 1.799 | 2.917 | 3.616 | 1.056 | 4.040 | 1.799 |
+| clickhouse-connect (native async) | 200 | 1.036 | 1.884 | 2.548 | 0.873 | 3.409 | 1.157 |
 
 ![ping_latency](ping_latency.png)
 
@@ -39,11 +39,11 @@ _Throughput (rows/sec, higher is better)_
 
 | Library | n | p50 | p95 | p99 | min | max | mean |
 |---|---|---|---|---|---|---|---|
-| clickhouse-async | 10 | 1,471,053 | 1,525,535 | 1,546,995 | 1,436,802 | 1,552,359 | 1,473,459 |
-| asynch (PyPI) | 10 | 503,713 | 508,183 | 508,732 | 495,049 | 508,869 | 503,240 |
-| asynch (tacto fork) | 10 | 501,230 | 507,371 | 508,745 | 498,070 | 509,088 | 501,871 |
-| clickhouse-connect (thread-pool) | 10 | 933,997 | 956,382 | 966,037 | 920,599 | 968,451 | 936,316 |
-| clickhouse-connect (native async) | 10 | 3,063,590 | 3,116,243 | 3,140,682 | 3,003,083 | 3,146,792 | 3,053,838 |
+| clickhouse-async | 10 | 1,473,936 | 1,482,212 | 1,483,195 | 1,416,578 | 1,483,441 | 1,467,838 |
+| asynch (PyPI) | 10 | 497,763 | 500,816 | 501,078 | 489,048 | 501,143 | 496,380 |
+| asynch (tacto fork) | 10 | 497,373 | 499,415 | 499,883 | 489,497 | 500,000 | 496,584 |
+| clickhouse-connect (thread-pool) | 10 | 909,201 | 917,332 | 918,532 | 876,486 | 918,832 | 905,859 |
+| clickhouse-connect (native async) | 10 | 3,027,235 | 3,069,623 | 3,078,908 | 2,950,772 | 3,081,229 | 3,023,172 |
 
 ![read_throughput](read_throughput.png)
 
@@ -53,11 +53,11 @@ _Throughput (rows/sec, higher is better)_
 
 | Library | n | p50 | p95 | p99 | min | max | mean |
 |---|---|---|---|---|---|---|---|
-| clickhouse-async | 10 | 741,776 | 776,644 | 777,463 | 710,895 | 777,667 | 748,350 |
-| asynch (PyPI) | 10 | 778,807 | 802,262 | 809,619 | 719,807 | 811,458 | 773,841 |
-| asynch (tacto fork) | 10 | 763,834 | 800,360 | 807,879 | 736,857 | 809,758 | 766,417 |
-| clickhouse-connect (thread-pool) | 10 | 1,015,549 | 1,043,409 | 1,045,537 | 928,061 | 1,046,069 | 1,004,299 |
-| clickhouse-connect (native async) | 10 | 961,974 | 1,077,510 | 1,095,149 | 899,554 | 1,099,559 | 978,442 |
+| clickhouse-async | 10 | 961,128 | 1,039,015 | 1,043,632 | 914,831 | 1,044,786 | 972,273 |
+| asynch (PyPI) | 10 | 732,602 | 779,812 | 780,362 | 648,558 | 780,499 | 732,563 |
+| asynch (tacto fork) | 10 | 742,792 | 787,281 | 787,652 | 712,877 | 787,744 | 747,268 |
+| clickhouse-connect (thread-pool) | 10 | 999,219 | 1,090,946 | 1,094,162 | 975,925 | 1,094,966 | 1,019,644 |
+| clickhouse-connect (native async) | 10 | 964,856 | 1,051,231 | 1,053,546 | 935,095 | 1,054,124 | 985,216 |
 
 ![insert_throughput](insert_throughput.png)
 
@@ -67,11 +67,11 @@ _Total wall time (ms, lower is better)_
 
 | Library | n | p50 | p95 | p99 | min | max | mean |
 |---|---|---|---|---|---|---|---|
-| clickhouse-async | 10 | 12.303 | 13.849 | 14.362 | 11.203 | 14.490 | 12.439 |
-| asynch (PyPI) | 10 | 13.309 | 14.502 | 14.570 | 12.540 | 14.587 | 13.441 |
-| asynch (tacto fork) | 10 | 14.804 | 16.721 | 16.955 | 12.058 | 17.014 | 14.725 |
-| clickhouse-connect (thread-pool) | 10 | 12.009 | 14.033 | 15.118 | 11.218 | 15.389 | 12.218 |
-| clickhouse-connect (native async) | 10 | 52.503 | 56.988 | 58.246 | 47.500 | 58.561 | 51.971 |
+| clickhouse-async | 10 | 14.712 | 17.115 | 17.519 | 12.763 | 17.620 | 14.883 |
+| asynch (PyPI) | 10 | 15.486 | 17.557 | 17.879 | 12.314 | 17.960 | 15.371 |
+| asynch (tacto fork) | 10 | 16.463 | 17.848 | 18.151 | 14.717 | 18.227 | 16.387 |
+| clickhouse-connect (thread-pool) | 10 | 14.441 | 16.824 | 17.293 | 11.772 | 17.410 | 14.288 |
+| clickhouse-connect (native async) | 10 | 55.560 | 61.508 | 62.794 | 49.767 | 63.116 | 55.817 |
 
 ![concurrent_reads](concurrent_reads.png)
 
@@ -81,11 +81,11 @@ _Resident set size (MiB) over wall-clock time (ms)_
 
 | Library | n | p50 | p95 | p99 | min | max | mean |
 |---|---|---|---|---|---|---|---|
-| clickhouse-async | 1 | 518.9 | 518.9 | 518.9 | 518.9 | 518.9 | 518.9 |
-| asynch (PyPI) | 1 | 505.4 | 505.4 | 505.4 | 505.4 | 505.4 | 505.4 |
-| asynch (tacto fork) | 1 | 506.8 | 506.8 | 506.8 | 506.8 | 506.8 | 506.8 |
-| clickhouse-connect (thread-pool) | 1 | 683.1 | 683.1 | 683.1 | 683.1 | 683.1 | 683.1 |
-| clickhouse-connect (native async) | 1 | 585.9 | 585.9 | 585.9 | 585.9 | 585.9 | 585.9 |
+| clickhouse-async | 1 | 505.8 | 505.8 | 505.8 | 505.8 | 505.8 | 505.8 |
+| asynch (PyPI) | 1 | 532.9 | 532.9 | 532.9 | 532.9 | 532.9 | 532.9 |
+| asynch (tacto fork) | 1 | 531.4 | 531.4 | 531.4 | 531.4 | 531.4 | 531.4 |
+| clickhouse-connect (thread-pool) | 1 | 681.0 | 681.0 | 681.0 | 681.0 | 681.0 | 681.0 |
+| clickhouse-connect (native async) | 1 | 575.2 | 575.2 | 575.2 | 575.2 | 575.2 | 575.2 |
 
 ![memory_ceiling](memory_ceiling.png)
 

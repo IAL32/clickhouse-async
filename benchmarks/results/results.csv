@@ -1,1156 +1,1156 @@
 elapsed_ms,extra.concurrency,extra.rss_baseline_mib,extra.rss_delta_mib,extra.rss_peak_mib,extra.rss_samples,extra.sample_interval_ms,library,rows,run,scenario
-1.0308329947292805,,,,,,,clickhouse-async,1,0,ping_latency
-1.0440419428050518,,,,,,,clickhouse-async,1,1,ping_latency
-1.0475418530404568,,,,,,,clickhouse-async,1,2,ping_latency
-1.0239589028060436,,,,,,,clickhouse-async,1,3,ping_latency
-1.0193749330937862,,,,,,,clickhouse-async,1,4,ping_latency
-1.004916150122881,,,,,,,clickhouse-async,1,5,ping_latency
-1.0140002705156803,,,,,,,clickhouse-async,1,6,ping_latency
-0.9443340823054314,,,,,,,clickhouse-async,1,7,ping_latency
-0.9357081726193428,,,,,,,clickhouse-async,1,8,ping_latency
-0.9823329746723175,,,,,,,clickhouse-async,1,9,ping_latency
-0.9337081573903561,,,,,,,clickhouse-async,1,10,ping_latency
-0.899875070899725,,,,,,,clickhouse-async,1,11,ping_latency
-1.0597496293485165,,,,,,,clickhouse-async,1,12,ping_latency
-0.9815418161451817,,,,,,,clickhouse-async,1,13,ping_latency
-0.9600408375263214,,,,,,,clickhouse-async,1,14,ping_latency
-0.9416672401130199,,,,,,,clickhouse-async,1,15,ping_latency
-0.9507504291832447,,,,,,,clickhouse-async,1,16,ping_latency
-0.9297081269323826,,,,,,,clickhouse-async,1,17,ping_latency
-0.9783748537302017,,,,,,,clickhouse-async,1,18,ping_latency
-1.0295407846570015,,,,,,,clickhouse-async,1,19,ping_latency
-1.063541043549776,,,,,,,clickhouse-async,1,20,ping_latency
-1.0165409184992313,,,,,,,clickhouse-async,1,21,ping_latency
-0.9773336350917816,,,,,,,clickhouse-async,1,22,ping_latency
-0.9620836935937405,,,,,,,clickhouse-async,1,23,ping_latency
-0.9693331085145473,,,,,,,clickhouse-async,1,24,ping_latency
-0.9654578752815723,,,,,,,clickhouse-async,1,25,ping_latency
-0.9776251390576363,,,,,,,clickhouse-async,1,26,ping_latency
-0.9733340702950954,,,,,,,clickhouse-async,1,27,ping_latency
-0.9328331798315048,,,,,,,clickhouse-async,1,28,ping_latency
-0.9049158543348312,,,,,,,clickhouse-async,1,29,ping_latency
-0.9674583561718464,,,,,,,clickhouse-async,1,30,ping_latency
-1.001249998807907,,,,,,,clickhouse-async,1,31,ping_latency
-0.9070830419659615,,,,,,,clickhouse-async,1,32,ping_latency
-0.9267078712582588,,,,,,,clickhouse-async,1,33,ping_latency
-1.0373331606388092,,,,,,,clickhouse-async,1,34,ping_latency
-0.9052501991391182,,,,,,,clickhouse-async,1,35,ping_latency
-0.9224582463502884,,,,,,,clickhouse-async,1,36,ping_latency
-0.9324587881565094,,,,,,,clickhouse-async,1,37,ping_latency
-0.941708218306303,,,,,,,clickhouse-async,1,38,ping_latency
-0.9206659160554409,,,,,,,clickhouse-async,1,39,ping_latency
-0.9682499803602695,,,,,,,clickhouse-async,1,40,ping_latency
-0.9372499771416187,,,,,,,clickhouse-async,1,41,ping_latency
-0.9640422649681568,,,,,,,clickhouse-async,1,42,ping_latency
-0.9294170886278152,,,,,,,clickhouse-async,1,43,ping_latency
-0.8966666646301746,,,,,,,clickhouse-async,1,44,ping_latency
-0.9360420517623425,,,,,,,clickhouse-async,1,45,ping_latency
-0.8809999562799931,,,,,,,clickhouse-async,1,46,ping_latency
-0.9071249514818192,,,,,,,clickhouse-async,1,47,ping_latency
-0.9647919796407223,,,,,,,clickhouse-async,1,48,ping_latency
-0.9395829401910305,,,,,,,clickhouse-async,1,49,ping_latency
-0.9524589404463768,,,,,,,clickhouse-async,1,50,ping_latency
-0.9111249819397926,,,,,,,clickhouse-async,1,51,ping_latency
-0.9179171174764633,,,,,,,clickhouse-async,1,52,ping_latency
-0.9404588490724564,,,,,,,clickhouse-async,1,53,ping_latency
-0.98091596737504,,,,,,,clickhouse-async,1,54,ping_latency
-0.9112497791647911,,,,,,,clickhouse-async,1,55,ping_latency
-0.8990000933408737,,,,,,,clickhouse-async,1,56,ping_latency
-0.8952501229941845,,,,,,,clickhouse-async,1,57,ping_latency
-0.9016674011945724,,,,,,,clickhouse-async,1,58,ping_latency
-0.9553339332342148,,,,,,,clickhouse-async,1,59,ping_latency
-0.9742500260472298,,,,,,,clickhouse-async,1,60,ping_latency
-0.8993749506771564,,,,,,,clickhouse-async,1,61,ping_latency
-0.8804593235254288,,,,,,,clickhouse-async,1,62,ping_latency
-0.9280419908463955,,,,,,,clickhouse-async,1,63,ping_latency
-0.9639160707592964,,,,,,,clickhouse-async,1,64,ping_latency
-0.9464998729526997,,,,,,,clickhouse-async,1,65,ping_latency
-0.9095421992242336,,,,,,,clickhouse-async,1,66,ping_latency
-0.871540978550911,,,,,,,clickhouse-async,1,67,ping_latency
-0.9351661428809166,,,,,,,clickhouse-async,1,68,ping_latency
-0.9217923507094383,,,,,,,clickhouse-async,1,69,ping_latency
-0.8845832198858261,,,,,,,clickhouse-async,1,70,ping_latency
-0.9313751943409443,,,,,,,clickhouse-async,1,71,ping_latency
-0.9406669996678829,,,,,,,clickhouse-async,1,72,ping_latency
-0.8896659128367901,,,,,,,clickhouse-async,1,73,ping_latency
-0.8830837905406952,,,,,,,clickhouse-async,1,74,ping_latency
-0.9128754027187824,,,,,,,clickhouse-async,1,75,ping_latency
-0.922124832868576,,,,,,,clickhouse-async,1,76,ping_latency
-0.9103342890739441,,,,,,,clickhouse-async,1,77,ping_latency
-0.89599983766675,,,,,,,clickhouse-async,1,78,ping_latency
-0.9177499450743198,,,,,,,clickhouse-async,1,79,ping_latency
-0.8596247062087059,,,,,,,clickhouse-async,1,80,ping_latency
-0.9289169684052467,,,,,,,clickhouse-async,1,81,ping_latency
-0.9005842730402946,,,,,,,clickhouse-async,1,82,ping_latency
-0.940458383411169,,,,,,,clickhouse-async,1,83,ping_latency
-0.8954997174441814,,,,,,,clickhouse-async,1,84,ping_latency
-0.8974578231573105,,,,,,,clickhouse-async,1,85,ping_latency
-0.885500106960535,,,,,,,clickhouse-async,1,86,ping_latency
-0.897624995559454,,,,,,,clickhouse-async,1,87,ping_latency
-0.8561247959733009,,,,,,,clickhouse-async,1,88,ping_latency
-0.9024171158671379,,,,,,,clickhouse-async,1,89,ping_latency
-0.8632917888462543,,,,,,,clickhouse-async,1,90,ping_latency
-0.8335420861840248,,,,,,,clickhouse-async,1,91,ping_latency
-0.8714157156646252,,,,,,,clickhouse-async,1,92,ping_latency
-0.8510411716997623,,,,,,,clickhouse-async,1,93,ping_latency
-0.9323330596089363,,,,,,,clickhouse-async,1,94,ping_latency
-0.8620829321444035,,,,,,,clickhouse-async,1,95,ping_latency
-0.8801249787211418,,,,,,,clickhouse-async,1,96,ping_latency
-0.8692499250173569,,,,,,,clickhouse-async,1,97,ping_latency
-0.8850409649312496,,,,,,,clickhouse-async,1,98,ping_latency
-0.9243329986929893,,,,,,,clickhouse-async,1,99,ping_latency
-0.9456658735871315,,,,,,,clickhouse-async,1,100,ping_latency
-0.8861669339239597,,,,,,,clickhouse-async,1,101,ping_latency
-0.8800001814961433,,,,,,,clickhouse-async,1,102,ping_latency
-0.8810409344732761,,,,,,,clickhouse-async,1,103,ping_latency
-0.9002918377518654,,,,,,,clickhouse-async,1,104,ping_latency
-0.8786669932305813,,,,,,,clickhouse-async,1,105,ping_latency
-0.813750084489584,,,,,,,clickhouse-async,1,106,ping_latency
-0.9117922745645046,,,,,,,clickhouse-async,1,107,ping_latency
-0.8662501350045204,,,,,,,clickhouse-async,1,108,ping_latency
-0.8859592489898205,,,,,,,clickhouse-async,1,109,ping_latency
-0.8767908439040184,,,,,,,clickhouse-async,1,110,ping_latency
-0.8809999562799931,,,,,,,clickhouse-async,1,111,ping_latency
-0.8703749626874924,,,,,,,clickhouse-async,1,112,ping_latency
-0.8873329497873783,,,,,,,clickhouse-async,1,113,ping_latency
-0.9352080523967743,,,,,,,clickhouse-async,1,114,ping_latency
-0.8469996973872185,,,,,,,clickhouse-async,1,115,ping_latency
-0.9019579738378525,,,,,,,clickhouse-async,1,116,ping_latency
-0.8802502416074276,,,,,,,clickhouse-async,1,117,ping_latency
-0.9202086366713047,,,,,,,clickhouse-async,1,118,ping_latency
-0.8599171414971352,,,,,,,clickhouse-async,1,119,ping_latency
-0.9083747863769531,,,,,,,clickhouse-async,1,120,ping_latency
-0.8777081966400146,,,,,,,clickhouse-async,1,121,ping_latency
-0.8756252937018871,,,,,,,clickhouse-async,1,122,ping_latency
-0.8772499859333038,,,,,,,clickhouse-async,1,123,ping_latency
-0.8537499234080315,,,,,,,clickhouse-async,1,124,ping_latency
-0.8373330347239971,,,,,,,clickhouse-async,1,125,ping_latency
-0.8068750612437725,,,,,,,clickhouse-async,1,126,ping_latency
-0.8689169771969318,,,,,,,clickhouse-async,1,127,ping_latency
-0.8971248753368855,,,,,,,clickhouse-async,1,128,ping_latency
-0.8641253225505352,,,,,,,clickhouse-async,1,129,ping_latency
-0.8536246605217457,,,,,,,clickhouse-async,1,130,ping_latency
-0.8029579184949398,,,,,,,clickhouse-async,1,131,ping_latency
-0.8605844341218472,,,,,,,clickhouse-async,1,132,ping_latency
-0.882541760802269,,,,,,,clickhouse-async,1,133,ping_latency
-0.842374749481678,,,,,,,clickhouse-async,1,134,ping_latency
-0.8797082118690014,,,,,,,clickhouse-async,1,135,ping_latency
-0.8782078512012959,,,,,,,clickhouse-async,1,136,ping_latency
-0.8320002816617489,,,,,,,clickhouse-async,1,137,ping_latency
-0.865415669977665,,,,,,,clickhouse-async,1,138,ping_latency
-0.824333168566227,,,,,,,clickhouse-async,1,139,ping_latency
-0.8605830371379852,,,,,,,clickhouse-async,1,140,ping_latency
-0.8595418184995651,,,,,,,clickhouse-async,1,141,ping_latency
-0.8852919563651085,,,,,,,clickhouse-async,1,142,ping_latency
-0.8993330411612988,,,,,,,clickhouse-async,1,143,ping_latency
-0.9346669539809227,,,,,,,clickhouse-async,1,144,ping_latency
-0.8936668746173382,,,,,,,clickhouse-async,1,145,ping_latency
-0.93495799228549,,,,,,,clickhouse-async,1,146,ping_latency
-0.890917144715786,,,,,,,clickhouse-async,1,147,ping_latency
-0.9467080235481262,,,,,,,clickhouse-async,1,148,ping_latency
-0.876791775226593,,,,,,,clickhouse-async,1,149,ping_latency
-0.9097084403038025,,,,,,,clickhouse-async,1,150,ping_latency
-0.9542498737573624,,,,,,,clickhouse-async,1,151,ping_latency
-0.9204167872667313,,,,,,,clickhouse-async,1,152,ping_latency
-0.902125146239996,,,,,,,clickhouse-async,1,153,ping_latency
-0.8870833553373814,,,,,,,clickhouse-async,1,154,ping_latency
-0.8974173106253147,,,,,,,clickhouse-async,1,155,ping_latency
-0.8960003033280373,,,,,,,clickhouse-async,1,156,ping_latency
-0.8988329209387302,,,,,,,clickhouse-async,1,157,ping_latency
-0.9071668609976768,,,,,,,clickhouse-async,1,158,ping_latency
-0.9550419636070728,,,,,,,clickhouse-async,1,159,ping_latency
-0.982833094894886,,,,,,,clickhouse-async,1,160,ping_latency
-0.9392080828547478,,,,,,,clickhouse-async,1,161,ping_latency
-0.9405417367815971,,,,,,,clickhouse-async,1,162,ping_latency
-0.8925828151404858,,,,,,,clickhouse-async,1,163,ping_latency
-0.9615421295166016,,,,,,,clickhouse-async,1,164,ping_latency
-0.9447499178349972,,,,,,,clickhouse-async,1,165,ping_latency
-0.9254589676856995,,,,,,,clickhouse-async,1,166,ping_latency
-0.8476669900119305,,,,,,,clickhouse-async,1,167,ping_latency
-0.9009581990540028,,,,,,,clickhouse-async,1,168,ping_latency
-0.883209053426981,,,,,,,clickhouse-async,1,169,ping_latency
-0.9157923050224781,,,,,,,clickhouse-async,1,170,ping_latency
-0.9199162013828754,,,,,,,clickhouse-async,1,171,ping_latency
-0.8898749947547913,,,,,,,clickhouse-async,1,172,ping_latency
-0.9012920781970024,,,,,,,clickhouse-async,1,173,ping_latency
-0.8763750083744526,,,,,,,clickhouse-async,1,174,ping_latency
-0.8615418337285519,,,,,,,clickhouse-async,1,175,ping_latency
-0.9411671198904514,,,,,,,clickhouse-async,1,176,ping_latency
-0.8714580908417702,,,,,,,clickhouse-async,1,177,ping_latency
-0.8558337576687336,,,,,,,clickhouse-async,1,178,ping_latency
-0.9354171343147755,,,,,,,clickhouse-async,1,179,ping_latency
-0.8901669643819332,,,,,,,clickhouse-async,1,180,ping_latency
-0.8762078359723091,,,,,,,clickhouse-async,1,181,ping_latency
-0.8841250091791153,,,,,,,clickhouse-async,1,182,ping_latency
-0.9070001542568207,,,,,,,clickhouse-async,1,183,ping_latency
-0.8815419860184193,,,,,,,clickhouse-async,1,184,ping_latency
-0.9047500789165497,,,,,,,clickhouse-async,1,185,ping_latency
-0.9059999138116837,,,,,,,clickhouse-async,1,186,ping_latency
-0.8891252800822258,,,,,,,clickhouse-async,1,187,ping_latency
-0.9092912077903748,,,,,,,clickhouse-async,1,188,ping_latency
-0.9312909096479416,,,,,,,clickhouse-async,1,189,ping_latency
-0.8484167046844959,,,,,,,clickhouse-async,1,190,ping_latency
-0.858458224684,,,,,,,clickhouse-async,1,191,ping_latency
-0.8801659569144249,,,,,,,clickhouse-async,1,192,ping_latency
-0.8628340438008308,,,,,,,clickhouse-async,1,193,ping_latency
-0.8657081052660942,,,,,,,clickhouse-async,1,194,ping_latency
-0.8772080764174461,,,,,,,clickhouse-async,1,195,ping_latency
-0.9276671335101128,,,,,,,clickhouse-async,1,196,ping_latency
-0.9427499026060104,,,,,,,clickhouse-async,1,197,ping_latency
-0.9462498128414154,,,,,,,clickhouse-async,1,198,ping_latency
-0.9016669355332851,,,,,,,clickhouse-async,1,199,ping_latency
-644.1807090304792,,,,,,,clickhouse-async,1000000,0,read_throughput
-680.0044169649482,,,,,,,clickhouse-async,1000000,1,read_throughput
-695.9899999201298,,,,,,,clickhouse-async,1000000,2,read_throughput
-670.9647080861032,,,,,,,clickhouse-async,1000000,3,read_throughput
-679.5665002427995,,,,,,,clickhouse-async,1000000,4,read_throughput
-690.5562910251319,,,,,,,clickhouse-async,1000000,5,read_throughput
-669.904415961355,,,,,,,clickhouse-async,1000000,6,read_throughput
-689.6227919496596,,,,,,,clickhouse-async,1000000,7,read_throughput
-691.0481662489474,,,,,,,clickhouse-async,1000000,8,read_throughput
-678.0002498999238,,,,,,,clickhouse-async,1000000,9,read_throughput
-130.2184173837304,,,,,,,clickhouse-async,100000,0,insert_throughput
-134.41570801660419,,,,,,,clickhouse-async,100000,1,insert_throughput
-135.20970894023776,,,,,,,clickhouse-async,100000,2,insert_throughput
-128.58970882371068,,,,,,,clickhouse-async,100000,3,insert_throughput
-135.62212511897087,,,,,,,clickhouse-async,100000,4,insert_throughput
-136.70691614970565,,,,,,,clickhouse-async,100000,5,insert_throughput
-140.6678343191743,,,,,,,clickhouse-async,100000,6,insert_throughput
-137.05366617068648,,,,,,,clickhouse-async,100000,7,insert_throughput
-129.94204089045525,,,,,,,clickhouse-async,100000,8,insert_throughput
-128.9667091332376,,,,,,,clickhouse-async,100000,9,insert_throughput
-11.85312494635582,16,,,,,,clickhouse-async,1600000,0,concurrent_reads
-12.770667206496,16,,,,,,clickhouse-async,1600000,1,concurrent_reads
-12.548500206321478,16,,,,,,clickhouse-async,1600000,2,concurrent_reads
-12.914041057229042,16,,,,,,clickhouse-async,1600000,3,concurrent_reads
-13.065750245004892,16,,,,,,clickhouse-async,1600000,4,concurrent_reads
-12.057499960064888,16,,,,,,clickhouse-async,1600000,5,concurrent_reads
-11.202624998986721,16,,,,,,clickhouse-async,1600000,6,concurrent_reads
-14.490040950477123,16,,,,,,clickhouse-async,1600000,7,concurrent_reads
-11.561417020857334,16,,,,,,clickhouse-async,1600000,8,concurrent_reads
-11.931249871850014,16,,,,,,clickhouse-async,1600000,9,concurrent_reads
-716.6791250929236,,30.45,488.43,518.88,"[{'t_ms': 0.0, 'rss_mib': 30.45}, {'t_ms': 0.08, 'rss_mib': 30.48}, {'t_ms': 57.98, 'rss_mib': 115.17}, {'t_ms': 114.21, 'rss_mib': 180.27}, {'t_ms': 168.49, 'rss_mib': 232.36}, {'t_ms': 228.88, 'rss_mib': 284.44}, {'t_ms': 281.22, 'rss_mib': 330.03}, {'t_ms': 336.39, 'rss_mib': 369.09}, {'t_ms': 392.09, 'rss_mib': 408.17}, {'t_ms': 450.08, 'rss_mib': 440.77}, {'t_ms': 512.61, 'rss_mib': 479.81}, {'t_ms': 577.68, 'rss_mib': 518.88}, {'t_ms': 716.83, 'rss_mib': 133.91}, {'t_ms': 717.02, 'rss_mib': 133.88}]",50.0,clickhouse-async,5000000,0,memory_ceiling
-2.429625019431114,,,,,,,clickhouse-connect (thread-pool),1,0,ping_latency
-2.423916943371296,,,,,,,clickhouse-connect (thread-pool),1,1,ping_latency
-2.618208061903715,,,,,,,clickhouse-connect (thread-pool),1,2,ping_latency
-2.6760408654809,,,,,,,clickhouse-connect (thread-pool),1,3,ping_latency
-2.7568330988287926,,,,,,,clickhouse-connect (thread-pool),1,4,ping_latency
-2.2611250169575214,,,,,,,clickhouse-connect (thread-pool),1,5,ping_latency
-2.1314998157322407,,,,,,,clickhouse-connect (thread-pool),1,6,ping_latency
-2.0974171347916126,,,,,,,clickhouse-connect (thread-pool),1,7,ping_latency
-2.2007920779287815,,,,,,,clickhouse-connect (thread-pool),1,8,ping_latency
-2.180292271077633,,,,,,,clickhouse-connect (thread-pool),1,9,ping_latency
-2.200791146606207,,,,,,,clickhouse-connect (thread-pool),1,10,ping_latency
-2.008541952818632,,,,,,,clickhouse-connect (thread-pool),1,11,ping_latency
-2.154749818146229,,,,,,,clickhouse-connect (thread-pool),1,12,ping_latency
-1.986541785299778,,,,,,,clickhouse-connect (thread-pool),1,13,ping_latency
-1.9992496818304062,,,,,,,clickhouse-connect (thread-pool),1,14,ping_latency
-1.9795410335063934,,,,,,,clickhouse-connect (thread-pool),1,15,ping_latency
-2.0270003005862236,,,,,,,clickhouse-connect (thread-pool),1,16,ping_latency
-1.9629579037427902,,,,,,,clickhouse-connect (thread-pool),1,17,ping_latency
-2.004084177315235,,,,,,,clickhouse-connect (thread-pool),1,18,ping_latency
-1.9664582796394825,,,,,,,clickhouse-connect (thread-pool),1,19,ping_latency
-2.0091249607503414,,,,,,,clickhouse-connect (thread-pool),1,20,ping_latency
-1.9132914021611214,,,,,,,clickhouse-connect (thread-pool),1,21,ping_latency
-2.1139997988939285,,,,,,,clickhouse-connect (thread-pool),1,22,ping_latency
-2.0059170201420784,,,,,,,clickhouse-connect (thread-pool),1,23,ping_latency
-1.9338750280439854,,,,,,,clickhouse-connect (thread-pool),1,24,ping_latency
-1.9417502917349339,,,,,,,clickhouse-connect (thread-pool),1,25,ping_latency
-1.972625032067299,,,,,,,clickhouse-connect (thread-pool),1,26,ping_latency
-2.0044161938130856,,,,,,,clickhouse-connect (thread-pool),1,27,ping_latency
-1.8967082723975182,,,,,,,clickhouse-connect (thread-pool),1,28,ping_latency
-2.008916810154915,,,,,,,clickhouse-connect (thread-pool),1,29,ping_latency
-2.3334170691668987,,,,,,,clickhouse-connect (thread-pool),1,30,ping_latency
-2.3275832645595074,,,,,,,clickhouse-connect (thread-pool),1,31,ping_latency
-2.361041959375143,,,,,,,clickhouse-connect (thread-pool),1,32,ping_latency
-2.030916977673769,,,,,,,clickhouse-connect (thread-pool),1,33,ping_latency
-2.370166592299938,,,,,,,clickhouse-connect (thread-pool),1,34,ping_latency
-2.5388747453689575,,,,,,,clickhouse-connect (thread-pool),1,35,ping_latency
-1.505000051110983,,,,,,,clickhouse-connect (thread-pool),1,36,ping_latency
-1.7160000279545784,,,,,,,clickhouse-connect (thread-pool),1,37,ping_latency
-1.5674158930778503,,,,,,,clickhouse-connect (thread-pool),1,38,ping_latency
-1.5914170071482658,,,,,,,clickhouse-connect (thread-pool),1,39,ping_latency
-1.3583330437541008,,,,,,,clickhouse-connect (thread-pool),1,40,ping_latency
-1.2119580060243607,,,,,,,clickhouse-connect (thread-pool),1,41,ping_latency
-1.1514592915773392,,,,,,,clickhouse-connect (thread-pool),1,42,ping_latency
-1.3290410861372948,,,,,,,clickhouse-connect (thread-pool),1,43,ping_latency
-1.516999676823616,,,,,,,clickhouse-connect (thread-pool),1,44,ping_latency
-1.507583074271679,,,,,,,clickhouse-connect (thread-pool),1,45,ping_latency
-1.3962499797344208,,,,,,,clickhouse-connect (thread-pool),1,46,ping_latency
-1.5132920816540718,,,,,,,clickhouse-connect (thread-pool),1,47,ping_latency
-1.4768331311643124,,,,,,,clickhouse-connect (thread-pool),1,48,ping_latency
-1.3143750838935375,,,,,,,clickhouse-connect (thread-pool),1,49,ping_latency
-1.4757500030100346,,,,,,,clickhouse-connect (thread-pool),1,50,ping_latency
-1.4518750831484795,,,,,,,clickhouse-connect (thread-pool),1,51,ping_latency
-1.3624578714370728,,,,,,,clickhouse-connect (thread-pool),1,52,ping_latency
-1.4069168828427792,,,,,,,clickhouse-connect (thread-pool),1,53,ping_latency
-1.2215422466397285,,,,,,,clickhouse-connect (thread-pool),1,54,ping_latency
-1.2321248650550842,,,,,,,clickhouse-connect (thread-pool),1,55,ping_latency
-1.3590836897492409,,,,,,,clickhouse-connect (thread-pool),1,56,ping_latency
-1.2092078104615211,,,,,,,clickhouse-connect (thread-pool),1,57,ping_latency
-1.370999962091446,,,,,,,clickhouse-connect (thread-pool),1,58,ping_latency
-1.3436251319944859,,,,,,,clickhouse-connect (thread-pool),1,59,ping_latency
-1.3822498731315136,,,,,,,clickhouse-connect (thread-pool),1,60,ping_latency
-1.317666843533516,,,,,,,clickhouse-connect (thread-pool),1,61,ping_latency
-1.4192499220371246,,,,,,,clickhouse-connect (thread-pool),1,62,ping_latency
-1.3115843757987022,,,,,,,clickhouse-connect (thread-pool),1,63,ping_latency
-1.3955826871097088,,,,,,,clickhouse-connect (thread-pool),1,64,ping_latency
-1.3416660949587822,,,,,,,clickhouse-connect (thread-pool),1,65,ping_latency
-1.3362918980419636,,,,,,,clickhouse-connect (thread-pool),1,66,ping_latency
-1.430874690413475,,,,,,,clickhouse-connect (thread-pool),1,67,ping_latency
-1.6100839711725712,,,,,,,clickhouse-connect (thread-pool),1,68,ping_latency
-1.5659159980714321,,,,,,,clickhouse-connect (thread-pool),1,69,ping_latency
-1.5631252899765968,,,,,,,clickhouse-connect (thread-pool),1,70,ping_latency
-1.3517080806195736,,,,,,,clickhouse-connect (thread-pool),1,71,ping_latency
-1.3430421240627766,,,,,,,clickhouse-connect (thread-pool),1,72,ping_latency
-1.3374579139053822,,,,,,,clickhouse-connect (thread-pool),1,73,ping_latency
-1.4980831183493137,,,,,,,clickhouse-connect (thread-pool),1,74,ping_latency
-1.4387080445885658,,,,,,,clickhouse-connect (thread-pool),1,75,ping_latency
-1.3642078265547752,,,,,,,clickhouse-connect (thread-pool),1,76,ping_latency
-1.4447499997913837,,,,,,,clickhouse-connect (thread-pool),1,77,ping_latency
-1.3640830293297768,,,,,,,clickhouse-connect (thread-pool),1,78,ping_latency
-1.4586662873625755,,,,,,,clickhouse-connect (thread-pool),1,79,ping_latency
-1.4031250029802322,,,,,,,clickhouse-connect (thread-pool),1,80,ping_latency
-1.4082086272537708,,,,,,,clickhouse-connect (thread-pool),1,81,ping_latency
-1.4819581992924213,,,,,,,clickhouse-connect (thread-pool),1,82,ping_latency
-1.5967078506946564,,,,,,,clickhouse-connect (thread-pool),1,83,ping_latency
-1.3554170727729797,,,,,,,clickhouse-connect (thread-pool),1,84,ping_latency
-1.4024158008396626,,,,,,,clickhouse-connect (thread-pool),1,85,ping_latency
-1.434457954019308,,,,,,,clickhouse-connect (thread-pool),1,86,ping_latency
-1.505957916378975,,,,,,,clickhouse-connect (thread-pool),1,87,ping_latency
-1.5692077577114105,,,,,,,clickhouse-connect (thread-pool),1,88,ping_latency
-1.6350406222045422,,,,,,,clickhouse-connect (thread-pool),1,89,ping_latency
-1.6679582186043262,,,,,,,clickhouse-connect (thread-pool),1,90,ping_latency
-1.463250257074833,,,,,,,clickhouse-connect (thread-pool),1,91,ping_latency
-1.6307909972965717,,,,,,,clickhouse-connect (thread-pool),1,92,ping_latency
-1.5638750046491623,,,,,,,clickhouse-connect (thread-pool),1,93,ping_latency
-1.5515834093093872,,,,,,,clickhouse-connect (thread-pool),1,94,ping_latency
-1.5643751248717308,,,,,,,clickhouse-connect (thread-pool),1,95,ping_latency
-1.6802921891212463,,,,,,,clickhouse-connect (thread-pool),1,96,ping_latency
-1.6754581592977047,,,,,,,clickhouse-connect (thread-pool),1,97,ping_latency
-1.9892919808626175,,,,,,,clickhouse-connect (thread-pool),1,98,ping_latency
-3.0840830877423286,,,,,,,clickhouse-connect (thread-pool),1,99,ping_latency
-2.2482918575406075,,,,,,,clickhouse-connect (thread-pool),1,100,ping_latency
-2.1532089449465275,,,,,,,clickhouse-connect (thread-pool),1,101,ping_latency
-2.1218331530690193,,,,,,,clickhouse-connect (thread-pool),1,102,ping_latency
-2.173167187720537,,,,,,,clickhouse-connect (thread-pool),1,103,ping_latency
-2.2046249359846115,,,,,,,clickhouse-connect (thread-pool),1,104,ping_latency
-2.045833971351385,,,,,,,clickhouse-connect (thread-pool),1,105,ping_latency
-2.2961250506341457,,,,,,,clickhouse-connect (thread-pool),1,106,ping_latency
-2.2050412371754646,,,,,,,clickhouse-connect (thread-pool),1,107,ping_latency
-2.132041845470667,,,,,,,clickhouse-connect (thread-pool),1,108,ping_latency
-2.1659997291862965,,,,,,,clickhouse-connect (thread-pool),1,109,ping_latency
-2.3179170675575733,,,,,,,clickhouse-connect (thread-pool),1,110,ping_latency
-2.27216724306345,,,,,,,clickhouse-connect (thread-pool),1,111,ping_latency
-2.4681659415364265,,,,,,,clickhouse-connect (thread-pool),1,112,ping_latency
-2.5121658109128475,,,,,,,clickhouse-connect (thread-pool),1,113,ping_latency
-2.2444999776780605,,,,,,,clickhouse-connect (thread-pool),1,114,ping_latency
-2.219750080257654,,,,,,,clickhouse-connect (thread-pool),1,115,ping_latency
-2.4615409784018993,,,,,,,clickhouse-connect (thread-pool),1,116,ping_latency
-2.4741250090301037,,,,,,,clickhouse-connect (thread-pool),1,117,ping_latency
-2.3114169016480446,,,,,,,clickhouse-connect (thread-pool),1,118,ping_latency
-2.455791924148798,,,,,,,clickhouse-connect (thread-pool),1,119,ping_latency
-2.46095797047019,,,,,,,clickhouse-connect (thread-pool),1,120,ping_latency
-2.4359170347452164,,,,,,,clickhouse-connect (thread-pool),1,121,ping_latency
-2.3759580217301846,,,,,,,clickhouse-connect (thread-pool),1,122,ping_latency
-2.295249607414007,,,,,,,clickhouse-connect (thread-pool),1,123,ping_latency
-2.4936250410974026,,,,,,,clickhouse-connect (thread-pool),1,124,ping_latency
-2.7072089724242687,,,,,,,clickhouse-connect (thread-pool),1,125,ping_latency
-3.110375255346298,,,,,,,clickhouse-connect (thread-pool),1,126,ping_latency
-3.6078747361898422,,,,,,,clickhouse-connect (thread-pool),1,127,ping_latency
-3.460334148257971,,,,,,,clickhouse-connect (thread-pool),1,128,ping_latency
-3.068000078201294,,,,,,,clickhouse-connect (thread-pool),1,129,ping_latency
-3.2678749412298203,,,,,,,clickhouse-connect (thread-pool),1,130,ping_latency
-3.2531251199543476,,,,,,,clickhouse-connect (thread-pool),1,131,ping_latency
-3.0283331871032715,,,,,,,clickhouse-connect (thread-pool),1,132,ping_latency
-3.2619587145745754,,,,,,,clickhouse-connect (thread-pool),1,133,ping_latency
-3.3338330686092377,,,,,,,clickhouse-connect (thread-pool),1,134,ping_latency
-3.3360826782882214,,,,,,,clickhouse-connect (thread-pool),1,135,ping_latency
-3.2320828177034855,,,,,,,clickhouse-connect (thread-pool),1,136,ping_latency
-2.646875102072954,,,,,,,clickhouse-connect (thread-pool),1,137,ping_latency
-2.4171252734959126,,,,,,,clickhouse-connect (thread-pool),1,138,ping_latency
-2.2480827756226063,,,,,,,clickhouse-connect (thread-pool),1,139,ping_latency
-3.6192499101161957,,,,,,,clickhouse-connect (thread-pool),1,140,ping_latency
-3.4518749453127384,,,,,,,clickhouse-connect (thread-pool),1,141,ping_latency
-3.2629999332129955,,,,,,,clickhouse-connect (thread-pool),1,142,ping_latency
-3.0573331750929356,,,,,,,clickhouse-connect (thread-pool),1,143,ping_latency
-3.2750419341027737,,,,,,,clickhouse-connect (thread-pool),1,144,ping_latency
-3.335957881063223,,,,,,,clickhouse-connect (thread-pool),1,145,ping_latency
-2.9881661757826805,,,,,,,clickhouse-connect (thread-pool),1,146,ping_latency
-2.7261655777692795,,,,,,,clickhouse-connect (thread-pool),1,147,ping_latency
-2.623332664370537,,,,,,,clickhouse-connect (thread-pool),1,148,ping_latency
-2.4933330714702606,,,,,,,clickhouse-connect (thread-pool),1,149,ping_latency
-2.362040802836418,,,,,,,clickhouse-connect (thread-pool),1,150,ping_latency
-2.2988333366811275,,,,,,,clickhouse-connect (thread-pool),1,151,ping_latency
-2.5538750924170017,,,,,,,clickhouse-connect (thread-pool),1,152,ping_latency
-2.7181250043213367,,,,,,,clickhouse-connect (thread-pool),1,153,ping_latency
-5.516041070222855,,,,,,,clickhouse-connect (thread-pool),1,154,ping_latency
-2.3358329199254513,,,,,,,clickhouse-connect (thread-pool),1,155,ping_latency
-1.9690003246068954,,,,,,,clickhouse-connect (thread-pool),1,156,ping_latency
-2.144457772374153,,,,,,,clickhouse-connect (thread-pool),1,157,ping_latency
-2.12304200977087,,,,,,,clickhouse-connect (thread-pool),1,158,ping_latency
-2.9096663929522038,,,,,,,clickhouse-connect (thread-pool),1,159,ping_latency
-3.5756658762693405,,,,,,,clickhouse-connect (thread-pool),1,160,ping_latency
-2.532334066927433,,,,,,,clickhouse-connect (thread-pool),1,161,ping_latency
-1.9542910158634186,,,,,,,clickhouse-connect (thread-pool),1,162,ping_latency
-1.970417331904173,,,,,,,clickhouse-connect (thread-pool),1,163,ping_latency
-2.032250165939331,,,,,,,clickhouse-connect (thread-pool),1,164,ping_latency
-1.935542095452547,,,,,,,clickhouse-connect (thread-pool),1,165,ping_latency
-1.858083065599203,,,,,,,clickhouse-connect (thread-pool),1,166,ping_latency
-1.8378328531980515,,,,,,,clickhouse-connect (thread-pool),1,167,ping_latency
-1.853249967098236,,,,,,,clickhouse-connect (thread-pool),1,168,ping_latency
-1.7201248556375504,,,,,,,clickhouse-connect (thread-pool),1,169,ping_latency
-1.8225419335067272,,,,,,,clickhouse-connect (thread-pool),1,170,ping_latency
-1.9153747707605362,,,,,,,clickhouse-connect (thread-pool),1,171,ping_latency
-1.9239997491240501,,,,,,,clickhouse-connect (thread-pool),1,172,ping_latency
-2.0272922702133656,,,,,,,clickhouse-connect (thread-pool),1,173,ping_latency
-2.0545837469398975,,,,,,,clickhouse-connect (thread-pool),1,174,ping_latency
-2.1038339473307133,,,,,,,clickhouse-connect (thread-pool),1,175,ping_latency
-2.052332740277052,,,,,,,clickhouse-connect (thread-pool),1,176,ping_latency
-2.0566671155393124,,,,,,,clickhouse-connect (thread-pool),1,177,ping_latency
-2.0350422710180283,,,,,,,clickhouse-connect (thread-pool),1,178,ping_latency
-2.3389593698084354,,,,,,,clickhouse-connect (thread-pool),1,179,ping_latency
-2.0428327843546867,,,,,,,clickhouse-connect (thread-pool),1,180,ping_latency
-2.1189171820878983,,,,,,,clickhouse-connect (thread-pool),1,181,ping_latency
-3.1415000557899475,,,,,,,clickhouse-connect (thread-pool),1,182,ping_latency
-2.4153338745236397,,,,,,,clickhouse-connect (thread-pool),1,183,ping_latency
-2.33991676941514,,,,,,,clickhouse-connect (thread-pool),1,184,ping_latency
-3.1820000149309635,,,,,,,clickhouse-connect (thread-pool),1,185,ping_latency
-2.941625192761421,,,,,,,clickhouse-connect (thread-pool),1,186,ping_latency
-2.6212921366095543,,,,,,,clickhouse-connect (thread-pool),1,187,ping_latency
-2.652291674166918,,,,,,,clickhouse-connect (thread-pool),1,188,ping_latency
-2.6809158734977245,,,,,,,clickhouse-connect (thread-pool),1,189,ping_latency
-3.6665000952780247,,,,,,,clickhouse-connect (thread-pool),1,190,ping_latency
-3.2923328690230846,,,,,,,clickhouse-connect (thread-pool),1,191,ping_latency
-3.358958289027214,,,,,,,clickhouse-connect (thread-pool),1,192,ping_latency
-3.0756662599742413,,,,,,,clickhouse-connect (thread-pool),1,193,ping_latency
-3.2008332200348377,,,,,,,clickhouse-connect (thread-pool),1,194,ping_latency
-2.9753330163657665,,,,,,,clickhouse-connect (thread-pool),1,195,ping_latency
-2.6227091439068317,,,,,,,clickhouse-connect (thread-pool),1,196,ping_latency
-2.3166248574852943,,,,,,,clickhouse-connect (thread-pool),1,197,ping_latency
-3.0708746053278446,,,,,,,clickhouse-connect (thread-pool),1,198,ping_latency
-2.684250008314848,,,,,,,clickhouse-connect (thread-pool),1,199,ping_latency
-1076.415707822889,,,,,,,clickhouse-connect (thread-pool),1000000,0,read_throughput
-1077.9825411736965,,,,,,,clickhouse-connect (thread-pool),1000000,1,read_throughput
-1074.6145001612604,,,,,,,clickhouse-connect (thread-pool),1000000,2,read_throughput
-1075.6230410188437,,,,,,,clickhouse-connect (thread-pool),1000000,3,read_throughput
-1066.1461250856519,,,,,,,clickhouse-connect (thread-pool),1000000,4,read_throughput
-1066.7494591325521,,,,,,,clickhouse-connect (thread-pool),1000000,5,read_throughput
-1086.2488327547908,,,,,,,clickhouse-connect (thread-pool),1000000,6,read_throughput
-1032.5764575973153,,,,,,,clickhouse-connect (thread-pool),1000000,7,read_throughput
-1063.6416249908507,,,,,,,clickhouse-connect (thread-pool),1000000,8,read_throughput
-1061.9879583828151,,,,,,,clickhouse-connect (thread-pool),1000000,9,read_throughput
-107.75158321484923,,,,,,,clickhouse-connect (thread-pool),100000,0,insert_throughput
-103.81662519648671,,,,,,,clickhouse-connect (thread-pool),100000,1,insert_throughput
-98.83120795711875,,,,,,,clickhouse-connect (thread-pool),100000,2,insert_throughput
-102.94379107654095,,,,,,,clickhouse-connect (thread-pool),100000,3,insert_throughput
-98.1091670691967,,,,,,,clickhouse-connect (thread-pool),100000,4,insert_throughput
-98.91879186034203,,,,,,,clickhouse-connect (thread-pool),100000,5,insert_throughput
-95.59600008651614,,,,,,,clickhouse-connect (thread-pool),100000,6,insert_throughput
-97.04275010153651,,,,,,,clickhouse-connect (thread-pool),100000,7,insert_throughput
-97.88916725665331,,,,,,,clickhouse-connect (thread-pool),100000,8,insert_throughput
-96.13929223269224,,,,,,,clickhouse-connect (thread-pool),100000,9,insert_throughput
-12.215000111609697,16,,,,,,clickhouse-connect (thread-pool),1600000,0,concurrent_reads
-11.223000008612871,16,,,,,,clickhouse-connect (thread-pool),1600000,1,concurrent_reads
-12.355042155832052,16,,,,,,clickhouse-connect (thread-pool),1600000,2,concurrent_reads
-11.217624880373478,16,,,,,,clickhouse-connect (thread-pool),1600000,3,concurrent_reads
-12.376625090837479,16,,,,,,clickhouse-connect (thread-pool),1600000,4,concurrent_reads
-11.64016593247652,16,,,,,,clickhouse-connect (thread-pool),1600000,5,concurrent_reads
-11.611333116889,16,,,,,,clickhouse-connect (thread-pool),1600000,6,concurrent_reads
-15.388791915029287,16,,,,,,clickhouse-connect (thread-pool),1600000,7,concurrent_reads
-11.803541798144579,16,,,,,,clickhouse-connect (thread-pool),1600000,8,concurrent_reads
-12.349124997854233,16,,,,,,clickhouse-connect (thread-pool),1600000,9,concurrent_reads
-1148.8082078285515,,37.89,645.17,683.06,"[{'t_ms': 0.0, 'rss_mib': 37.89}, {'t_ms': 0.12, 'rss_mib': 37.92}, {'t_ms': 55.17, 'rss_mib': 37.97}, {'t_ms': 106.04, 'rss_mib': 39.02}, {'t_ms': 158.94, 'rss_mib': 40.05}, {'t_ms': 214.03, 'rss_mib': 42.09}, {'t_ms': 275.94, 'rss_mib': 98.0}, {'t_ms': 332.72, 'rss_mib': 157.11}, {'t_ms': 393.25, 'rss_mib': 219.94}, {'t_ms': 460.48, 'rss_mib': 265.53}, {'t_ms': 535.62, 'rss_mib': 312.67}, {'t_ms': 601.94, 'rss_mib': 370.22}, {'t_ms': 675.01, 'rss_mib': 409.33}, {'t_ms': 741.05, 'rss_mib': 444.02}, {'t_ms': 820.11, 'rss_mib': 483.08}, {'t_ms': 882.98, 'rss_mib': 543.12}, {'t_ms': 947.8, 'rss_mib': 570.11}, {'t_ms': 1013.61, 'rss_mib': 627.61}, {'t_ms': 1077.13, 'rss_mib': 653.66}, {'t_ms': 1142.74, 'rss_mib': 679.7}, {'t_ms': 1149.07, 'rss_mib': 683.06}]",50.0,clickhouse-connect (thread-pool),5000000,0,memory_ceiling
-1.770667266100645,,,,,,,clickhouse-connect (native async),1,0,ping_latency
-1.7077499069273472,,,,,,,clickhouse-connect (native async),1,1,ping_latency
-2.1758750081062317,,,,,,,clickhouse-connect (native async),1,2,ping_latency
-2.0570000633597374,,,,,,,clickhouse-connect (native async),1,3,ping_latency
-1.4365841634571552,,,,,,,clickhouse-connect (native async),1,4,ping_latency
-1.4673750847578049,,,,,,,clickhouse-connect (native async),1,5,ping_latency
-1.0691247880458832,,,,,,,clickhouse-connect (native async),1,6,ping_latency
-1.5142499469220638,,,,,,,clickhouse-connect (native async),1,7,ping_latency
-3.1719161197543144,,,,,,,clickhouse-connect (native async),1,8,ping_latency
-2.272082958370447,,,,,,,clickhouse-connect (native async),1,9,ping_latency
-1.535666175186634,,,,,,,clickhouse-connect (native async),1,10,ping_latency
-1.4334581792354584,,,,,,,clickhouse-connect (native async),1,11,ping_latency
-1.571000088006258,,,,,,,clickhouse-connect (native async),1,12,ping_latency
-1.1714999563992023,,,,,,,clickhouse-connect (native async),1,13,ping_latency
-1.3050842098891735,,,,,,,clickhouse-connect (native async),1,14,ping_latency
-1.325750257819891,,,,,,,clickhouse-connect (native async),1,15,ping_latency
-0.9791250340640545,,,,,,,clickhouse-connect (native async),1,16,ping_latency
-1.1077090166509151,,,,,,,clickhouse-connect (native async),1,17,ping_latency
-1.0289577767252922,,,,,,,clickhouse-connect (native async),1,18,ping_latency
-1.3760840520262718,,,,,,,clickhouse-connect (native async),1,19,ping_latency
-1.2473748065531254,,,,,,,clickhouse-connect (native async),1,20,ping_latency
-1.2374999932944775,,,,,,,clickhouse-connect (native async),1,21,ping_latency
-1.1105411686003208,,,,,,,clickhouse-connect (native async),1,22,ping_latency
-1.1226250790059566,,,,,,,clickhouse-connect (native async),1,23,ping_latency
-1.2128334492444992,,,,,,,clickhouse-connect (native async),1,24,ping_latency
-1.2064999900758266,,,,,,,clickhouse-connect (native async),1,25,ping_latency
-1.3369577936828136,,,,,,,clickhouse-connect (native async),1,26,ping_latency
-1.0344167239964008,,,,,,,clickhouse-connect (native async),1,27,ping_latency
-1.1404580436646938,,,,,,,clickhouse-connect (native async),1,28,ping_latency
-1.0046251118183136,,,,,,,clickhouse-connect (native async),1,29,ping_latency
-1.149874646216631,,,,,,,clickhouse-connect (native async),1,30,ping_latency
-1.3682502321898937,,,,,,,clickhouse-connect (native async),1,31,ping_latency
-1.3928338885307312,,,,,,,clickhouse-connect (native async),1,32,ping_latency
-1.2605004012584686,,,,,,,clickhouse-connect (native async),1,33,ping_latency
-1.3312911614775658,,,,,,,clickhouse-connect (native async),1,34,ping_latency
-1.1532921344041824,,,,,,,clickhouse-connect (native async),1,35,ping_latency
-1.212832983583212,,,,,,,clickhouse-connect (native async),1,36,ping_latency
-1.2356671504676342,,,,,,,clickhouse-connect (native async),1,37,ping_latency
-1.366875134408474,,,,,,,clickhouse-connect (native async),1,38,ping_latency
-1.2670829892158508,,,,,,,clickhouse-connect (native async),1,39,ping_latency
-1.2855827808380127,,,,,,,clickhouse-connect (native async),1,40,ping_latency
-1.300124917179346,,,,,,,clickhouse-connect (native async),1,41,ping_latency
-1.228125300258398,,,,,,,clickhouse-connect (native async),1,42,ping_latency
-1.2584161013364792,,,,,,,clickhouse-connect (native async),1,43,ping_latency
-1.1034999042749405,,,,,,,clickhouse-connect (native async),1,44,ping_latency
-1.2384159490466118,,,,,,,clickhouse-connect (native async),1,45,ping_latency
-1.1088340543210506,,,,,,,clickhouse-connect (native async),1,46,ping_latency
-1.2041251175105572,,,,,,,clickhouse-connect (native async),1,47,ping_latency
-1.3249171897768974,,,,,,,clickhouse-connect (native async),1,48,ping_latency
-1.1204998008906841,,,,,,,clickhouse-connect (native async),1,49,ping_latency
-1.238249707967043,,,,,,,clickhouse-connect (native async),1,50,ping_latency
-1.4562075957655907,,,,,,,clickhouse-connect (native async),1,51,ping_latency
-1.1798329651355743,,,,,,,clickhouse-connect (native async),1,52,ping_latency
-1.2409999035298824,,,,,,,clickhouse-connect (native async),1,53,ping_latency
-1.1799167841672897,,,,,,,clickhouse-connect (native async),1,54,ping_latency
-1.0865000076591969,,,,,,,clickhouse-connect (native async),1,55,ping_latency
-1.2189578264951706,,,,,,,clickhouse-connect (native async),1,56,ping_latency
-1.37224979698658,,,,,,,clickhouse-connect (native async),1,57,ping_latency
-1.3159997761249542,,,,,,,clickhouse-connect (native async),1,58,ping_latency
-1.060625072568655,,,,,,,clickhouse-connect (native async),1,59,ping_latency
-1.2706662528216839,,,,,,,clickhouse-connect (native async),1,60,ping_latency
-1.2912498787045479,,,,,,,clickhouse-connect (native async),1,61,ping_latency
-1.275874674320221,,,,,,,clickhouse-connect (native async),1,62,ping_latency
-1.3596657663583755,,,,,,,clickhouse-connect (native async),1,63,ping_latency
-1.3281251303851604,,,,,,,clickhouse-connect (native async),1,64,ping_latency
-1.3960828073322773,,,,,,,clickhouse-connect (native async),1,65,ping_latency
-1.4773332513868809,,,,,,,clickhouse-connect (native async),1,66,ping_latency
-1.236374955624342,,,,,,,clickhouse-connect (native async),1,67,ping_latency
-1.392791047692299,,,,,,,clickhouse-connect (native async),1,68,ping_latency
-1.2253746390342712,,,,,,,clickhouse-connect (native async),1,69,ping_latency
-1.3379170559346676,,,,,,,clickhouse-connect (native async),1,70,ping_latency
-1.360500231385231,,,,,,,clickhouse-connect (native async),1,71,ping_latency
-1.2979581952095032,,,,,,,clickhouse-connect (native async),1,72,ping_latency
-1.2782919220626354,,,,,,,clickhouse-connect (native async),1,73,ping_latency
-1.321875024586916,,,,,,,clickhouse-connect (native async),1,74,ping_latency
-1.3447077944874763,,,,,,,clickhouse-connect (native async),1,75,ping_latency
-1.3112500309944153,,,,,,,clickhouse-connect (native async),1,76,ping_latency
-1.3067089021205902,,,,,,,clickhouse-connect (native async),1,77,ping_latency
-1.261875033378601,,,,,,,clickhouse-connect (native async),1,78,ping_latency
-1.2759999372065067,,,,,,,clickhouse-connect (native async),1,79,ping_latency
-1.408000010997057,,,,,,,clickhouse-connect (native async),1,80,ping_latency
-1.2789173051714897,,,,,,,clickhouse-connect (native async),1,81,ping_latency
-1.6022920608520508,,,,,,,clickhouse-connect (native async),1,82,ping_latency
-1.583334058523178,,,,,,,clickhouse-connect (native async),1,83,ping_latency
-1.4529582113027573,,,,,,,clickhouse-connect (native async),1,84,ping_latency
-1.468499656766653,,,,,,,clickhouse-connect (native async),1,85,ping_latency
-1.47687504068017,,,,,,,clickhouse-connect (native async),1,86,ping_latency
-1.2334170751273632,,,,,,,clickhouse-connect (native async),1,87,ping_latency
-1.266667153686285,,,,,,,clickhouse-connect (native async),1,88,ping_latency
-1.3455422595143318,,,,,,,clickhouse-connect (native async),1,89,ping_latency
-1.1809589341282845,,,,,,,clickhouse-connect (native async),1,90,ping_latency
-1.3559162616729736,,,,,,,clickhouse-connect (native async),1,91,ping_latency
-1.4567496255040169,,,,,,,clickhouse-connect (native async),1,92,ping_latency
-1.3111666776239872,,,,,,,clickhouse-connect (native async),1,93,ping_latency
-1.285875216126442,,,,,,,clickhouse-connect (native async),1,94,ping_latency
-1.3140002265572548,,,,,,,clickhouse-connect (native async),1,95,ping_latency
-1.3395827263593674,,,,,,,clickhouse-connect (native async),1,96,ping_latency
-1.3762502931058407,,,,,,,clickhouse-connect (native async),1,97,ping_latency
-1.365917269140482,,,,,,,clickhouse-connect (native async),1,98,ping_latency
-1.2538330629467964,,,,,,,clickhouse-connect (native async),1,99,ping_latency
-1.38945784419775,,,,,,,clickhouse-connect (native async),1,100,ping_latency
-1.31716625764966,,,,,,,clickhouse-connect (native async),1,101,ping_latency
-1.370999962091446,,,,,,,clickhouse-connect (native async),1,102,ping_latency
-1.4611249789595604,,,,,,,clickhouse-connect (native async),1,103,ping_latency
-1.600208692252636,,,,,,,clickhouse-connect (native async),1,104,ping_latency
-1.6174172051250935,,,,,,,clickhouse-connect (native async),1,105,ping_latency
-1.6128327697515488,,,,,,,clickhouse-connect (native async),1,106,ping_latency
-1.5019578859210014,,,,,,,clickhouse-connect (native async),1,107,ping_latency
-1.494833268225193,,,,,,,clickhouse-connect (native async),1,108,ping_latency
-1.3275421224534512,,,,,,,clickhouse-connect (native async),1,109,ping_latency
-1.6425000503659248,,,,,,,clickhouse-connect (native async),1,110,ping_latency
-1.5169167891144753,,,,,,,clickhouse-connect (native async),1,111,ping_latency
-1.4950837939977646,,,,,,,clickhouse-connect (native async),1,112,ping_latency
-1.4177500270307064,,,,,,,clickhouse-connect (native async),1,113,ping_latency
-1.485500019043684,,,,,,,clickhouse-connect (native async),1,114,ping_latency
-1.4553749933838844,,,,,,,clickhouse-connect (native async),1,115,ping_latency
-1.4660418964922428,,,,,,,clickhouse-connect (native async),1,116,ping_latency
-1.4798333868384361,,,,,,,clickhouse-connect (native async),1,117,ping_latency
-1.3460000045597553,,,,,,,clickhouse-connect (native async),1,118,ping_latency
-1.4691660180687904,,,,,,,clickhouse-connect (native async),1,119,ping_latency
-1.5090000815689564,,,,,,,clickhouse-connect (native async),1,120,ping_latency
-1.4798329211771488,,,,,,,clickhouse-connect (native async),1,121,ping_latency
-1.5545422211289406,,,,,,,clickhouse-connect (native async),1,122,ping_latency
-1.6725831665098667,,,,,,,clickhouse-connect (native async),1,123,ping_latency
-1.7157914116978645,,,,,,,clickhouse-connect (native async),1,124,ping_latency
-1.6333339735865593,,,,,,,clickhouse-connect (native async),1,125,ping_latency
-1.6548330895602703,,,,,,,clickhouse-connect (native async),1,126,ping_latency
-1.6419999301433563,,,,,,,clickhouse-connect (native async),1,127,ping_latency
-1.6423342749476433,,,,,,,clickhouse-connect (native async),1,128,ping_latency
-1.6235830262303352,,,,,,,clickhouse-connect (native async),1,129,ping_latency
-1.6415412537753582,,,,,,,clickhouse-connect (native async),1,130,ping_latency
-1.643042080104351,,,,,,,clickhouse-connect (native async),1,131,ping_latency
-1.6832910478115082,,,,,,,clickhouse-connect (native async),1,132,ping_latency
-1.5032091177999973,,,,,,,clickhouse-connect (native async),1,133,ping_latency
-1.631000079214573,,,,,,,clickhouse-connect (native async),1,134,ping_latency
-1.6365828923881054,,,,,,,clickhouse-connect (native async),1,135,ping_latency
-1.7459592781960964,,,,,,,clickhouse-connect (native async),1,136,ping_latency
-1.67375011369586,,,,,,,clickhouse-connect (native async),1,137,ping_latency
-2.1025841124355793,,,,,,,clickhouse-connect (native async),1,138,ping_latency
-2.0053330808877945,,,,,,,clickhouse-connect (native async),1,139,ping_latency
-1.5073330141603947,,,,,,,clickhouse-connect (native async),1,140,ping_latency
-1.5254169702529907,,,,,,,clickhouse-connect (native async),1,141,ping_latency
-1.54141616076231,,,,,,,clickhouse-connect (native async),1,142,ping_latency
-1.5992922708392143,,,,,,,clickhouse-connect (native async),1,143,ping_latency
-1.5854998491704464,,,,,,,clickhouse-connect (native async),1,144,ping_latency
-1.64816714823246,,,,,,,clickhouse-connect (native async),1,145,ping_latency
-1.561541110277176,,,,,,,clickhouse-connect (native async),1,146,ping_latency
-1.5819999389350414,,,,,,,clickhouse-connect (native async),1,147,ping_latency
-1.628750003874302,,,,,,,clickhouse-connect (native async),1,148,ping_latency
-1.6732909716665745,,,,,,,clickhouse-connect (native async),1,149,ping_latency
-1.5065418556332588,,,,,,,clickhouse-connect (native async),1,150,ping_latency
-4.124334082007408,,,,,,,clickhouse-connect (native async),1,151,ping_latency
-1.7820829525589943,,,,,,,clickhouse-connect (native async),1,152,ping_latency
-1.6817906871438026,,,,,,,clickhouse-connect (native async),1,153,ping_latency
-1.673458144068718,,,,,,,clickhouse-connect (native async),1,154,ping_latency
-1.638208981603384,,,,,,,clickhouse-connect (native async),1,155,ping_latency
-1.4872914180159569,,,,,,,clickhouse-connect (native async),1,156,ping_latency
-1.635790802538395,,,,,,,clickhouse-connect (native async),1,157,ping_latency
-1.698833890259266,,,,,,,clickhouse-connect (native async),1,158,ping_latency
-1.550000160932541,,,,,,,clickhouse-connect (native async),1,159,ping_latency
-1.6515422612428665,,,,,,,clickhouse-connect (native async),1,160,ping_latency
-1.6373340040445328,,,,,,,clickhouse-connect (native async),1,161,ping_latency
-1.678416971117258,,,,,,,clickhouse-connect (native async),1,162,ping_latency
-1.9214157946407795,,,,,,,clickhouse-connect (native async),1,163,ping_latency
-1.9792080856859684,,,,,,,clickhouse-connect (native async),1,164,ping_latency
-1.93875003606081,,,,,,,clickhouse-connect (native async),1,165,ping_latency
-1.8364577554166317,,,,,,,clickhouse-connect (native async),1,166,ping_latency
-1.7458749935030937,,,,,,,clickhouse-connect (native async),1,167,ping_latency
-1.8394580110907555,,,,,,,clickhouse-connect (native async),1,168,ping_latency
-1.8460419960319996,,,,,,,clickhouse-connect (native async),1,169,ping_latency
-1.8629580736160278,,,,,,,clickhouse-connect (native async),1,170,ping_latency
-1.8454999662935734,,,,,,,clickhouse-connect (native async),1,171,ping_latency
-1.8568746745586395,,,,,,,clickhouse-connect (native async),1,172,ping_latency
-1.795625314116478,,,,,,,clickhouse-connect (native async),1,173,ping_latency
-1.7820419743657112,,,,,,,clickhouse-connect (native async),1,174,ping_latency
-1.9558328203856945,,,,,,,clickhouse-connect (native async),1,175,ping_latency
-1.7776251770555973,,,,,,,clickhouse-connect (native async),1,176,ping_latency
-1.8770000897347927,,,,,,,clickhouse-connect (native async),1,177,ping_latency
-1.7972923815250397,,,,,,,clickhouse-connect (native async),1,178,ping_latency
-1.8126671202480793,,,,,,,clickhouse-connect (native async),1,179,ping_latency
-1.8628747202455997,,,,,,,clickhouse-connect (native async),1,180,ping_latency
-1.8148748204112053,,,,,,,clickhouse-connect (native async),1,181,ping_latency
-1.7114588990807533,,,,,,,clickhouse-connect (native async),1,182,ping_latency
-2.0097908563911915,,,,,,,clickhouse-connect (native async),1,183,ping_latency
-1.704083289951086,,,,,,,clickhouse-connect (native async),1,184,ping_latency
-1.629458274692297,,,,,,,clickhouse-connect (native async),1,185,ping_latency
-4.46920795366168,,,,,,,clickhouse-connect (native async),1,186,ping_latency
-2.309707924723625,,,,,,,clickhouse-connect (native async),1,187,ping_latency
-2.5487495586276054,,,,,,,clickhouse-connect (native async),1,188,ping_latency
-2.5829579681158066,,,,,,,clickhouse-connect (native async),1,189,ping_latency
-2.3016249760985374,,,,,,,clickhouse-connect (native async),1,190,ping_latency
-2.245125360786915,,,,,,,clickhouse-connect (native async),1,191,ping_latency
-2.2455831058323383,,,,,,,clickhouse-connect (native async),1,192,ping_latency
-2.301500178873539,,,,,,,clickhouse-connect (native async),1,193,ping_latency
-2.245166804641485,,,,,,,clickhouse-connect (native async),1,194,ping_latency
-2.2323746234178543,,,,,,,clickhouse-connect (native async),1,195,ping_latency
-2.163667231798172,,,,,,,clickhouse-connect (native async),1,196,ping_latency
-2.216666005551815,,,,,,,clickhouse-connect (native async),1,197,ping_latency
-3.7925830110907555,,,,,,,clickhouse-connect (native async),1,198,ping_latency
-2.212165854871273,,,,,,,clickhouse-connect (native async),1,199,ping_latency
-325.7149998098612,,,,,,,clickhouse-connect (native async),1000000,0,read_throughput
-332.417375408113,,,,,,,clickhouse-connect (native async),1000000,1,read_throughput
-324.79091733694077,,,,,,,clickhouse-connect (native async),1000000,2,read_throughput
-332.99112506210804,,,,,,,clickhouse-connect (native async),1000000,3,read_throughput
-327.09704199805856,,,,,,,clickhouse-connect (native async),1000000,4,read_throughput
-330.7242910377681,,,,,,,clickhouse-connect (native async),1000000,5,read_throughput
-317.78391683474183,,,,,,,clickhouse-connect (native async),1000000,6,read_throughput
-332.2574580088258,,,,,,,clickhouse-connect (native async),1000000,7,read_throughput
-325.73466608300805,,,,,,,clickhouse-connect (native async),1000000,8,read_throughput
-325.66829212009907,,,,,,,clickhouse-connect (native async),1000000,9,read_throughput
-90.94558283686638,,,,,,,clickhouse-connect (native async),100000,0,insert_throughput
-99.24900019541383,,,,,,,clickhouse-connect (native async),100000,1,insert_throughput
-103.23404101654887,,,,,,,clickhouse-connect (native async),100000,2,insert_throughput
-105.63587537035346,,,,,,,clickhouse-connect (native async),100000,3,insert_throughput
-104.68191700056195,,,,,,,clickhouse-connect (native async),100000,4,insert_throughput
-95.18708288669586,,,,,,,clickhouse-connect (native async),100000,5,insert_throughput
-111.16620898246765,,,,,,,clickhouse-connect (native async),100000,6,insert_throughput
-107.89475031197071,,,,,,,clickhouse-connect (native async),100000,7,insert_throughput
-102.30937507003546,,,,,,,clickhouse-connect (native async),100000,8,insert_throughput
-105.0062500871718,,,,,,,clickhouse-connect (native async),100000,9,insert_throughput
-55.0657082349062,16,,,,,,clickhouse-connect (native async),1600000,0,concurrent_reads
-53.32237482070923,16,,,,,,clickhouse-connect (native async),1600000,1,concurrent_reads
-58.56104101985693,16,,,,,,clickhouse-connect (native async),1600000,2,concurrent_reads
-53.313999902457,16,,,,,,clickhouse-connect (native async),1600000,3,concurrent_reads
-47.50045808032155,16,,,,,,clickhouse-connect (native async),1600000,4,concurrent_reads
-50.39687501266599,16,,,,,,clickhouse-connect (native async),1600000,5,concurrent_reads
-48.485999926924706,16,,,,,,clickhouse-connect (native async),1600000,6,concurrent_reads
-52.24825022742152,16,,,,,,clickhouse-connect (native async),1600000,7,concurrent_reads
-52.757374942302704,16,,,,,,clickhouse-connect (native async),1600000,8,concurrent_reads
-48.05391700938344,16,,,,,,clickhouse-connect (native async),1600000,9,concurrent_reads
-1064.284292049706,,48.52,537.34,585.86,"[{'t_ms': 0.0, 'rss_mib': 48.52}, {'t_ms': 0.08, 'rss_mib': 48.55}, {'t_ms': 50.39, 'rss_mib': 48.55}, {'t_ms': 103.62, 'rss_mib': 48.55}, {'t_ms': 158.71, 'rss_mib': 102.97}, {'t_ms': 227.07, 'rss_mib': 158.67}, {'t_ms': 290.71, 'rss_mib': 213.81}, {'t_ms': 349.39, 'rss_mib': 257.38}, {'t_ms': 414.69, 'rss_mib': 296.0}, {'t_ms': 487.86, 'rss_mib': 335.05}, {'t_ms': 569.66, 'rss_mib': 374.16}, {'t_ms': 644.04, 'rss_mib': 413.2}, {'t_ms': 699.12, 'rss_mib': 439.75}, {'t_ms': 763.12, 'rss_mib': 471.83}, {'t_ms': 826.24, 'rss_mib': 497.88}, {'t_ms': 892.16, 'rss_mib': 517.38}, {'t_ms': 957.89, 'rss_mib': 543.42}, {'t_ms': 1027.7, 'rss_mib': 569.47}, {'t_ms': 1064.48, 'rss_mib': 585.86}]",50.0,clickhouse-connect (native async),5000000,0,memory_ceiling
-1.4517498202621937,,,,,,,asynch (PyPI),1,0,ping_latency
-1.343666110187769,,,,,,,asynch (PyPI),1,1,ping_latency
-1.3500419445335865,,,,,,,asynch (PyPI),1,2,ping_latency
-1.5384997241199017,,,,,,,asynch (PyPI),1,3,ping_latency
-1.367167104035616,,,,,,,asynch (PyPI),1,4,ping_latency
-1.4833342283964157,,,,,,,asynch (PyPI),1,5,ping_latency
-1.9133747555315495,,,,,,,asynch (PyPI),1,6,ping_latency
-1.3736248947679996,,,,,,,asynch (PyPI),1,7,ping_latency
-1.3673328794538975,,,,,,,asynch (PyPI),1,8,ping_latency
-1.43858278170228,,,,,,,asynch (PyPI),1,9,ping_latency
-1.4110002666711807,,,,,,,asynch (PyPI),1,10,ping_latency
-1.5229168348014355,,,,,,,asynch (PyPI),1,11,ping_latency
-1.373582985252142,,,,,,,asynch (PyPI),1,12,ping_latency
-1.347624696791172,,,,,,,asynch (PyPI),1,13,ping_latency
-1.2478330172598362,,,,,,,asynch (PyPI),1,14,ping_latency
-1.3087918050587177,,,,,,,asynch (PyPI),1,15,ping_latency
-1.2735840864479542,,,,,,,asynch (PyPI),1,16,ping_latency
-1.3175001367926598,,,,,,,asynch (PyPI),1,17,ping_latency
-1.2982077896595001,,,,,,,asynch (PyPI),1,18,ping_latency
-1.2577497400343418,,,,,,,asynch (PyPI),1,19,ping_latency
-1.341582741588354,,,,,,,asynch (PyPI),1,20,ping_latency
-1.2531247921288013,,,,,,,asynch (PyPI),1,21,ping_latency
-1.3124169781804085,,,,,,,asynch (PyPI),1,22,ping_latency
-1.2116250582039356,,,,,,,asynch (PyPI),1,23,ping_latency
-1.413583755493164,,,,,,,asynch (PyPI),1,24,ping_latency
-1.3935831375420094,,,,,,,asynch (PyPI),1,25,ping_latency
-1.430292148143053,,,,,,,asynch (PyPI),1,26,ping_latency
-1.4269170351326466,,,,,,,asynch (PyPI),1,27,ping_latency
-1.5234588645398617,,,,,,,asynch (PyPI),1,28,ping_latency
-1.4082076959311962,,,,,,,asynch (PyPI),1,29,ping_latency
-1.388167031109333,,,,,,,asynch (PyPI),1,30,ping_latency
-1.3703331351280212,,,,,,,asynch (PyPI),1,31,ping_latency
-1.3998751528561115,,,,,,,asynch (PyPI),1,32,ping_latency
-1.4694579876959324,,,,,,,asynch (PyPI),1,33,ping_latency
-1.2969998642802238,,,,,,,asynch (PyPI),1,34,ping_latency
-1.3814587146043777,,,,,,,asynch (PyPI),1,35,ping_latency
-1.3346248306334019,,,,,,,asynch (PyPI),1,36,ping_latency
-1.3577500358223915,,,,,,,asynch (PyPI),1,37,ping_latency
-1.3851667754352093,,,,,,,asynch (PyPI),1,38,ping_latency
-1.3689999468624592,,,,,,,asynch (PyPI),1,39,ping_latency
-1.332125160843134,,,,,,,asynch (PyPI),1,40,ping_latency
-1.5402091667056084,,,,,,,asynch (PyPI),1,41,ping_latency
-1.4277081936597824,,,,,,,asynch (PyPI),1,42,ping_latency
-1.456541009247303,,,,,,,asynch (PyPI),1,43,ping_latency
-1.492583192884922,,,,,,,asynch (PyPI),1,44,ping_latency
-1.436667051166296,,,,,,,asynch (PyPI),1,45,ping_latency
-1.3702078722417355,,,,,,,asynch (PyPI),1,46,ping_latency
-1.4859167858958244,,,,,,,asynch (PyPI),1,47,ping_latency
-1.3625002466142178,,,,,,,asynch (PyPI),1,48,ping_latency
-1.3929582200944424,,,,,,,asynch (PyPI),1,49,ping_latency
-1.4705411158502102,,,,,,,asynch (PyPI),1,50,ping_latency
-1.4495830982923508,,,,,,,asynch (PyPI),1,51,ping_latency
-1.344124786555767,,,,,,,asynch (PyPI),1,52,ping_latency
-1.40737509354949,,,,,,,asynch (PyPI),1,53,ping_latency
-1.4381660148501396,,,,,,,asynch (PyPI),1,54,ping_latency
-1.4302916824817657,,,,,,,asynch (PyPI),1,55,ping_latency
-1.424791757017374,,,,,,,asynch (PyPI),1,56,ping_latency
-1.3487907126545906,,,,,,,asynch (PyPI),1,57,ping_latency
-1.4265826903283596,,,,,,,asynch (PyPI),1,58,ping_latency
-1.4989590272307396,,,,,,,asynch (PyPI),1,59,ping_latency
-1.5412499196827412,,,,,,,asynch (PyPI),1,60,ping_latency
-1.3682078570127487,,,,,,,asynch (PyPI),1,61,ping_latency
-1.3771671801805496,,,,,,,asynch (PyPI),1,62,ping_latency
-1.273083034902811,,,,,,,asynch (PyPI),1,63,ping_latency
-1.3794158585369587,,,,,,,asynch (PyPI),1,64,ping_latency
-1.2511247768998146,,,,,,,asynch (PyPI),1,65,ping_latency
-1.2798751704394817,,,,,,,asynch (PyPI),1,66,ping_latency
-1.2947078794240952,,,,,,,asynch (PyPI),1,67,ping_latency
-1.2577921152114868,,,,,,,asynch (PyPI),1,68,ping_latency
-1.3286247849464417,,,,,,,asynch (PyPI),1,69,ping_latency
-1.3853753916919231,,,,,,,asynch (PyPI),1,70,ping_latency
-1.3927090913057327,,,,,,,asynch (PyPI),1,71,ping_latency
-1.2968750670552254,,,,,,,asynch (PyPI),1,72,ping_latency
-1.454249955713749,,,,,,,asynch (PyPI),1,73,ping_latency
-1.4175833202898502,,,,,,,asynch (PyPI),1,74,ping_latency
-1.5118750743567944,,,,,,,asynch (PyPI),1,75,ping_latency
-1.3608746230602264,,,,,,,asynch (PyPI),1,76,ping_latency
-1.4437083154916763,,,,,,,asynch (PyPI),1,77,ping_latency
-1.5165000222623348,,,,,,,asynch (PyPI),1,78,ping_latency
-1.3456246815621853,,,,,,,asynch (PyPI),1,79,ping_latency
-1.4556250534951687,,,,,,,asynch (PyPI),1,80,ping_latency
-1.4369157142937183,,,,,,,asynch (PyPI),1,81,ping_latency
-1.400624867528677,,,,,,,asynch (PyPI),1,82,ping_latency
-1.4943331480026245,,,,,,,asynch (PyPI),1,83,ping_latency
-1.866667065769434,,,,,,,asynch (PyPI),1,84,ping_latency
-1.734541729092598,,,,,,,asynch (PyPI),1,85,ping_latency
-1.5262081287801266,,,,,,,asynch (PyPI),1,86,ping_latency
-1.400042325258255,,,,,,,asynch (PyPI),1,87,ping_latency
-1.4250841923058033,,,,,,,asynch (PyPI),1,88,ping_latency
-1.325041987001896,,,,,,,asynch (PyPI),1,89,ping_latency
-1.3386672362685204,,,,,,,asynch (PyPI),1,90,ping_latency
-1.5785410068929195,,,,,,,asynch (PyPI),1,91,ping_latency
-1.697917003184557,,,,,,,asynch (PyPI),1,92,ping_latency
-1.6975421458482742,,,,,,,asynch (PyPI),1,93,ping_latency
-1.4001252129673958,,,,,,,asynch (PyPI),1,94,ping_latency
-1.4777909964323044,,,,,,,asynch (PyPI),1,95,ping_latency
-1.5124590136110783,,,,,,,asynch (PyPI),1,96,ping_latency
-1.8027080222964287,,,,,,,asynch (PyPI),1,97,ping_latency
-1.435999758541584,,,,,,,asynch (PyPI),1,98,ping_latency
-1.489458605647087,,,,,,,asynch (PyPI),1,99,ping_latency
-1.8935003317892551,,,,,,,asynch (PyPI),1,100,ping_latency
-1.9712499342858791,,,,,,,asynch (PyPI),1,101,ping_latency
-1.5853340737521648,,,,,,,asynch (PyPI),1,102,ping_latency
-1.5742075629532337,,,,,,,asynch (PyPI),1,103,ping_latency
-1.436959020793438,,,,,,,asynch (PyPI),1,104,ping_latency
-1.3903751969337463,,,,,,,asynch (PyPI),1,105,ping_latency
-1.59933278337121,,,,,,,asynch (PyPI),1,106,ping_latency
-1.5795417129993439,,,,,,,asynch (PyPI),1,107,ping_latency
-1.7788750119507313,,,,,,,asynch (PyPI),1,108,ping_latency
-1.4844173565506935,,,,,,,asynch (PyPI),1,109,ping_latency
-1.3365838676691055,,,,,,,asynch (PyPI),1,110,ping_latency
-1.3894159346818924,,,,,,,asynch (PyPI),1,111,ping_latency
-1.65095878764987,,,,,,,asynch (PyPI),1,112,ping_latency
-1.6169999726116657,,,,,,,asynch (PyPI),1,113,ping_latency
-2.4304590187966824,,,,,,,asynch (PyPI),1,114,ping_latency
-2.019417006522417,,,,,,,asynch (PyPI),1,115,ping_latency
-1.6693328507244587,,,,,,,asynch (PyPI),1,116,ping_latency
-1.393625047057867,,,,,,,asynch (PyPI),1,117,ping_latency
-1.2861252762377262,,,,,,,asynch (PyPI),1,118,ping_latency
-1.2502912431955338,,,,,,,asynch (PyPI),1,119,ping_latency
-1.4287503436207771,,,,,,,asynch (PyPI),1,120,ping_latency
-1.3306662440299988,,,,,,,asynch (PyPI),1,121,ping_latency
-1.3296250253915787,,,,,,,asynch (PyPI),1,122,ping_latency
-1.250790897756815,,,,,,,asynch (PyPI),1,123,ping_latency
-1.353709027171135,,,,,,,asynch (PyPI),1,124,ping_latency
-1.2288340367376804,,,,,,,asynch (PyPI),1,125,ping_latency
-1.2310417369008064,,,,,,,asynch (PyPI),1,126,ping_latency
-1.2288745492696762,,,,,,,asynch (PyPI),1,127,ping_latency
-1.3837078586220741,,,,,,,asynch (PyPI),1,128,ping_latency
-1.2757908552885056,,,,,,,asynch (PyPI),1,129,ping_latency
-1.2734578922390938,,,,,,,asynch (PyPI),1,130,ping_latency
-1.238666009157896,,,,,,,asynch (PyPI),1,131,ping_latency
-1.3202503323554993,,,,,,,asynch (PyPI),1,132,ping_latency
-1.1767921969294548,,,,,,,asynch (PyPI),1,133,ping_latency
-1.116333995014429,,,,,,,asynch (PyPI),1,134,ping_latency
-1.2687090784311295,,,,,,,asynch (PyPI),1,135,ping_latency
-1.2985412031412125,,,,,,,asynch (PyPI),1,136,ping_latency
-1.2245001271367073,,,,,,,asynch (PyPI),1,137,ping_latency
-1.1610831134021282,,,,,,,asynch (PyPI),1,138,ping_latency
-1.170249655842781,,,,,,,asynch (PyPI),1,139,ping_latency
-1.185624860227108,,,,,,,asynch (PyPI),1,140,ping_latency
-1.2198747135698795,,,,,,,asynch (PyPI),1,141,ping_latency
-1.1995001696050167,,,,,,,asynch (PyPI),1,142,ping_latency
-1.2140413746237755,,,,,,,asynch (PyPI),1,143,ping_latency
-1.2028338387608528,,,,,,,asynch (PyPI),1,144,ping_latency
-1.2469999492168427,,,,,,,asynch (PyPI),1,145,ping_latency
-1.3120830990374088,,,,,,,asynch (PyPI),1,146,ping_latency
-1.274291891604662,,,,,,,asynch (PyPI),1,147,ping_latency
-1.1916249059140682,,,,,,,asynch (PyPI),1,148,ping_latency
-1.1273748241364956,,,,,,,asynch (PyPI),1,149,ping_latency
-1.2682918459177017,,,,,,,asynch (PyPI),1,150,ping_latency
-1.2088753283023834,,,,,,,asynch (PyPI),1,151,ping_latency
-1.140375155955553,,,,,,,asynch (PyPI),1,152,ping_latency
-1.2196251191198826,,,,,,,asynch (PyPI),1,153,ping_latency
-1.223292201757431,,,,,,,asynch (PyPI),1,154,ping_latency
-1.2741670943796635,,,,,,,asynch (PyPI),1,155,ping_latency
-1.2574577704071999,,,,,,,asynch (PyPI),1,156,ping_latency
-1.315792091190815,,,,,,,asynch (PyPI),1,157,ping_latency
-1.2110830284655094,,,,,,,asynch (PyPI),1,158,ping_latency
-1.1394168250262737,,,,,,,asynch (PyPI),1,159,ping_latency
-1.2709163129329681,,,,,,,asynch (PyPI),1,160,ping_latency
-1.2190421111881733,,,,,,,asynch (PyPI),1,161,ping_latency
-1.35366665199399,,,,,,,asynch (PyPI),1,162,ping_latency
-1.2010829523205757,,,,,,,asynch (PyPI),1,163,ping_latency
-1.1491249315440655,,,,,,,asynch (PyPI),1,164,ping_latency
-1.1750422418117523,,,,,,,asynch (PyPI),1,165,ping_latency
-1.2021670117974281,,,,,,,asynch (PyPI),1,166,ping_latency
-1.204208005219698,,,,,,,asynch (PyPI),1,167,ping_latency
-1.2582922354340553,,,,,,,asynch (PyPI),1,168,ping_latency
-1.2141251936554909,,,,,,,asynch (PyPI),1,169,ping_latency
-1.2154579162597656,,,,,,,asynch (PyPI),1,170,ping_latency
-1.1835838668048382,,,,,,,asynch (PyPI),1,171,ping_latency
-1.2142909690737724,,,,,,,asynch (PyPI),1,172,ping_latency
-1.1886251159012318,,,,,,,asynch (PyPI),1,173,ping_latency
-1.2252498418092728,,,,,,,asynch (PyPI),1,174,ping_latency
-1.1893748305737972,,,,,,,asynch (PyPI),1,175,ping_latency
-1.961999572813511,,,,,,,asynch (PyPI),1,176,ping_latency
-1.2337500229477882,,,,,,,asynch (PyPI),1,177,ping_latency
-1.183374784886837,,,,,,,asynch (PyPI),1,178,ping_latency
-1.2479578144848347,,,,,,,asynch (PyPI),1,179,ping_latency
-1.1757081374526024,,,,,,,asynch (PyPI),1,180,ping_latency
-1.1749998666346073,,,,,,,asynch (PyPI),1,181,ping_latency
-1.255583018064499,,,,,,,asynch (PyPI),1,182,ping_latency
-1.1251671239733696,,,,,,,asynch (PyPI),1,183,ping_latency
-1.2270002625882626,,,,,,,asynch (PyPI),1,184,ping_latency
-1.1662920005619526,,,,,,,asynch (PyPI),1,185,ping_latency
-1.22170802205801,,,,,,,asynch (PyPI),1,186,ping_latency
-1.2602079659700394,,,,,,,asynch (PyPI),1,187,ping_latency
-1.3894997537136078,,,,,,,asynch (PyPI),1,188,ping_latency
-1.2226658873260021,,,,,,,asynch (PyPI),1,189,ping_latency
-1.1722911149263382,,,,,,,asynch (PyPI),1,190,ping_latency
-1.1554169468581676,,,,,,,asynch (PyPI),1,191,ping_latency
-1.1680410243570805,,,,,,,asynch (PyPI),1,192,ping_latency
-1.2610419653356075,,,,,,,asynch (PyPI),1,193,ping_latency
-1.1723749339580536,,,,,,,asynch (PyPI),1,194,ping_latency
-1.1652917601168156,,,,,,,asynch (PyPI),1,195,ping_latency
-1.177667174488306,,,,,,,asynch (PyPI),1,196,ping_latency
-1.1981669813394547,,,,,,,asynch (PyPI),1,197,ping_latency
-1.2377919629216194,,,,,,,asynch (PyPI),1,198,ping_latency
-1.1589168570935726,,,,,,,asynch (PyPI),1,199,ping_latency
-2007.560582831502,,,,,,,asynch (PyPI),1000000,0,read_throughput
-1987.1428329497576,,,,,,,asynch (PyPI),1000000,1,read_throughput
-1979.1675000451505,,,,,,,asynch (PyPI),1000000,2,read_throughput
-1965.1430421508849,,,,,,,asynch (PyPI),1000000,3,read_throughput
-1981.9353753700852,,,,,,,asynch (PyPI),1000000,4,read_throughput
-1971.0435839369893,,,,,,,asynch (PyPI),1000000,5,read_throughput
-1984.8041660152376,,,,,,,asynch (PyPI),1000000,6,read_throughput
-2020.0023748911917,,,,,,,asynch (PyPI),1000000,7,read_throughput
-1985.7072080485523,,,,,,,asynch (PyPI),1000000,8,read_throughput
-1989.8939160630107,,,,,,,asynch (PyPI),1000000,9,read_throughput
-126.7013750039041,,,,,,,asynch (PyPI),100000,0,insert_throughput
-126.41866691410542,,,,,,,asynch (PyPI),100000,1,insert_throughput
-131.73470832407475,,,,,,,asynch (PyPI),100000,2,insert_throughput
-127.91333300992846,,,,,,,asynch (PyPI),100000,3,insert_throughput
-138.9260832220316,,,,,,,asynch (PyPI),100000,4,insert_throughput
-127.747000195086,,,,,,,asynch (PyPI),100000,5,insert_throughput
-130.816999822855,,,,,,,asynch (PyPI),100000,6,insert_throughput
-131.07429072260857,,,,,,,asynch (PyPI),100000,7,insert_throughput
-123.23491601273417,,,,,,,asynch (PyPI),100000,8,insert_throughput
-128.89354210346937,,,,,,,asynch (PyPI),100000,9,insert_throughput
-12.539624702185392,16,,,,,,asynch (PyPI),1600000,0,concurrent_reads
-13.217708095908165,16,,,,,,asynch (PyPI),1600000,1,concurrent_reads
-13.40045826509595,16,,,,,,asynch (PyPI),1600000,2,concurrent_reads
-14.587415847927332,16,,,,,,asynch (PyPI),1600000,3,concurrent_reads
-12.654582969844341,16,,,,,,asynch (PyPI),1600000,4,concurrent_reads
-13.905124738812447,16,,,,,,asynch (PyPI),1600000,5,concurrent_reads
-12.85620778799057,16,,,,,,asynch (PyPI),1600000,6,concurrent_reads
-14.39837459474802,16,,,,,,asynch (PyPI),1600000,7,concurrent_reads
-12.678874656558037,16,,,,,,asynch (PyPI),1600000,8,concurrent_reads
-14.169000089168549,16,,,,,,asynch (PyPI),1600000,9,concurrent_reads
-750.5862922407687,,30.94,474.45,505.39,"[{'t_ms': 0.0, 'rss_mib': 30.94}, {'t_ms': 0.07, 'rss_mib': 30.97}, {'t_ms': 55.45, 'rss_mib': 113.97}, {'t_ms': 105.85, 'rss_mib': 172.58}, {'t_ms': 158.9, 'rss_mib': 218.16}, {'t_ms': 212.09, 'rss_mib': 263.78}, {'t_ms': 276.66, 'rss_mib': 309.44}, {'t_ms': 335.85, 'rss_mib': 349.14}, {'t_ms': 393.06, 'rss_mib': 388.19}, {'t_ms': 450.71, 'rss_mib': 427.27}, {'t_ms': 515.2, 'rss_mib': 466.31}, {'t_ms': 580.85, 'rss_mib': 505.39}, {'t_ms': 750.72, 'rss_mib': 136.34}, {'t_ms': 750.89, 'rss_mib': 136.31}]",50.0,asynch (PyPI),5000000,0,memory_ceiling
-1.364000141620636,,,,,,,asynch (tacto fork),1,0,ping_latency
-1.3265828602015972,,,,,,,asynch (tacto fork),1,1,ping_latency
-1.240250188857317,,,,,,,asynch (tacto fork),1,2,ping_latency
-1.3373331166803837,,,,,,,asynch (tacto fork),1,3,ping_latency
-1.3778340071439743,,,,,,,asynch (tacto fork),1,4,ping_latency
-1.2969998642802238,,,,,,,asynch (tacto fork),1,5,ping_latency
-1.2787501327693462,,,,,,,asynch (tacto fork),1,6,ping_latency
-1.2542088516056538,,,,,,,asynch (tacto fork),1,7,ping_latency
-1.2249578721821308,,,,,,,asynch (tacto fork),1,8,ping_latency
-1.2132497504353523,,,,,,,asynch (tacto fork),1,9,ping_latency
-1.289833802729845,,,,,,,asynch (tacto fork),1,10,ping_latency
-1.286833081394434,,,,,,,asynch (tacto fork),1,11,ping_latency
-1.239000353962183,,,,,,,asynch (tacto fork),1,12,ping_latency
-1.2240000069141388,,,,,,,asynch (tacto fork),1,13,ping_latency
-1.2313751503825188,,,,,,,asynch (tacto fork),1,14,ping_latency
-1.2710420414805412,,,,,,,asynch (tacto fork),1,15,ping_latency
-1.2654168531298637,,,,,,,asynch (tacto fork),1,16,ping_latency
-1.2401673011481762,,,,,,,asynch (tacto fork),1,17,ping_latency
-1.2780418619513512,,,,,,,asynch (tacto fork),1,18,ping_latency
-1.3491250574588776,,,,,,,asynch (tacto fork),1,19,ping_latency
-1.1972920037806034,,,,,,,asynch (tacto fork),1,20,ping_latency
-1.2770001776516438,,,,,,,asynch (tacto fork),1,21,ping_latency
-1.3241670094430447,,,,,,,asynch (tacto fork),1,22,ping_latency
-1.3723750598728657,,,,,,,asynch (tacto fork),1,23,ping_latency
-1.3567502610385418,,,,,,,asynch (tacto fork),1,24,ping_latency
-1.3630827888846397,,,,,,,asynch (tacto fork),1,25,ping_latency
-1.2978753075003624,,,,,,,asynch (tacto fork),1,26,ping_latency
-1.2839999981224537,,,,,,,asynch (tacto fork),1,27,ping_latency
-1.2970003299415112,,,,,,,asynch (tacto fork),1,28,ping_latency
-1.2475419789552689,,,,,,,asynch (tacto fork),1,29,ping_latency
-1.3572080060839653,,,,,,,asynch (tacto fork),1,30,ping_latency
-1.4929589815437794,,,,,,,asynch (tacto fork),1,31,ping_latency
-1.2937081046402454,,,,,,,asynch (tacto fork),1,32,ping_latency
-1.3730828650295734,,,,,,,asynch (tacto fork),1,33,ping_latency
-1.299791969358921,,,,,,,asynch (tacto fork),1,34,ping_latency
-1.2509999796748161,,,,,,,asynch (tacto fork),1,35,ping_latency
-1.2318748049438,,,,,,,asynch (tacto fork),1,36,ping_latency
-1.3076667673885822,,,,,,,asynch (tacto fork),1,37,ping_latency
-1.4110831543803215,,,,,,,asynch (tacto fork),1,38,ping_latency
-1.5437081456184387,,,,,,,asynch (tacto fork),1,39,ping_latency
-1.360124908387661,,,,,,,asynch (tacto fork),1,40,ping_latency
-1.342874951660633,,,,,,,asynch (tacto fork),1,41,ping_latency
-1.3933749869465828,,,,,,,asynch (tacto fork),1,42,ping_latency
-1.3737077824771404,,,,,,,asynch (tacto fork),1,43,ping_latency
-1.219457946717739,,,,,,,asynch (tacto fork),1,44,ping_latency
-1.296707894653082,,,,,,,asynch (tacto fork),1,45,ping_latency
-1.1797919869422913,,,,,,,asynch (tacto fork),1,46,ping_latency
-1.1780420318245888,,,,,,,asynch (tacto fork),1,47,ping_latency
-1.3125413097441196,,,,,,,asynch (tacto fork),1,48,ping_latency
-1.201834063977003,,,,,,,asynch (tacto fork),1,49,ping_latency
-1.2164171785116196,,,,,,,asynch (tacto fork),1,50,ping_latency
-1.2404578737914562,,,,,,,asynch (tacto fork),1,51,ping_latency
-1.2125829234719276,,,,,,,asynch (tacto fork),1,52,ping_latency
-1.223917119204998,,,,,,,asynch (tacto fork),1,53,ping_latency
-1.2422502040863037,,,,,,,asynch (tacto fork),1,54,ping_latency
-1.1863750405609608,,,,,,,asynch (tacto fork),1,55,ping_latency
-1.1447910219430923,,,,,,,asynch (tacto fork),1,56,ping_latency
-1.239000353962183,,,,,,,asynch (tacto fork),1,57,ping_latency
-1.1766660027205944,,,,,,,asynch (tacto fork),1,58,ping_latency
-1.1841249652206898,,,,,,,asynch (tacto fork),1,59,ping_latency
-1.3218331150710583,,,,,,,asynch (tacto fork),1,60,ping_latency
-1.1905422434210777,,,,,,,asynch (tacto fork),1,61,ping_latency
-1.252874732017517,,,,,,,asynch (tacto fork),1,62,ping_latency
-1.1642081663012505,,,,,,,asynch (tacto fork),1,63,ping_latency
-1.2189587578177452,,,,,,,asynch (tacto fork),1,64,ping_latency
-1.2276251800358295,,,,,,,asynch (tacto fork),1,65,ping_latency
-1.1698328889906406,,,,,,,asynch (tacto fork),1,66,ping_latency
-1.2497082352638245,,,,,,,asynch (tacto fork),1,67,ping_latency
-1.3088337145745754,,,,,,,asynch (tacto fork),1,68,ping_latency
-1.1503328569233418,,,,,,,asynch (tacto fork),1,69,ping_latency
-1.1870418675243855,,,,,,,asynch (tacto fork),1,70,ping_latency
-1.1777500621974468,,,,,,,asynch (tacto fork),1,71,ping_latency
-1.2337081134319305,,,,,,,asynch (tacto fork),1,72,ping_latency
-1.2474996037781239,,,,,,,asynch (tacto fork),1,73,ping_latency
-1.337583176791668,,,,,,,asynch (tacto fork),1,74,ping_latency
-1.2560002505779266,,,,,,,asynch (tacto fork),1,75,ping_latency
-1.201624982059002,,,,,,,asynch (tacto fork),1,76,ping_latency
-1.2700418010354042,,,,,,,asynch (tacto fork),1,77,ping_latency
-1.2595420703291893,,,,,,,asynch (tacto fork),1,78,ping_latency
-1.2234579771757126,,,,,,,asynch (tacto fork),1,79,ping_latency
-1.1845421977341175,,,,,,,asynch (tacto fork),1,80,ping_latency
-1.2448327615857124,,,,,,,asynch (tacto fork),1,81,ping_latency
-1.233124639838934,,,,,,,asynch (tacto fork),1,82,ping_latency
-1.1624163016676903,,,,,,,asynch (tacto fork),1,83,ping_latency
-1.2253751046955585,,,,,,,asynch (tacto fork),1,84,ping_latency
-1.2112092226743698,,,,,,,asynch (tacto fork),1,85,ping_latency
-1.2866249307990074,,,,,,,asynch (tacto fork),1,86,ping_latency
-1.2624170631170273,,,,,,,asynch (tacto fork),1,87,ping_latency
-1.2291250750422478,,,,,,,asynch (tacto fork),1,88,ping_latency
-1.3012094423174858,,,,,,,asynch (tacto fork),1,89,ping_latency
-1.2131249532103539,,,,,,,asynch (tacto fork),1,90,ping_latency
-1.1864998377859592,,,,,,,asynch (tacto fork),1,91,ping_latency
-1.2142080813646317,,,,,,,asynch (tacto fork),1,92,ping_latency
-1.2773331254720688,,,,,,,asynch (tacto fork),1,93,ping_latency
-1.2942501343786716,,,,,,,asynch (tacto fork),1,94,ping_latency
-1.2612920254468918,,,,,,,asynch (tacto fork),1,95,ping_latency
-1.2152092531323433,,,,,,,asynch (tacto fork),1,96,ping_latency
-1.1826250702142715,,,,,,,asynch (tacto fork),1,97,ping_latency
-1.224540639668703,,,,,,,asynch (tacto fork),1,98,ping_latency
-1.2170420959591866,,,,,,,asynch (tacto fork),1,99,ping_latency
-1.2581250630319118,,,,,,,asynch (tacto fork),1,100,ping_latency
-1.2962501496076584,,,,,,,asynch (tacto fork),1,101,ping_latency
-1.1877911165356636,,,,,,,asynch (tacto fork),1,102,ping_latency
-1.1324170045554638,,,,,,,asynch (tacto fork),1,103,ping_latency
-1.190792303532362,,,,,,,asynch (tacto fork),1,104,ping_latency
-1.2983339838683605,,,,,,,asynch (tacto fork),1,105,ping_latency
-1.225791871547699,,,,,,,asynch (tacto fork),1,106,ping_latency
-1.2601250782608986,,,,,,,asynch (tacto fork),1,107,ping_latency
-1.2419577687978745,,,,,,,asynch (tacto fork),1,108,ping_latency
-1.2770830653607845,,,,,,,asynch (tacto fork),1,109,ping_latency
-1.292749773710966,,,,,,,asynch (tacto fork),1,110,ping_latency
-1.2436248362064362,,,,,,,asynch (tacto fork),1,111,ping_latency
-1.2747077271342278,,,,,,,asynch (tacto fork),1,112,ping_latency
-1.194874756038189,,,,,,,asynch (tacto fork),1,113,ping_latency
-1.1886670254170895,,,,,,,asynch (tacto fork),1,114,ping_latency
-1.2100408785045147,,,,,,,asynch (tacto fork),1,115,ping_latency
-1.3304580934345722,,,,,,,asynch (tacto fork),1,116,ping_latency
-1.2525832280516624,,,,,,,asynch (tacto fork),1,117,ping_latency
-1.2565003708004951,,,,,,,asynch (tacto fork),1,118,ping_latency
-1.1757919564843178,,,,,,,asynch (tacto fork),1,119,ping_latency
-1.228333916515112,,,,,,,asynch (tacto fork),1,120,ping_latency
-1.2690410949289799,,,,,,,asynch (tacto fork),1,121,ping_latency
-1.2506251223385334,,,,,,,asynch (tacto fork),1,122,ping_latency
-1.176333986222744,,,,,,,asynch (tacto fork),1,123,ping_latency
-1.2803338468074799,,,,,,,asynch (tacto fork),1,124,ping_latency
-1.2940000742673874,,,,,,,asynch (tacto fork),1,125,ping_latency
-1.222332939505577,,,,,,,asynch (tacto fork),1,126,ping_latency
-1.1009583249688148,,,,,,,asynch (tacto fork),1,127,ping_latency
-1.216040924191475,,,,,,,asynch (tacto fork),1,128,ping_latency
-1.2056250125169754,,,,,,,asynch (tacto fork),1,129,ping_latency
-1.2090830132365227,,,,,,,asynch (tacto fork),1,130,ping_latency
-1.1845841072499752,,,,,,,asynch (tacto fork),1,131,ping_latency
-1.1687078513205051,,,,,,,asynch (tacto fork),1,132,ping_latency
-1.157000195235014,,,,,,,asynch (tacto fork),1,133,ping_latency
-1.2026247568428516,,,,,,,asynch (tacto fork),1,134,ping_latency
-1.2059998698532581,,,,,,,asynch (tacto fork),1,135,ping_latency
-1.2505422346293926,,,,,,,asynch (tacto fork),1,136,ping_latency
-1.1180001311004162,,,,,,,asynch (tacto fork),1,137,ping_latency
-1.1231661774218082,,,,,,,asynch (tacto fork),1,138,ping_latency
-1.1624163016676903,,,,,,,asynch (tacto fork),1,139,ping_latency
-1.1607496999204159,,,,,,,asynch (tacto fork),1,140,ping_latency
-1.1671250686049461,,,,,,,asynch (tacto fork),1,141,ping_latency
-1.2001250870525837,,,,,,,asynch (tacto fork),1,142,ping_latency
-1.2346659786999226,,,,,,,asynch (tacto fork),1,143,ping_latency
-1.2206658720970154,,,,,,,asynch (tacto fork),1,144,ping_latency
-1.305499579757452,,,,,,,asynch (tacto fork),1,145,ping_latency
-1.1752499267458916,,,,,,,asynch (tacto fork),1,146,ping_latency
-1.2502502650022507,,,,,,,asynch (tacto fork),1,147,ping_latency
-1.2147920206189156,,,,,,,asynch (tacto fork),1,148,ping_latency
-1.1900831013917923,,,,,,,asynch (tacto fork),1,149,ping_latency
-1.2546251527965069,,,,,,,asynch (tacto fork),1,150,ping_latency
-1.2143747881054878,,,,,,,asynch (tacto fork),1,151,ping_latency
-1.1380421929061413,,,,,,,asynch (tacto fork),1,152,ping_latency
-1.1749579571187496,,,,,,,asynch (tacto fork),1,153,ping_latency
-1.1152089573442936,,,,,,,asynch (tacto fork),1,154,ping_latency
-1.1832080781459808,,,,,,,asynch (tacto fork),1,155,ping_latency
-1.260083168745041,,,,,,,asynch (tacto fork),1,156,ping_latency
-1.2507499195635319,,,,,,,asynch (tacto fork),1,157,ping_latency
-1.1759581975638866,,,,,,,asynch (tacto fork),1,158,ping_latency
-1.1389581486582756,,,,,,,asynch (tacto fork),1,159,ping_latency
-1.1778338812291622,,,,,,,asynch (tacto fork),1,160,ping_latency
-1.146417111158371,,,,,,,asynch (tacto fork),1,161,ping_latency
-1.1720829643309116,,,,,,,asynch (tacto fork),1,162,ping_latency
-1.2497501447796822,,,,,,,asynch (tacto fork),1,163,ping_latency
-1.1642500758171082,,,,,,,asynch (tacto fork),1,164,ping_latency
-1.1527501046657562,,,,,,,asynch (tacto fork),1,165,ping_latency
-1.147042028605938,,,,,,,asynch (tacto fork),1,166,ping_latency
-1.1929580941796303,,,,,,,asynch (tacto fork),1,167,ping_latency
-1.164957880973816,,,,,,,asynch (tacto fork),1,168,ping_latency
-1.233583316206932,,,,,,,asynch (tacto fork),1,169,ping_latency
-1.148042269051075,,,,,,,asynch (tacto fork),1,170,ping_latency
-1.3433750718832016,,,,,,,asynch (tacto fork),1,171,ping_latency
-1.3284171000123024,,,,,,,asynch (tacto fork),1,172,ping_latency
-1.1859163641929626,,,,,,,asynch (tacto fork),1,173,ping_latency
-1.1482080444693565,,,,,,,asynch (tacto fork),1,174,ping_latency
-1.2063328176736832,,,,,,,asynch (tacto fork),1,175,ping_latency
-1.1584581807255745,,,,,,,asynch (tacto fork),1,176,ping_latency
-1.2563751079142094,,,,,,,asynch (tacto fork),1,177,ping_latency
-1.2175408191978931,,,,,,,asynch (tacto fork),1,178,ping_latency
-1.1265408247709274,,,,,,,asynch (tacto fork),1,179,ping_latency
-1.1264998465776443,,,,,,,asynch (tacto fork),1,180,ping_latency
-1.1797500774264336,,,,,,,asynch (tacto fork),1,181,ping_latency
-1.1547906324267387,,,,,,,asynch (tacto fork),1,182,ping_latency
-1.2308750301599503,,,,,,,asynch (tacto fork),1,183,ping_latency
-1.2531247921288013,,,,,,,asynch (tacto fork),1,184,ping_latency
-1.1923331767320633,,,,,,,asynch (tacto fork),1,185,ping_latency
-1.1459160596132278,,,,,,,asynch (tacto fork),1,186,ping_latency
-1.1675842106342316,,,,,,,asynch (tacto fork),1,187,ping_latency
-1.1410419829189777,,,,,,,asynch (tacto fork),1,188,ping_latency
-1.117374747991562,,,,,,,asynch (tacto fork),1,189,ping_latency
-1.207791268825531,,,,,,,asynch (tacto fork),1,190,ping_latency
-1.1764578521251678,,,,,,,asynch (tacto fork),1,191,ping_latency
-1.2023751623928547,,,,,,,asynch (tacto fork),1,192,ping_latency
-1.2085838243365288,,,,,,,asynch (tacto fork),1,193,ping_latency
-1.153500284999609,,,,,,,asynch (tacto fork),1,194,ping_latency
-1.9012917764484882,,,,,,,asynch (tacto fork),1,195,ping_latency
-1.2881248258054256,,,,,,,asynch (tacto fork),1,196,ping_latency
-1.1998750269412994,,,,,,,asynch (tacto fork),1,197,ping_latency
-1.111624762415886,,,,,,,asynch (tacto fork),1,198,ping_latency
-1.1572502553462982,,,,,,,asynch (tacto fork),1,199,ping_latency
-1992.9710836149752,,,,,,,asynch (tacto fork),1000000,0,read_throughput
-1982.7511669136584,,,,,,,asynch (tacto fork),1000000,1,read_throughput
-1979.1310830041766,,,,,,,asynch (tacto fork),1000000,2,read_throughput
-1964.2952922731638,,,,,,,asynch (tacto fork),1000000,3,read_throughput
-1991.4003745652735,,,,,,,asynch (tacto fork),1000000,4,read_throughput
-2007.7484999783337,,,,,,,asynch (tacto fork),1000000,5,read_throughput
-1999.950374942273,,,,,,,asynch (tacto fork),1000000,6,read_throughput
-2006.843916606158,,,,,,,asynch (tacto fork),1000000,7,read_throughput
-2004.0110829286277,,,,,,,asynch (tacto fork),1000000,8,read_throughput
-1997.217417228967,,,,,,,asynch (tacto fork),1000000,9,read_throughput
-131.71758316457272,,,,,,,asynch (tacto fork),100000,0,insert_throughput
-130.1289163529873,,,,,,,asynch (tacto fork),100000,1,insert_throughput
-132.92174972593784,,,,,,,asynch (tacto fork),100000,2,insert_throughput
-128.98045778274536,,,,,,,asynch (tacto fork),100000,3,insert_throughput
-134.68379201367497,,,,,,,asynch (tacto fork),100000,4,insert_throughput
-126.76304206252098,,,,,,,asynch (tacto fork),100000,5,insert_throughput
-132.1742502041161,,,,,,,asynch (tacto fork),100000,6,insert_throughput
-129.14516730234027,,,,,,,asynch (tacto fork),100000,7,insert_throughput
-135.71158284321427,,,,,,,asynch (tacto fork),100000,8,insert_throughput
-123.49366582930088,,,,,,,asynch (tacto fork),100000,9,insert_throughput
-14.6465003490448,16,,,,,,asynch (tacto fork),1600000,0,concurrent_reads
-16.23000018298626,16,,,,,,asynch (tacto fork),1600000,1,concurrent_reads
-17.01399963349104,16,,,,,,asynch (tacto fork),1600000,2,concurrent_reads
-16.361874993890524,16,,,,,,asynch (tacto fork),1600000,3,concurrent_reads
-15.310874674469233,16,,,,,,asynch (tacto fork),1600000,4,concurrent_reads
-14.960874803364277,16,,,,,,asynch (tacto fork),1600000,5,concurrent_reads
-12.464417144656181,16,,,,,,asynch (tacto fork),1600000,6,concurrent_reads
-13.872707728296518,16,,,,,,asynch (tacto fork),1600000,7,concurrent_reads
-12.057750020176172,16,,,,,,asynch (tacto fork),1600000,8,concurrent_reads
-14.332833234220743,16,,,,,,asynch (tacto fork),1600000,9,concurrent_reads
-766.3977085612714,,30.84,475.99,506.83,"[{'t_ms': 0.0, 'rss_mib': 30.84}, {'t_ms': 0.1, 'rss_mib': 30.88}, {'t_ms': 58.1, 'rss_mib': 102.52}, {'t_ms': 117.59, 'rss_mib': 167.62}, {'t_ms': 173.61, 'rss_mib': 219.73}, {'t_ms': 235.4, 'rss_mib': 271.81}, {'t_ms': 289.29, 'rss_mib': 317.42}, {'t_ms': 347.84, 'rss_mib': 357.08}, {'t_ms': 401.85, 'rss_mib': 389.62}, {'t_ms': 462.88, 'rss_mib': 428.7}, {'t_ms': 525.2, 'rss_mib': 467.75}, {'t_ms': 591.53, 'rss_mib': 506.83}, {'t_ms': 766.55, 'rss_mib': 135.75}, {'t_ms': 766.74, 'rss_mib': 135.72}]",50.0,asynch (tacto fork),5000000,0,memory_ceiling
+1.068958081305027,,,,,,,clickhouse-async,1,0,ping_latency
+1.1022919788956642,,,,,,,clickhouse-async,1,1,ping_latency
+1.192375086247921,,,,,,,clickhouse-async,1,2,ping_latency
+0.9615416638553143,,,,,,,clickhouse-async,1,3,ping_latency
+0.9465841576457024,,,,,,,clickhouse-async,1,4,ping_latency
+0.9268750436604023,,,,,,,clickhouse-async,1,5,ping_latency
+0.9688339196145535,,,,,,,clickhouse-async,1,6,ping_latency
+0.9715831838548183,,,,,,,clickhouse-async,1,7,ping_latency
+1.0131248272955418,,,,,,,clickhouse-async,1,8,ping_latency
+1.050666905939579,,,,,,,clickhouse-async,1,9,ping_latency
+1.259458251297474,,,,,,,clickhouse-async,1,10,ping_latency
+1.2147920206189156,,,,,,,clickhouse-async,1,11,ping_latency
+1.086999662220478,,,,,,,clickhouse-async,1,12,ping_latency
+1.1421251110732555,,,,,,,clickhouse-async,1,13,ping_latency
+1.3342499732971191,,,,,,,clickhouse-async,1,14,ping_latency
+1.230041030794382,,,,,,,clickhouse-async,1,15,ping_latency
+1.136499922722578,,,,,,,clickhouse-async,1,16,ping_latency
+0.9981668554246426,,,,,,,clickhouse-async,1,17,ping_latency
+1.0533337481319904,,,,,,,clickhouse-async,1,18,ping_latency
+1.1653341352939606,,,,,,,clickhouse-async,1,19,ping_latency
+0.9856661781668663,,,,,,,clickhouse-async,1,20,ping_latency
+0.9508328512310982,,,,,,,clickhouse-async,1,21,ping_latency
+1.0009580291807652,,,,,,,clickhouse-async,1,22,ping_latency
+1.0883752256631851,,,,,,,clickhouse-async,1,23,ping_latency
+1.284874975681305,,,,,,,clickhouse-async,1,24,ping_latency
+1.0996656492352486,,,,,,,clickhouse-async,1,25,ping_latency
+1.0466673411428928,,,,,,,clickhouse-async,1,26,ping_latency
+1.0974579490721226,,,,,,,clickhouse-async,1,27,ping_latency
+1.1665420606732368,,,,,,,clickhouse-async,1,28,ping_latency
+1.4052502810955048,,,,,,,clickhouse-async,1,29,ping_latency
+1.0730419307947159,,,,,,,clickhouse-async,1,30,ping_latency
+0.9639998897910118,,,,,,,clickhouse-async,1,31,ping_latency
+1.0004593059420586,,,,,,,clickhouse-async,1,32,ping_latency
+0.9355000220239162,,,,,,,clickhouse-async,1,33,ping_latency
+0.9302091784775257,,,,,,,clickhouse-async,1,34,ping_latency
+0.9476658888161182,,,,,,,clickhouse-async,1,35,ping_latency
+0.9710830636322498,,,,,,,clickhouse-async,1,36,ping_latency
+0.9516668505966663,,,,,,,clickhouse-async,1,37,ping_latency
+0.9625842794775963,,,,,,,clickhouse-async,1,38,ping_latency
+0.9605418890714645,,,,,,,clickhouse-async,1,39,ping_latency
+1.0590003803372383,,,,,,,clickhouse-async,1,40,ping_latency
+1.105249859392643,,,,,,,clickhouse-async,1,41,ping_latency
+1.1078747920691967,,,,,,,clickhouse-async,1,42,ping_latency
+1.0797921568155289,,,,,,,clickhouse-async,1,43,ping_latency
+1.0196249932050705,,,,,,,clickhouse-async,1,44,ping_latency
+0.9133340790867805,,,,,,,clickhouse-async,1,45,ping_latency
+0.9328750893473625,,,,,,,clickhouse-async,1,46,ping_latency
+0.9791655465960503,,,,,,,clickhouse-async,1,47,ping_latency
+0.9795837104320526,,,,,,,clickhouse-async,1,48,ping_latency
+0.9456672705709934,,,,,,,clickhouse-async,1,49,ping_latency
+0.9573749266564846,,,,,,,clickhouse-async,1,50,ping_latency
+0.933042261749506,,,,,,,clickhouse-async,1,51,ping_latency
+0.9774998761713505,,,,,,,clickhouse-async,1,52,ping_latency
+0.9550419636070728,,,,,,,clickhouse-async,1,53,ping_latency
+0.9665829129517078,,,,,,,clickhouse-async,1,54,ping_latency
+0.9707077406346798,,,,,,,clickhouse-async,1,55,ping_latency
+0.974167138338089,,,,,,,clickhouse-async,1,56,ping_latency
+1.03320786729455,,,,,,,clickhouse-async,1,57,ping_latency
+0.997583381831646,,,,,,,clickhouse-async,1,58,ping_latency
+0.9435419924557209,,,,,,,clickhouse-async,1,59,ping_latency
+0.9063747711479664,,,,,,,clickhouse-async,1,60,ping_latency
+1.013750210404396,,,,,,,clickhouse-async,1,61,ping_latency
+1.0115420445799828,,,,,,,clickhouse-async,1,62,ping_latency
+0.9613749571144581,,,,,,,clickhouse-async,1,63,ping_latency
+0.9367503225803375,,,,,,,clickhouse-async,1,64,ping_latency
+0.8816663175821304,,,,,,,clickhouse-async,1,65,ping_latency
+0.935917254537344,,,,,,,clickhouse-async,1,66,ping_latency
+0.987000297755003,,,,,,,clickhouse-async,1,67,ping_latency
+0.9575840085744858,,,,,,,clickhouse-async,1,68,ping_latency
+1.0056248866021633,,,,,,,clickhouse-async,1,69,ping_latency
+0.9817918762564659,,,,,,,clickhouse-async,1,70,ping_latency
+0.9259157814085484,,,,,,,clickhouse-async,1,71,ping_latency
+0.9520826861262321,,,,,,,clickhouse-async,1,72,ping_latency
+0.9782081469893456,,,,,,,clickhouse-async,1,73,ping_latency
+0.9940420277416706,,,,,,,clickhouse-async,1,74,ping_latency
+1.0458328761160374,,,,,,,clickhouse-async,1,75,ping_latency
+0.9844591841101646,,,,,,,clickhouse-async,1,76,ping_latency
+1.0842089541256428,,,,,,,clickhouse-async,1,77,ping_latency
+1.2143747881054878,,,,,,,clickhouse-async,1,78,ping_latency
+1.0872920975089073,,,,,,,clickhouse-async,1,79,ping_latency
+0.9511671960353851,,,,,,,clickhouse-async,1,80,ping_latency
+1.011749729514122,,,,,,,clickhouse-async,1,81,ping_latency
+1.0010837577283382,,,,,,,clickhouse-async,1,82,ping_latency
+0.9306673891842365,,,,,,,clickhouse-async,1,83,ping_latency
+1.014959067106247,,,,,,,clickhouse-async,1,84,ping_latency
+1.1204998008906841,,,,,,,clickhouse-async,1,85,ping_latency
+1.1015417985618114,,,,,,,clickhouse-async,1,86,ping_latency
+1.015041023492813,,,,,,,clickhouse-async,1,87,ping_latency
+1.0366672649979591,,,,,,,clickhouse-async,1,88,ping_latency
+0.9978339076042175,,,,,,,clickhouse-async,1,89,ping_latency
+1.0006669908761978,,,,,,,clickhouse-async,1,90,ping_latency
+1.0128752328455448,,,,,,,clickhouse-async,1,91,ping_latency
+0.9834999218583107,,,,,,,clickhouse-async,1,92,ping_latency
+0.9925002232193947,,,,,,,clickhouse-async,1,93,ping_latency
+1.3040411286056042,,,,,,,clickhouse-async,1,94,ping_latency
+1.0487078689038754,,,,,,,clickhouse-async,1,95,ping_latency
+0.9954161942005157,,,,,,,clickhouse-async,1,96,ping_latency
+1.1014160700142384,,,,,,,clickhouse-async,1,97,ping_latency
+0.9913751855492592,,,,,,,clickhouse-async,1,98,ping_latency
+0.9539998136460781,,,,,,,clickhouse-async,1,99,ping_latency
+0.9739999659359455,,,,,,,clickhouse-async,1,100,ping_latency
+1.001917291432619,,,,,,,clickhouse-async,1,101,ping_latency
+0.9932499378919601,,,,,,,clickhouse-async,1,102,ping_latency
+1.0061250068247318,,,,,,,clickhouse-async,1,103,ping_latency
+0.8994592353701591,,,,,,,clickhouse-async,1,104,ping_latency
+0.9647496044635773,,,,,,,clickhouse-async,1,105,ping_latency
+0.9865420870482922,,,,,,,clickhouse-async,1,106,ping_latency
+1.0059578344225883,,,,,,,clickhouse-async,1,107,ping_latency
+0.9626247920095921,,,,,,,clickhouse-async,1,108,ping_latency
+1.086208038032055,,,,,,,clickhouse-async,1,109,ping_latency
+0.9399158880114555,,,,,,,clickhouse-async,1,110,ping_latency
+0.9347498416900635,,,,,,,clickhouse-async,1,111,ping_latency
+0.9656669571995735,,,,,,,clickhouse-async,1,112,ping_latency
+0.9451666846871376,,,,,,,clickhouse-async,1,113,ping_latency
+1.0752077214419842,,,,,,,clickhouse-async,1,114,ping_latency
+1.028750091791153,,,,,,,clickhouse-async,1,115,ping_latency
+0.931374728679657,,,,,,,clickhouse-async,1,116,ping_latency
+1.0611251927912235,,,,,,,clickhouse-async,1,117,ping_latency
+1.0858750902116299,,,,,,,clickhouse-async,1,118,ping_latency
+0.9062499739229679,,,,,,,clickhouse-async,1,119,ping_latency
+0.9637502953410149,,,,,,,clickhouse-async,1,120,ping_latency
+0.9184158407151699,,,,,,,clickhouse-async,1,121,ping_latency
+0.9222910739481449,,,,,,,clickhouse-async,1,122,ping_latency
+0.9136656299233437,,,,,,,clickhouse-async,1,123,ping_latency
+0.9759170934557915,,,,,,,clickhouse-async,1,124,ping_latency
+1.0410831309854984,,,,,,,clickhouse-async,1,125,ping_latency
+1.12062506377697,,,,,,,clickhouse-async,1,126,ping_latency
+1.1301669292151928,,,,,,,clickhouse-async,1,127,ping_latency
+0.9887502528727055,,,,,,,clickhouse-async,1,128,ping_latency
+0.880957581102848,,,,,,,clickhouse-async,1,129,ping_latency
+0.9640827775001526,,,,,,,clickhouse-async,1,130,ping_latency
+0.9694998152554035,,,,,,,clickhouse-async,1,131,ping_latency
+0.9717913344502449,,,,,,,clickhouse-async,1,132,ping_latency
+0.9947093203663826,,,,,,,clickhouse-async,1,133,ping_latency
+1.0945838876068592,,,,,,,clickhouse-async,1,134,ping_latency
+1.1012079194188118,,,,,,,clickhouse-async,1,135,ping_latency
+0.9872079826891422,,,,,,,clickhouse-async,1,136,ping_latency
+0.9646667167544365,,,,,,,clickhouse-async,1,137,ping_latency
+0.9287921711802483,,,,,,,clickhouse-async,1,138,ping_latency
+0.8959583938121796,,,,,,,clickhouse-async,1,139,ping_latency
+0.8757920004427433,,,,,,,clickhouse-async,1,140,ping_latency
+0.9203329682350159,,,,,,,clickhouse-async,1,141,ping_latency
+0.8899583481252193,,,,,,,clickhouse-async,1,142,ping_latency
+0.9226673282682896,,,,,,,clickhouse-async,1,143,ping_latency
+0.9228340350091457,,,,,,,clickhouse-async,1,144,ping_latency
+0.9015826508402824,,,,,,,clickhouse-async,1,145,ping_latency
+0.967167317867279,,,,,,,clickhouse-async,1,146,ping_latency
+0.9415419772267342,,,,,,,clickhouse-async,1,147,ping_latency
+0.8907909505069256,,,,,,,clickhouse-async,1,148,ping_latency
+0.9676250629127026,,,,,,,clickhouse-async,1,149,ping_latency
+0.9016250260174274,,,,,,,clickhouse-async,1,150,ping_latency
+0.9347503073513508,,,,,,,clickhouse-async,1,151,ping_latency
+0.8850418962538242,,,,,,,clickhouse-async,1,152,ping_latency
+0.8707079105079174,,,,,,,clickhouse-async,1,153,ping_latency
+0.9546251967549324,,,,,,,clickhouse-async,1,154,ping_latency
+1.0027922689914703,,,,,,,clickhouse-async,1,155,ping_latency
+0.9341668337583542,,,,,,,clickhouse-async,1,156,ping_latency
+0.9207502007484436,,,,,,,clickhouse-async,1,157,ping_latency
+0.8958750404417515,,,,,,,clickhouse-async,1,158,ping_latency
+0.9227078408002853,,,,,,,clickhouse-async,1,159,ping_latency
+0.9153331629931927,,,,,,,clickhouse-async,1,160,ping_latency
+0.8994159288704395,,,,,,,clickhouse-async,1,161,ping_latency
+0.9212088771164417,,,,,,,clickhouse-async,1,162,ping_latency
+0.8825827389955521,,,,,,,clickhouse-async,1,163,ping_latency
+0.9164996445178986,,,,,,,clickhouse-async,1,164,ping_latency
+0.916333869099617,,,,,,,clickhouse-async,1,165,ping_latency
+0.9064576588571072,,,,,,,clickhouse-async,1,166,ping_latency
+0.899875070899725,,,,,,,clickhouse-async,1,167,ping_latency
+0.8967919275164604,,,,,,,clickhouse-async,1,168,ping_latency
+0.9114593267440796,,,,,,,clickhouse-async,1,169,ping_latency
+0.9222086519002914,,,,,,,clickhouse-async,1,170,ping_latency
+0.9259581565856934,,,,,,,clickhouse-async,1,171,ping_latency
+0.9283339604735374,,,,,,,clickhouse-async,1,172,ping_latency
+0.9127911180257797,,,,,,,clickhouse-async,1,173,ping_latency
+0.9016250260174274,,,,,,,clickhouse-async,1,174,ping_latency
+0.9054159745573997,,,,,,,clickhouse-async,1,175,ping_latency
+0.8952920325100422,,,,,,,clickhouse-async,1,176,ping_latency
+0.8697919547557831,,,,,,,clickhouse-async,1,177,ping_latency
+0.895082950592041,,,,,,,clickhouse-async,1,178,ping_latency
+0.9720409289002419,,,,,,,clickhouse-async,1,179,ping_latency
+0.8984580636024475,,,,,,,clickhouse-async,1,180,ping_latency
+0.9641251526772976,,,,,,,clickhouse-async,1,181,ping_latency
+0.8834591135382652,,,,,,,clickhouse-async,1,182,ping_latency
+0.9874589741230011,,,,,,,clickhouse-async,1,183,ping_latency
+0.9122081100940704,,,,,,,clickhouse-async,1,184,ping_latency
+0.9167920798063278,,,,,,,clickhouse-async,1,185,ping_latency
+0.8728331886231899,,,,,,,clickhouse-async,1,186,ping_latency
+0.9552077390253544,,,,,,,clickhouse-async,1,187,ping_latency
+0.933375209569931,,,,,,,clickhouse-async,1,188,ping_latency
+0.9475001133978367,,,,,,,clickhouse-async,1,189,ping_latency
+0.8950419723987579,,,,,,,clickhouse-async,1,190,ping_latency
+0.8815829642117023,,,,,,,clickhouse-async,1,191,ping_latency
+0.9498330764472485,,,,,,,clickhouse-async,1,192,ping_latency
+0.9229169227182865,,,,,,,clickhouse-async,1,193,ping_latency
+1.0302923619747162,,,,,,,clickhouse-async,1,194,ping_latency
+1.0477080941200256,,,,,,,clickhouse-async,1,195,ping_latency
+0.9737499058246613,,,,,,,clickhouse-async,1,196,ping_latency
+1.0232091881334782,,,,,,,clickhouse-async,1,197,ping_latency
+0.9813751094043255,,,,,,,clickhouse-async,1,198,ping_latency
+1.0341671295464039,,,,,,,clickhouse-async,1,199,ping_latency
+674.1083753295243,,,,,,,clickhouse-async,1000000,0,read_throughput
+682.9095832072198,,,,,,,clickhouse-async,1000000,1,read_throughput
+675.8924592286348,,,,,,,clickhouse-async,1000000,2,read_throughput
+676.687958650291,,,,,,,clickhouse-async,1000000,3,read_throughput
+683.870708104223,,,,,,,clickhouse-async,1000000,4,read_throughput
+705.9263749979436,,,,,,,clickhouse-async,1000000,5,read_throughput
+675.3512499853969,,,,,,,clickhouse-async,1000000,6,read_throughput
+676.575249992311,,,,,,,clickhouse-async,1000000,7,read_throughput
+682.3005001060665,,,,,,,clickhouse-async,1000000,8,read_throughput
+680.2319586277008,,,,,,,clickhouse-async,1000000,9,read_throughput
+102.31462493538857,,,,,,,clickhouse-async,100000,0,insert_throughput
+95.71337513625622,,,,,,,clickhouse-async,100000,1,insert_throughput
+99.27741624414921,,,,,,,clickhouse-async,100000,2,insert_throughput
+99.08804204314947,,,,,,,clickhouse-async,100000,3,insert_throughput
+107.85012505948544,,,,,,,clickhouse-async,100000,4,insert_throughput
+106.3953754492104,,,,,,,clickhouse-async,100000,5,insert_throughput
+108.07175002992153,,,,,,,clickhouse-async,100000,6,insert_throughput
+109.30979158729315,,,,,,,clickhouse-async,100000,7,insert_throughput
+105.83366593346,,,,,,,clickhouse-async,100000,8,insert_throughput
+96.90279187634587,,,,,,,clickhouse-async,100000,9,insert_throughput
+13.924417085945606,16,,,,,,clickhouse-async,1600000,0,concurrent_reads
+17.62025011703372,16,,,,,,clickhouse-async,1600000,1,concurrent_reads
+13.281582854688168,16,,,,,,clickhouse-async,1600000,2,concurrent_reads
+15.65170893445611,16,,,,,,clickhouse-async,1600000,3,concurrent_reads
+12.762583326548338,16,,,,,,clickhouse-async,1600000,4,concurrent_reads
+16.49791607633233,16,,,,,,clickhouse-async,1600000,5,concurrent_reads
+14.990709256380796,16,,,,,,clickhouse-async,1600000,6,concurrent_reads
+14.421874657273293,16,,,,,,clickhouse-async,1600000,7,concurrent_reads
+14.43266635760665,16,,,,,,clickhouse-async,1600000,8,concurrent_reads
+15.24245785549283,16,,,,,,clickhouse-async,1600000,9,concurrent_reads
+796.7672501690686,,30.42,475.35,505.77,"[{'t_ms': 0.0, 'rss_mib': 30.42}, {'t_ms': 0.1, 'rss_mib': 30.45}, {'t_ms': 55.95, 'rss_mib': 95.5}, {'t_ms': 108.92, 'rss_mib': 147.58}, {'t_ms': 165.17, 'rss_mib': 193.17}, {'t_ms': 226.06, 'rss_mib': 245.27}, {'t_ms': 278.26, 'rss_mib': 290.83}, {'t_ms': 343.58, 'rss_mib': 336.45}, {'t_ms': 399.95, 'rss_mib': 375.52}, {'t_ms': 459.57, 'rss_mib': 414.58}, {'t_ms': 510.46, 'rss_mib': 447.16}, {'t_ms': 561.26, 'rss_mib': 473.19}, {'t_ms': 621.74, 'rss_mib': 505.77}, {'t_ms': 796.92, 'rss_mib': 135.8}, {'t_ms': 797.13, 'rss_mib': 135.77}]",50.0,clickhouse-async,5000000,0,memory_ceiling
+2.825249917805195,,,,,,,clickhouse-connect (thread-pool),1,0,ping_latency
+1.97591632604599,,,,,,,clickhouse-connect (thread-pool),1,1,ping_latency
+1.8035001121461391,,,,,,,clickhouse-connect (thread-pool),1,2,ping_latency
+1.4900416135787964,,,,,,,clickhouse-connect (thread-pool),1,3,ping_latency
+1.951834186911583,,,,,,,clickhouse-connect (thread-pool),1,4,ping_latency
+1.6324999742209911,,,,,,,clickhouse-connect (thread-pool),1,5,ping_latency
+4.040000028908253,,,,,,,clickhouse-connect (thread-pool),1,6,ping_latency
+3.2314169220626354,,,,,,,clickhouse-connect (thread-pool),1,7,ping_latency
+2.397709060460329,,,,,,,clickhouse-connect (thread-pool),1,8,ping_latency
+2.4777501821517944,,,,,,,clickhouse-connect (thread-pool),1,9,ping_latency
+2.912083175033331,,,,,,,clickhouse-connect (thread-pool),1,10,ping_latency
+2.091249916702509,,,,,,,clickhouse-connect (thread-pool),1,11,ping_latency
+1.9215410575270653,,,,,,,clickhouse-connect (thread-pool),1,12,ping_latency
+1.9310000352561474,,,,,,,clickhouse-connect (thread-pool),1,13,ping_latency
+1.8049171194434166,,,,,,,clickhouse-connect (thread-pool),1,14,ping_latency
+1.8763327971100807,,,,,,,clickhouse-connect (thread-pool),1,15,ping_latency
+2.032666001468897,,,,,,,clickhouse-connect (thread-pool),1,16,ping_latency
+2.0252917893230915,,,,,,,clickhouse-connect (thread-pool),1,17,ping_latency
+1.8927091732621193,,,,,,,clickhouse-connect (thread-pool),1,18,ping_latency
+2.080041915178299,,,,,,,clickhouse-connect (thread-pool),1,19,ping_latency
+1.9439170137047768,,,,,,,clickhouse-connect (thread-pool),1,20,ping_latency
+2.081916667521,,,,,,,clickhouse-connect (thread-pool),1,21,ping_latency
+2.0394171588122845,,,,,,,clickhouse-connect (thread-pool),1,22,ping_latency
+2.1513751707971096,,,,,,,clickhouse-connect (thread-pool),1,23,ping_latency
+1.9540004432201385,,,,,,,clickhouse-connect (thread-pool),1,24,ping_latency
+2.1852082572877407,,,,,,,clickhouse-connect (thread-pool),1,25,ping_latency
+1.7839171923696995,,,,,,,clickhouse-connect (thread-pool),1,26,ping_latency
+1.7059999518096447,,,,,,,clickhouse-connect (thread-pool),1,27,ping_latency
+1.4015422202646732,,,,,,,clickhouse-connect (thread-pool),1,28,ping_latency
+1.7060833051800728,,,,,,,clickhouse-connect (thread-pool),1,29,ping_latency
+1.518375240266323,,,,,,,clickhouse-connect (thread-pool),1,30,ping_latency
+1.2529999949038029,,,,,,,clickhouse-connect (thread-pool),1,31,ping_latency
+1.2610419653356075,,,,,,,clickhouse-connect (thread-pool),1,32,ping_latency
+1.4178752899169922,,,,,,,clickhouse-connect (thread-pool),1,33,ping_latency
+1.1405833065509796,,,,,,,clickhouse-connect (thread-pool),1,34,ping_latency
+1.162291970103979,,,,,,,clickhouse-connect (thread-pool),1,35,ping_latency
+1.2831659987568855,,,,,,,clickhouse-connect (thread-pool),1,36,ping_latency
+1.4877081848680973,,,,,,,clickhouse-connect (thread-pool),1,37,ping_latency
+1.520541962236166,,,,,,,clickhouse-connect (thread-pool),1,38,ping_latency
+1.2112087570130825,,,,,,,clickhouse-connect (thread-pool),1,39,ping_latency
+1.200040802359581,,,,,,,clickhouse-connect (thread-pool),1,40,ping_latency
+1.183374784886837,,,,,,,clickhouse-connect (thread-pool),1,41,ping_latency
+1.2465002946555614,,,,,,,clickhouse-connect (thread-pool),1,42,ping_latency
+1.2487499043345451,,,,,,,clickhouse-connect (thread-pool),1,43,ping_latency
+1.471125055104494,,,,,,,clickhouse-connect (thread-pool),1,44,ping_latency
+1.2314580380916595,,,,,,,clickhouse-connect (thread-pool),1,45,ping_latency
+1.3887919485569,,,,,,,clickhouse-connect (thread-pool),1,46,ping_latency
+1.7054998315870762,,,,,,,clickhouse-connect (thread-pool),1,47,ping_latency
+1.3804170303046703,,,,,,,clickhouse-connect (thread-pool),1,48,ping_latency
+1.4854162000119686,,,,,,,clickhouse-connect (thread-pool),1,49,ping_latency
+1.2920000590384007,,,,,,,clickhouse-connect (thread-pool),1,50,ping_latency
+1.2792078778147697,,,,,,,clickhouse-connect (thread-pool),1,51,ping_latency
+1.4583752490580082,,,,,,,clickhouse-connect (thread-pool),1,52,ping_latency
+2.9158340767025948,,,,,,,clickhouse-connect (thread-pool),1,53,ping_latency
+2.136874943971634,,,,,,,clickhouse-connect (thread-pool),1,54,ping_latency
+1.9061672501266003,,,,,,,clickhouse-connect (thread-pool),1,55,ping_latency
+1.9555832259356976,,,,,,,clickhouse-connect (thread-pool),1,56,ping_latency
+1.8777498044073582,,,,,,,clickhouse-connect (thread-pool),1,57,ping_latency
+1.6673337668180466,,,,,,,clickhouse-connect (thread-pool),1,58,ping_latency
+1.8099169246852398,,,,,,,clickhouse-connect (thread-pool),1,59,ping_latency
+1.7537078820168972,,,,,,,clickhouse-connect (thread-pool),1,60,ping_latency
+1.4776671305298805,,,,,,,clickhouse-connect (thread-pool),1,61,ping_latency
+1.2496672570705414,,,,,,,clickhouse-connect (thread-pool),1,62,ping_latency
+1.4263326302170753,,,,,,,clickhouse-connect (thread-pool),1,63,ping_latency
+1.4237090945243835,,,,,,,clickhouse-connect (thread-pool),1,64,ping_latency
+1.2139170430600643,,,,,,,clickhouse-connect (thread-pool),1,65,ping_latency
+1.2326659634709358,,,,,,,clickhouse-connect (thread-pool),1,66,ping_latency
+1.5129586681723595,,,,,,,clickhouse-connect (thread-pool),1,67,ping_latency
+1.2694583274424076,,,,,,,clickhouse-connect (thread-pool),1,68,ping_latency
+1.3979161158204079,,,,,,,clickhouse-connect (thread-pool),1,69,ping_latency
+1.1580842547118664,,,,,,,clickhouse-connect (thread-pool),1,70,ping_latency
+1.3150828890502453,,,,,,,clickhouse-connect (thread-pool),1,71,ping_latency
+1.1817081831395626,,,,,,,clickhouse-connect (thread-pool),1,72,ping_latency
+1.2132921256124973,,,,,,,clickhouse-connect (thread-pool),1,73,ping_latency
+1.3424158096313477,,,,,,,clickhouse-connect (thread-pool),1,74,ping_latency
+1.268249936401844,,,,,,,clickhouse-connect (thread-pool),1,75,ping_latency
+1.3344590552151203,,,,,,,clickhouse-connect (thread-pool),1,76,ping_latency
+1.2301667593419552,,,,,,,clickhouse-connect (thread-pool),1,77,ping_latency
+1.2422078289091587,,,,,,,clickhouse-connect (thread-pool),1,78,ping_latency
+1.5768748708069324,,,,,,,clickhouse-connect (thread-pool),1,79,ping_latency
+1.638040877878666,,,,,,,clickhouse-connect (thread-pool),1,80,ping_latency
+1.2582088820636272,,,,,,,clickhouse-connect (thread-pool),1,81,ping_latency
+1.3860003091394901,,,,,,,clickhouse-connect (thread-pool),1,82,ping_latency
+1.1587077751755714,,,,,,,clickhouse-connect (thread-pool),1,83,ping_latency
+1.3641668483614922,,,,,,,clickhouse-connect (thread-pool),1,84,ping_latency
+1.2256670743227005,,,,,,,clickhouse-connect (thread-pool),1,85,ping_latency
+1.547583844512701,,,,,,,clickhouse-connect (thread-pool),1,86,ping_latency
+1.14166596904397,,,,,,,clickhouse-connect (thread-pool),1,87,ping_latency
+1.1337078176438808,,,,,,,clickhouse-connect (thread-pool),1,88,ping_latency
+1.2236246839165688,,,,,,,clickhouse-connect (thread-pool),1,89,ping_latency
+1.2000002898275852,,,,,,,clickhouse-connect (thread-pool),1,90,ping_latency
+1.1086249724030495,,,,,,,clickhouse-connect (thread-pool),1,91,ping_latency
+1.365333329886198,,,,,,,clickhouse-connect (thread-pool),1,92,ping_latency
+1.28070916980505,,,,,,,clickhouse-connect (thread-pool),1,93,ping_latency
+1.1938330717384815,,,,,,,clickhouse-connect (thread-pool),1,94,ping_latency
+1.2842081487178802,,,,,,,clickhouse-connect (thread-pool),1,95,ping_latency
+1.1959588155150414,,,,,,,clickhouse-connect (thread-pool),1,96,ping_latency
+1.3589579612016678,,,,,,,clickhouse-connect (thread-pool),1,97,ping_latency
+1.0563749819993973,,,,,,,clickhouse-connect (thread-pool),1,98,ping_latency
+1.077875029295683,,,,,,,clickhouse-connect (thread-pool),1,99,ping_latency
+1.11295934766531,,,,,,,clickhouse-connect (thread-pool),1,100,ping_latency
+1.264084130525589,,,,,,,clickhouse-connect (thread-pool),1,101,ping_latency
+1.4415406621992588,,,,,,,clickhouse-connect (thread-pool),1,102,ping_latency
+1.530833076685667,,,,,,,clickhouse-connect (thread-pool),1,103,ping_latency
+1.2647081166505814,,,,,,,clickhouse-connect (thread-pool),1,104,ping_latency
+1.2019588612020016,,,,,,,clickhouse-connect (thread-pool),1,105,ping_latency
+1.3956669718027115,,,,,,,clickhouse-connect (thread-pool),1,106,ping_latency
+1.083915587514639,,,,,,,clickhouse-connect (thread-pool),1,107,ping_latency
+3.744792193174362,,,,,,,clickhouse-connect (thread-pool),1,108,ping_latency
+2.1013328805565834,,,,,,,clickhouse-connect (thread-pool),1,109,ping_latency
+1.7941249534487724,,,,,,,clickhouse-connect (thread-pool),1,110,ping_latency
+1.8482496961951256,,,,,,,clickhouse-connect (thread-pool),1,111,ping_latency
+1.8087909556925297,,,,,,,clickhouse-connect (thread-pool),1,112,ping_latency
+2.414833754301071,,,,,,,clickhouse-connect (thread-pool),1,113,ping_latency
+2.1322909742593765,,,,,,,clickhouse-connect (thread-pool),1,114,ping_latency
+2.712791785597801,,,,,,,clickhouse-connect (thread-pool),1,115,ping_latency
+2.721874974668026,,,,,,,clickhouse-connect (thread-pool),1,116,ping_latency
+1.779541838914156,,,,,,,clickhouse-connect (thread-pool),1,117,ping_latency
+1.8090829253196716,,,,,,,clickhouse-connect (thread-pool),1,118,ping_latency
+1.900416798889637,,,,,,,clickhouse-connect (thread-pool),1,119,ping_latency
+1.85308326035738,,,,,,,clickhouse-connect (thread-pool),1,120,ping_latency
+1.937459222972393,,,,,,,clickhouse-connect (thread-pool),1,121,ping_latency
+1.9160839729011059,,,,,,,clickhouse-connect (thread-pool),1,122,ping_latency
+1.8057920970022678,,,,,,,clickhouse-connect (thread-pool),1,123,ping_latency
+1.74641702324152,,,,,,,clickhouse-connect (thread-pool),1,124,ping_latency
+1.8617501482367516,,,,,,,clickhouse-connect (thread-pool),1,125,ping_latency
+1.782500185072422,,,,,,,clickhouse-connect (thread-pool),1,126,ping_latency
+2.0811669528484344,,,,,,,clickhouse-connect (thread-pool),1,127,ping_latency
+1.8687499687075615,,,,,,,clickhouse-connect (thread-pool),1,128,ping_latency
+1.748416107147932,,,,,,,clickhouse-connect (thread-pool),1,129,ping_latency
+1.9115419127047062,,,,,,,clickhouse-connect (thread-pool),1,130,ping_latency
+2.02429061755538,,,,,,,clickhouse-connect (thread-pool),1,131,ping_latency
+2.1265833638608456,,,,,,,clickhouse-connect (thread-pool),1,132,ping_latency
+1.8221670761704445,,,,,,,clickhouse-connect (thread-pool),1,133,ping_latency
+1.8827919848263264,,,,,,,clickhouse-connect (thread-pool),1,134,ping_latency
+1.9544167444109917,,,,,,,clickhouse-connect (thread-pool),1,135,ping_latency
+1.9127079285681248,,,,,,,clickhouse-connect (thread-pool),1,136,ping_latency
+1.9139577634632587,,,,,,,clickhouse-connect (thread-pool),1,137,ping_latency
+1.9873748533427715,,,,,,,clickhouse-connect (thread-pool),1,138,ping_latency
+2.1742908284068108,,,,,,,clickhouse-connect (thread-pool),1,139,ping_latency
+1.911916770040989,,,,,,,clickhouse-connect (thread-pool),1,140,ping_latency
+1.7475830391049385,,,,,,,clickhouse-connect (thread-pool),1,141,ping_latency
+2.226124983280897,,,,,,,clickhouse-connect (thread-pool),1,142,ping_latency
+2.1788752637803555,,,,,,,clickhouse-connect (thread-pool),1,143,ping_latency
+2.1191248670220375,,,,,,,clickhouse-connect (thread-pool),1,144,ping_latency
+2.153458073735237,,,,,,,clickhouse-connect (thread-pool),1,145,ping_latency
+2.0882911048829556,,,,,,,clickhouse-connect (thread-pool),1,146,ping_latency
+2.250916324555874,,,,,,,clickhouse-connect (thread-pool),1,147,ping_latency
+3.1900829635560513,,,,,,,clickhouse-connect (thread-pool),1,148,ping_latency
+2.7252077125012875,,,,,,,clickhouse-connect (thread-pool),1,149,ping_latency
+2.018915954977274,,,,,,,clickhouse-connect (thread-pool),1,150,ping_latency
+2.0784162916243076,,,,,,,clickhouse-connect (thread-pool),1,151,ping_latency
+1.931999810039997,,,,,,,clickhouse-connect (thread-pool),1,152,ping_latency
+2.178541850298643,,,,,,,clickhouse-connect (thread-pool),1,153,ping_latency
+2.294749952852726,,,,,,,clickhouse-connect (thread-pool),1,154,ping_latency
+3.1625828705728054,,,,,,,clickhouse-connect (thread-pool),1,155,ping_latency
+2.561707980930805,,,,,,,clickhouse-connect (thread-pool),1,156,ping_latency
+1.897625159472227,,,,,,,clickhouse-connect (thread-pool),1,157,ping_latency
+1.9322908483445644,,,,,,,clickhouse-connect (thread-pool),1,158,ping_latency
+2.1755420602858067,,,,,,,clickhouse-connect (thread-pool),1,159,ping_latency
+2.2110003046691418,,,,,,,clickhouse-connect (thread-pool),1,160,ping_latency
+2.011291217058897,,,,,,,clickhouse-connect (thread-pool),1,161,ping_latency
+2.311999909579754,,,,,,,clickhouse-connect (thread-pool),1,162,ping_latency
+3.0429158359766006,,,,,,,clickhouse-connect (thread-pool),1,163,ping_latency
+2.277958206832409,,,,,,,clickhouse-connect (thread-pool),1,164,ping_latency
+2.484874799847603,,,,,,,clickhouse-connect (thread-pool),1,165,ping_latency
+2.9151253402233124,,,,,,,clickhouse-connect (thread-pool),1,166,ping_latency
+3.6147907376289368,,,,,,,clickhouse-connect (thread-pool),1,167,ping_latency
+2.9462920501828194,,,,,,,clickhouse-connect (thread-pool),1,168,ping_latency
+3.242666833102703,,,,,,,clickhouse-connect (thread-pool),1,169,ping_latency
+2.1870420314371586,,,,,,,clickhouse-connect (thread-pool),1,170,ping_latency
+1.992708072066307,,,,,,,clickhouse-connect (thread-pool),1,171,ping_latency
+1.8134578131139278,,,,,,,clickhouse-connect (thread-pool),1,172,ping_latency
+1.9716247916221619,,,,,,,clickhouse-connect (thread-pool),1,173,ping_latency
+1.7537917010486126,,,,,,,clickhouse-connect (thread-pool),1,174,ping_latency
+1.7993748188018799,,,,,,,clickhouse-connect (thread-pool),1,175,ping_latency
+2.114958129823208,,,,,,,clickhouse-connect (thread-pool),1,176,ping_latency
+2.0704581402242184,,,,,,,clickhouse-connect (thread-pool),1,177,ping_latency
+1.9772090017795563,,,,,,,clickhouse-connect (thread-pool),1,178,ping_latency
+1.799458172172308,,,,,,,clickhouse-connect (thread-pool),1,179,ping_latency
+2.118125092238188,,,,,,,clickhouse-connect (thread-pool),1,180,ping_latency
+1.9739172421395779,,,,,,,clickhouse-connect (thread-pool),1,181,ping_latency
+1.5373746864497662,,,,,,,clickhouse-connect (thread-pool),1,182,ping_latency
+1.2243748642504215,,,,,,,clickhouse-connect (thread-pool),1,183,ping_latency
+1.2422921136021614,,,,,,,clickhouse-connect (thread-pool),1,184,ping_latency
+1.5174588188529015,,,,,,,clickhouse-connect (thread-pool),1,185,ping_latency
+1.2541250325739384,,,,,,,clickhouse-connect (thread-pool),1,186,ping_latency
+1.2094592675566673,,,,,,,clickhouse-connect (thread-pool),1,187,ping_latency
+1.1578327976167202,,,,,,,clickhouse-connect (thread-pool),1,188,ping_latency
+1.3863337226212025,,,,,,,clickhouse-connect (thread-pool),1,189,ping_latency
+1.8320418894290924,,,,,,,clickhouse-connect (thread-pool),1,190,ping_latency
+2.203666139394045,,,,,,,clickhouse-connect (thread-pool),1,191,ping_latency
+1.6233748756349087,,,,,,,clickhouse-connect (thread-pool),1,192,ping_latency
+1.8426249735057354,,,,,,,clickhouse-connect (thread-pool),1,193,ping_latency
+1.7506671138107777,,,,,,,clickhouse-connect (thread-pool),1,194,ping_latency
+3.1847921200096607,,,,,,,clickhouse-connect (thread-pool),1,195,ping_latency
+1.5053749084472656,,,,,,,clickhouse-connect (thread-pool),1,196,ping_latency
+1.28520792350173,,,,,,,clickhouse-connect (thread-pool),1,197,ping_latency
+1.5354156494140625,,,,,,,clickhouse-connect (thread-pool),1,198,ping_latency
+1.3020839542150497,,,,,,,clickhouse-connect (thread-pool),1,199,ping_latency
+1120.2794169075787,,,,,,,clickhouse-connect (thread-pool),1000000,0,read_throughput
+1088.338625151664,,,,,,,clickhouse-connect (thread-pool),1000000,1,read_throughput
+1101.5627500601113,,,,,,,clickhouse-connect (thread-pool),1000000,2,read_throughput
+1097.5365829654038,,,,,,,clickhouse-connect (thread-pool),1000000,3,read_throughput
+1092.3005416989326,,,,,,,clickhouse-connect (thread-pool),1000000,4,read_throughput
+1094.0745826810598,,,,,,,clickhouse-connect (thread-pool),1000000,5,read_throughput
+1103.3654999919236,,,,,,,clickhouse-connect (thread-pool),1000000,6,read_throughput
+1140.920083038509,,,,,,,clickhouse-connect (thread-pool),1000000,7,read_throughput
+1104.6351250261068,,,,,,,clickhouse-connect (thread-pool),1000000,8,read_throughput
+1098.1751661747694,,,,,,,clickhouse-connect (thread-pool),1000000,9,read_throughput
+101.58074973151088,,,,,,,clickhouse-connect (thread-pool),100000,0,insert_throughput
+100.89479200541973,,,,,,,clickhouse-connect (thread-pool),100000,1,insert_throughput
+102.00241580605507,,,,,,,clickhouse-connect (thread-pool),100000,2,insert_throughput
+99.953125230968,,,,,,,clickhouse-connect (thread-pool),100000,3,insert_throughput
+95.39358410984278,,,,,,,clickhouse-connect (thread-pool),100000,4,insert_throughput
+91.32704185321927,,,,,,,clickhouse-connect (thread-pool),100000,5,insert_throughput
+92.07816608250141,,,,,,,clickhouse-connect (thread-pool),100000,6,insert_throughput
+102.46691619977355,,,,,,,clickhouse-connect (thread-pool),100000,7,insert_throughput
+100.20354110747576,,,,,,,clickhouse-connect (thread-pool),100000,8,insert_throughput
+96.44587524235249,,,,,,,clickhouse-connect (thread-pool),100000,9,insert_throughput
+15.627915970981121,16,,,,,,clickhouse-connect (thread-pool),1600000,0,concurrent_reads
+17.410417087376118,16,,,,,,clickhouse-connect (thread-pool),1600000,1,concurrent_reads
+14.923957642167807,16,,,,,,clickhouse-connect (thread-pool),1600000,2,concurrent_reads
+14.895541593432426,16,,,,,,clickhouse-connect (thread-pool),1600000,3,concurrent_reads
+13.987417332828045,16,,,,,,clickhouse-connect (thread-pool),1600000,4,concurrent_reads
+13.652374967932701,16,,,,,,clickhouse-connect (thread-pool),1600000,5,concurrent_reads
+12.697583995759487,16,,,,,,clickhouse-connect (thread-pool),1600000,6,concurrent_reads
+16.107582952827215,16,,,,,,clickhouse-connect (thread-pool),1600000,7,concurrent_reads
+11.772250290960073,16,,,,,,clickhouse-connect (thread-pool),1600000,8,concurrent_reads
+11.800500098615885,16,,,,,,clickhouse-connect (thread-pool),1600000,9,concurrent_reads
+1148.2183746993542,,37.81,643.16,680.97,"[{'t_ms': 0.0, 'rss_mib': 37.81}, {'t_ms': 0.13, 'rss_mib': 37.84}, {'t_ms': 52.63, 'rss_mib': 37.89}, {'t_ms': 107.72, 'rss_mib': 38.94}, {'t_ms': 162.82, 'rss_mib': 40.98}, {'t_ms': 216.26, 'rss_mib': 42.0}, {'t_ms': 276.69, 'rss_mib': 103.94}, {'t_ms': 331.77, 'rss_mib': 156.55}, {'t_ms': 392.38, 'rss_mib': 212.91}, {'t_ms': 451.33, 'rss_mib': 258.5}, {'t_ms': 522.93, 'rss_mib': 298.59}, {'t_ms': 585.1, 'rss_mib': 337.67}, {'t_ms': 661.92, 'rss_mib': 395.25}, {'t_ms': 724.67, 'rss_mib': 435.47}, {'t_ms': 796.53, 'rss_mib': 468.02}, {'t_ms': 857.88, 'rss_mib': 528.55}, {'t_ms': 921.26, 'rss_mib': 555.0}, {'t_ms': 985.94, 'rss_mib': 612.5}, {'t_ms': 1046.0, 'rss_mib': 639.05}, {'t_ms': 1107.91, 'rss_mib': 664.59}, {'t_ms': 1148.51, 'rss_mib': 680.97}]",50.0,clickhouse-connect (thread-pool),5000000,0,memory_ceiling
+1.9048750400543213,,,,,,,clickhouse-connect (native async),1,0,ping_latency
+2.0015002228319645,,,,,,,clickhouse-connect (native async),1,1,ping_latency
+1.7232918180525303,,,,,,,clickhouse-connect (native async),1,2,ping_latency
+1.8828753381967545,,,,,,,clickhouse-connect (native async),1,3,ping_latency
+1.868582796305418,,,,,,,clickhouse-connect (native async),1,4,ping_latency
+1.8051671795547009,,,,,,,clickhouse-connect (native async),1,5,ping_latency
+1.8160417675971985,,,,,,,clickhouse-connect (native async),1,6,ping_latency
+2.325708046555519,,,,,,,clickhouse-connect (native async),1,7,ping_latency
+2.2838329896330833,,,,,,,clickhouse-connect (native async),1,8,ping_latency
+3.409000113606453,,,,,,,clickhouse-connect (native async),1,9,ping_latency
+2.5459579192101955,,,,,,,clickhouse-connect (native async),1,10,ping_latency
+1.995542086660862,,,,,,,clickhouse-connect (native async),1,11,ping_latency
+1.7315829172730446,,,,,,,clickhouse-connect (native async),1,12,ping_latency
+1.7957920208573341,,,,,,,clickhouse-connect (native async),1,13,ping_latency
+1.7625410109758377,,,,,,,clickhouse-connect (native async),1,14,ping_latency
+1.7437911592423916,,,,,,,clickhouse-connect (native async),1,15,ping_latency
+1.7223330214619637,,,,,,,clickhouse-connect (native async),1,16,ping_latency
+1.757209189236164,,,,,,,clickhouse-connect (native async),1,17,ping_latency
+1.7710826359689236,,,,,,,clickhouse-connect (native async),1,18,ping_latency
+1.8218341283500195,,,,,,,clickhouse-connect (native async),1,19,ping_latency
+2.4407911114394665,,,,,,,clickhouse-connect (native async),1,20,ping_latency
+1.7316658049821854,,,,,,,clickhouse-connect (native async),1,21,ping_latency
+1.0857083834707737,,,,,,,clickhouse-connect (native async),1,22,ping_latency
+1.0978332720696926,,,,,,,clickhouse-connect (native async),1,23,ping_latency
+1.0635419748723507,,,,,,,clickhouse-connect (native async),1,24,ping_latency
+1.4435001648962498,,,,,,,clickhouse-connect (native async),1,25,ping_latency
+1.3987920247018337,,,,,,,clickhouse-connect (native async),1,26,ping_latency
+1.3497918844223022,,,,,,,clickhouse-connect (native async),1,27,ping_latency
+1.058415975421667,,,,,,,clickhouse-connect (native async),1,28,ping_latency
+0.960666686296463,,,,,,,clickhouse-connect (native async),1,29,ping_latency
+1.2018745765089989,,,,,,,clickhouse-connect (native async),1,30,ping_latency
+0.9743329137563705,,,,,,,clickhouse-connect (native async),1,31,ping_latency
+0.9322082623839378,,,,,,,clickhouse-connect (native async),1,32,ping_latency
+1.052625011652708,,,,,,,clickhouse-connect (native async),1,33,ping_latency
+0.9925421327352524,,,,,,,clickhouse-connect (native async),1,34,ping_latency
+1.1434168554842472,,,,,,,clickhouse-connect (native async),1,35,ping_latency
+1.005666796118021,,,,,,,clickhouse-connect (native async),1,36,ping_latency
+1.172333024442196,,,,,,,clickhouse-connect (native async),1,37,ping_latency
+0.9660418145358562,,,,,,,clickhouse-connect (native async),1,38,ping_latency
+1.0274997912347317,,,,,,,clickhouse-connect (native async),1,39,ping_latency
+0.9903749451041222,,,,,,,clickhouse-connect (native async),1,40,ping_latency
+1.1091670021414757,,,,,,,clickhouse-connect (native async),1,41,ping_latency
+1.073750201612711,,,,,,,clickhouse-connect (native async),1,42,ping_latency
+1.0579158551990986,,,,,,,clickhouse-connect (native async),1,43,ping_latency
+0.9222910739481449,,,,,,,clickhouse-connect (native async),1,44,ping_latency
+1.0534580796957016,,,,,,,clickhouse-connect (native async),1,45,ping_latency
+0.9949156083166599,,,,,,,clickhouse-connect (native async),1,46,ping_latency
+1.036458183079958,,,,,,,clickhouse-connect (native async),1,47,ping_latency
+1.1120839044451714,,,,,,,clickhouse-connect (native async),1,48,ping_latency
+0.9767082519829273,,,,,,,clickhouse-connect (native async),1,49,ping_latency
+0.9977919980883598,,,,,,,clickhouse-connect (native async),1,50,ping_latency
+0.9293328039348125,,,,,,,clickhouse-connect (native async),1,51,ping_latency
+1.0432498529553413,,,,,,,clickhouse-connect (native async),1,52,ping_latency
+0.9099580347537994,,,,,,,clickhouse-connect (native async),1,53,ping_latency
+0.9019589051604271,,,,,,,clickhouse-connect (native async),1,54,ping_latency
+0.9469999931752682,,,,,,,clickhouse-connect (native async),1,55,ping_latency
+1.0475409217178822,,,,,,,clickhouse-connect (native async),1,56,ping_latency
+0.8810409344732761,,,,,,,clickhouse-connect (native async),1,57,ping_latency
+1.0569170117378235,,,,,,,clickhouse-connect (native async),1,58,ping_latency
+0.8944589644670486,,,,,,,clickhouse-connect (native async),1,59,ping_latency
+0.9252908639609814,,,,,,,clickhouse-connect (native async),1,60,ping_latency
+0.9591248817741871,,,,,,,clickhouse-connect (native async),1,61,ping_latency
+0.9467499330639839,,,,,,,clickhouse-connect (native async),1,62,ping_latency
+0.971584115177393,,,,,,,clickhouse-connect (native async),1,63,ping_latency
+0.9168749675154686,,,,,,,clickhouse-connect (native async),1,64,ping_latency
+1.031041145324707,,,,,,,clickhouse-connect (native async),1,65,ping_latency
+1.115958672016859,,,,,,,clickhouse-connect (native async),1,66,ping_latency
+1.17508415132761,,,,,,,clickhouse-connect (native async),1,67,ping_latency
+1.1912495829164982,,,,,,,clickhouse-connect (native async),1,68,ping_latency
+0.881916843354702,,,,,,,clickhouse-connect (native async),1,69,ping_latency
+1.071749720722437,,,,,,,clickhouse-connect (native async),1,70,ping_latency
+1.1073751375079155,,,,,,,clickhouse-connect (native async),1,71,ping_latency
+1.2471252121031284,,,,,,,clickhouse-connect (native async),1,72,ping_latency
+1.0856669396162033,,,,,,,clickhouse-connect (native async),1,73,ping_latency
+1.0223337449133396,,,,,,,clickhouse-connect (native async),1,74,ping_latency
+0.9819171391427517,,,,,,,clickhouse-connect (native async),1,75,ping_latency
+0.9740423411130905,,,,,,,clickhouse-connect (native async),1,76,ping_latency
+1.213165931403637,,,,,,,clickhouse-connect (native async),1,77,ping_latency
+1.6916673630475998,,,,,,,clickhouse-connect (native async),1,78,ping_latency
+1.6481252387166023,,,,,,,clickhouse-connect (native async),1,79,ping_latency
+1.6555837355554104,,,,,,,clickhouse-connect (native async),1,80,ping_latency
+2.724291291087866,,,,,,,clickhouse-connect (native async),1,81,ping_latency
+1.9809165969491005,,,,,,,clickhouse-connect (native async),1,82,ping_latency
+1.1617918498814106,,,,,,,clickhouse-connect (native async),1,83,ping_latency
+1.1214576661586761,,,,,,,clickhouse-connect (native async),1,84,ping_latency
+1.1344589293003082,,,,,,,clickhouse-connect (native async),1,85,ping_latency
+1.1471249163150787,,,,,,,clickhouse-connect (native async),1,86,ping_latency
+1.1192080564796925,,,,,,,clickhouse-connect (native async),1,87,ping_latency
+1.318083144724369,,,,,,,clickhouse-connect (native async),1,88,ping_latency
+1.103375107049942,,,,,,,clickhouse-connect (native async),1,89,ping_latency
+1.101708970963955,,,,,,,clickhouse-connect (native async),1,90,ping_latency
+1.046665944159031,,,,,,,clickhouse-connect (native async),1,91,ping_latency
+1.1988338083028793,,,,,,,clickhouse-connect (native async),1,92,ping_latency
+1.0477923788130283,,,,,,,clickhouse-connect (native async),1,93,ping_latency
+0.9375838562846184,,,,,,,clickhouse-connect (native async),1,94,ping_latency
+1.037917099893093,,,,,,,clickhouse-connect (native async),1,95,ping_latency
+0.9533748961985111,,,,,,,clickhouse-connect (native async),1,96,ping_latency
+1.0549169965088367,,,,,,,clickhouse-connect (native async),1,97,ping_latency
+0.9955000132322311,,,,,,,clickhouse-connect (native async),1,98,ping_latency
+1.0364172048866749,,,,,,,clickhouse-connect (native async),1,99,ping_latency
+1.0781250894069672,,,,,,,clickhouse-connect (native async),1,100,ping_latency
+1.0820003226399422,,,,,,,clickhouse-connect (native async),1,101,ping_latency
+1.0813749395310879,,,,,,,clickhouse-connect (native async),1,102,ping_latency
+1.1079581454396248,,,,,,,clickhouse-connect (native async),1,103,ping_latency
+1.1136671528220177,,,,,,,clickhouse-connect (native async),1,104,ping_latency
+0.9528752416372299,,,,,,,clickhouse-connect (native async),1,105,ping_latency
+1.0141250677406788,,,,,,,clickhouse-connect (native async),1,106,ping_latency
+0.8733333088457584,,,,,,,clickhouse-connect (native async),1,107,ping_latency
+0.9187911637127399,,,,,,,clickhouse-connect (native async),1,108,ping_latency
+0.9456672705709934,,,,,,,clickhouse-connect (native async),1,109,ping_latency
+0.9598750621080399,,,,,,,clickhouse-connect (native async),1,110,ping_latency
+1.003124751150608,,,,,,,clickhouse-connect (native async),1,111,ping_latency
+1.0448331013321877,,,,,,,clickhouse-connect (native async),1,112,ping_latency
+1.0449159890413284,,,,,,,clickhouse-connect (native async),1,113,ping_latency
+0.9162500500679016,,,,,,,clickhouse-connect (native async),1,114,ping_latency
+1.1072088964283466,,,,,,,clickhouse-connect (native async),1,115,ping_latency
+0.9532920084893703,,,,,,,clickhouse-connect (native async),1,116,ping_latency
+1.0174158960580826,,,,,,,clickhouse-connect (native async),1,117,ping_latency
+0.9586252272129059,,,,,,,clickhouse-connect (native async),1,118,ping_latency
+0.888375099748373,,,,,,,clickhouse-connect (native async),1,119,ping_latency
+0.9292499162256718,,,,,,,clickhouse-connect (native async),1,120,ping_latency
+0.9321672841906548,,,,,,,clickhouse-connect (native async),1,121,ping_latency
+0.9964578785002232,,,,,,,clickhouse-connect (native async),1,122,ping_latency
+1.0064588859677315,,,,,,,clickhouse-connect (native async),1,123,ping_latency
+0.9742090478539467,,,,,,,clickhouse-connect (native async),1,124,ping_latency
+0.8747498504817486,,,,,,,clickhouse-connect (native async),1,125,ping_latency
+0.8750418201088905,,,,,,,clickhouse-connect (native async),1,126,ping_latency
+0.9006252512335777,,,,,,,clickhouse-connect (native async),1,127,ping_latency
+0.9000422433018684,,,,,,,clickhouse-connect (native async),1,128,ping_latency
+0.9359158575534821,,,,,,,clickhouse-connect (native async),1,129,ping_latency
+0.9696250781416893,,,,,,,clickhouse-connect (native async),1,130,ping_latency
+1.05179101228714,,,,,,,clickhouse-connect (native async),1,131,ping_latency
+1.105666160583496,,,,,,,clickhouse-connect (native async),1,132,ping_latency
+0.9213751181960106,,,,,,,clickhouse-connect (native async),1,133,ping_latency
+0.967749860137701,,,,,,,clickhouse-connect (native async),1,134,ping_latency
+0.9902077727019787,,,,,,,clickhouse-connect (native async),1,135,ping_latency
+1.053625252097845,,,,,,,clickhouse-connect (native async),1,136,ping_latency
+1.263124868273735,,,,,,,clickhouse-connect (native async),1,137,ping_latency
+1.2293332256376743,,,,,,,clickhouse-connect (native async),1,138,ping_latency
+1.1014998890459538,,,,,,,clickhouse-connect (native async),1,139,ping_latency
+0.9758751839399338,,,,,,,clickhouse-connect (native async),1,140,ping_latency
+1.1047916486859322,,,,,,,clickhouse-connect (native async),1,141,ping_latency
+0.991415698081255,,,,,,,clickhouse-connect (native async),1,142,ping_latency
+1.0842499323189259,,,,,,,clickhouse-connect (native async),1,143,ping_latency
+0.9419587440788746,,,,,,,clickhouse-connect (native async),1,144,ping_latency
+1.0862918570637703,,,,,,,clickhouse-connect (native async),1,145,ping_latency
+1.0228343307971954,,,,,,,clickhouse-connect (native async),1,146,ping_latency
+0.8914167992770672,,,,,,,clickhouse-connect (native async),1,147,ping_latency
+1.0553332976996899,,,,,,,clickhouse-connect (native async),1,148,ping_latency
+0.9787078015506268,,,,,,,clickhouse-connect (native async),1,149,ping_latency
+0.9596250019967556,,,,,,,clickhouse-connect (native async),1,150,ping_latency
+1.108790747821331,,,,,,,clickhouse-connect (native async),1,151,ping_latency
+0.9595002047717571,,,,,,,clickhouse-connect (native async),1,152,ping_latency
+0.9103328920900822,,,,,,,clickhouse-connect (native async),1,153,ping_latency
+0.9417911060154438,,,,,,,clickhouse-connect (native async),1,154,ping_latency
+1.0048327967524529,,,,,,,clickhouse-connect (native async),1,155,ping_latency
+1.1459579691290855,,,,,,,clickhouse-connect (native async),1,156,ping_latency
+1.0102922096848488,,,,,,,clickhouse-connect (native async),1,157,ping_latency
+1.0760826990008354,,,,,,,clickhouse-connect (native async),1,158,ping_latency
+0.912708230316639,,,,,,,clickhouse-connect (native async),1,159,ping_latency
+0.9132078848779202,,,,,,,clickhouse-connect (native async),1,160,ping_latency
+0.9539169259369373,,,,,,,clickhouse-connect (native async),1,161,ping_latency
+0.9812498465180397,,,,,,,clickhouse-connect (native async),1,162,ping_latency
+1.1016670614480972,,,,,,,clickhouse-connect (native async),1,163,ping_latency
+1.0273749940097332,,,,,,,clickhouse-connect (native async),1,164,ping_latency
+1.0502501390874386,,,,,,,clickhouse-connect (native async),1,165,ping_latency
+0.9246659465134144,,,,,,,clickhouse-connect (native async),1,166,ping_latency
+0.9519592858850956,,,,,,,clickhouse-connect (native async),1,167,ping_latency
+0.889624934643507,,,,,,,clickhouse-connect (native async),1,168,ping_latency
+0.9508747607469559,,,,,,,clickhouse-connect (native async),1,169,ping_latency
+0.9496249258518219,,,,,,,clickhouse-connect (native async),1,170,ping_latency
+0.9472090750932693,,,,,,,clickhouse-connect (native async),1,171,ping_latency
+0.8804588578641415,,,,,,,clickhouse-connect (native async),1,172,ping_latency
+0.9222091175615788,,,,,,,clickhouse-connect (native async),1,173,ping_latency
+0.9627081453800201,,,,,,,clickhouse-connect (native async),1,174,ping_latency
+0.9703747928142548,,,,,,,clickhouse-connect (native async),1,175,ping_latency
+0.9787501767277718,,,,,,,clickhouse-connect (native async),1,176,ping_latency
+0.9140828624367714,,,,,,,clickhouse-connect (native async),1,177,ping_latency
+0.9230831637978554,,,,,,,clickhouse-connect (native async),1,178,ping_latency
+1.0360833257436752,,,,,,,clickhouse-connect (native async),1,179,ping_latency
+0.93074981123209,,,,,,,clickhouse-connect (native async),1,180,ping_latency
+0.9434157982468605,,,,,,,clickhouse-connect (native async),1,181,ping_latency
+0.9755417704582214,,,,,,,clickhouse-connect (native async),1,182,ping_latency
+1.025291159749031,,,,,,,clickhouse-connect (native async),1,183,ping_latency
+1.1840001679956913,,,,,,,clickhouse-connect (native async),1,184,ping_latency
+1.4617922715842724,,,,,,,clickhouse-connect (native async),1,185,ping_latency
+1.319041009992361,,,,,,,clickhouse-connect (native async),1,186,ping_latency
+1.14137539640069,,,,,,,clickhouse-connect (native async),1,187,ping_latency
+1.0500000789761543,,,,,,,clickhouse-connect (native async),1,188,ping_latency
+0.983500387519598,,,,,,,clickhouse-connect (native async),1,189,ping_latency
+0.9030411019921303,,,,,,,clickhouse-connect (native async),1,190,ping_latency
+1.0200832039117813,,,,,,,clickhouse-connect (native async),1,191,ping_latency
+0.9312909096479416,,,,,,,clickhouse-connect (native async),1,192,ping_latency
+0.9694579057395458,,,,,,,clickhouse-connect (native async),1,193,ping_latency
+0.9410837665200233,,,,,,,clickhouse-connect (native async),1,194,ping_latency
+0.9958329610526562,,,,,,,clickhouse-connect (native async),1,195,ping_latency
+1.0413327254354954,,,,,,,clickhouse-connect (native async),1,196,ping_latency
+1.149917021393776,,,,,,,clickhouse-connect (native async),1,197,ping_latency
+1.0358341969549656,,,,,,,clickhouse-connect (native async),1,198,ping_latency
+1.1674999259412289,,,,,,,clickhouse-connect (native async),1,199,ping_latency
+329.12970799952745,,,,,,,clickhouse-connect (native async),1000000,0,read_throughput
+333.37537525221705,,,,,,,clickhouse-connect (native async),1000000,1,read_throughput
+329.3938748538494,,,,,,,clickhouse-connect (native async),1000000,2,read_throughput
+332.56737515330315,,,,,,,clickhouse-connect (native async),1000000,3,read_throughput
+328.0922919511795,,,,,,,clickhouse-connect (native async),1000000,4,read_throughput
+338.8944170437753,,,,,,,clickhouse-connect (native async),1000000,5,read_throughput
+324.54583421349525,,,,,,,clickhouse-connect (native async),1000000,6,read_throughput
+327.2852501831949,,,,,,,clickhouse-connect (native async),1000000,7,read_throughput
+333.66241585463285,,,,,,,clickhouse-connect (native async),1000000,8,read_throughput
+331.2804168090224,,,,,,,clickhouse-connect (native async),1000000,9,read_throughput
+106.94104107096791,,,,,,,clickhouse-connect (native async),100000,0,insert_throughput
+104.28620921447873,,,,,,,clickhouse-connect (native async),100000,1,insert_throughput
+103.55600016191602,,,,,,,clickhouse-connect (native async),100000,2,insert_throughput
+94.865458086133,,,,,,,clickhouse-connect (native async),100000,3,insert_throughput
+95.63437523320317,,,,,,,clickhouse-connect (native async),100000,4,insert_throughput
+104.11387495696545,,,,,,,clickhouse-connect (native async),100000,5,insert_throughput
+95.44770885258913,,,,,,,clickhouse-connect (native async),100000,6,insert_throughput
+106.18933290243149,,,,,,,clickhouse-connect (native async),100000,7,insert_throughput
+102.16766688972712,,,,,,,clickhouse-connect (native async),100000,8,insert_throughput
+103.72891742736101,,,,,,,clickhouse-connect (native async),100000,9,insert_throughput
+54.3633340857923,16,,,,,,clickhouse-connect (native async),1600000,0,concurrent_reads
+57.72649962455034,16,,,,,,clickhouse-connect (native async),1600000,1,concurrent_reads
+57.18079209327698,16,,,,,,clickhouse-connect (native async),1600000,2,concurrent_reads
+63.115791883319616,16,,,,,,clickhouse-connect (native async),1600000,3,concurrent_reads
+52.023583091795444,16,,,,,,clickhouse-connect (native async),1600000,4,concurrent_reads
+59.543624985963106,16,,,,,,clickhouse-connect (native async),1600000,5,concurrent_reads
+56.740166153758764,16,,,,,,clickhouse-connect (native async),1600000,6,concurrent_reads
+53.332332987338305,16,,,,,,clickhouse-connect (native async),1600000,7,concurrent_reads
+54.38070930540562,16,,,,,,clickhouse-connect (native async),1600000,8,concurrent_reads
+49.76654192432761,16,,,,,,clickhouse-connect (native async),1600000,9,concurrent_reads
+1176.4827920123935,,48.64,526.59,575.23,"[{'t_ms': 0.0, 'rss_mib': 48.64}, {'t_ms': 0.11, 'rss_mib': 48.67}, {'t_ms': 52.11, 'rss_mib': 48.67}, {'t_ms': 104.39, 'rss_mib': 48.67}, {'t_ms': 168.36, 'rss_mib': 90.0}, {'t_ms': 226.93, 'rss_mib': 128.58}, {'t_ms': 282.0, 'rss_mib': 164.62}, {'t_ms': 342.93, 'rss_mib': 203.77}, {'t_ms': 414.6, 'rss_mib': 244.73}, {'t_ms': 487.73, 'rss_mib': 285.33}, {'t_ms': 559.77, 'rss_mib': 324.38}, {'t_ms': 615.04, 'rss_mib': 350.95}, {'t_ms': 672.66, 'rss_mib': 377.0}, {'t_ms': 730.17, 'rss_mib': 403.03}, {'t_ms': 791.35, 'rss_mib': 428.58}, {'t_ms': 858.72, 'rss_mib': 454.67}, {'t_ms': 924.31, 'rss_mib': 480.72}, {'t_ms': 992.88, 'rss_mib': 506.75}, {'t_ms': 1061.27, 'rss_mib': 532.8}, {'t_ms': 1136.32, 'rss_mib': 558.84}, {'t_ms': 1176.73, 'rss_mib': 575.23}]",50.0,clickhouse-connect (native async),5000000,0,memory_ceiling
+1.7960001714527607,,,,,,,asynch (PyPI),1,0,ping_latency
+1.926833763718605,,,,,,,asynch (PyPI),1,1,ping_latency
+1.6089160926640034,,,,,,,asynch (PyPI),1,2,ping_latency
+1.6989996656775475,,,,,,,asynch (PyPI),1,3,ping_latency
+1.4503328129649162,,,,,,,asynch (PyPI),1,4,ping_latency
+1.3447911478579044,,,,,,,asynch (PyPI),1,5,ping_latency
+1.4494173228740692,,,,,,,asynch (PyPI),1,6,ping_latency
+1.3516247272491455,,,,,,,asynch (PyPI),1,7,ping_latency
+1.2314580380916595,,,,,,,asynch (PyPI),1,8,ping_latency
+1.3460838235914707,,,,,,,asynch (PyPI),1,9,ping_latency
+1.2403330765664577,,,,,,,asynch (PyPI),1,10,ping_latency
+1.2862090952694416,,,,,,,asynch (PyPI),1,11,ping_latency
+1.4276248402893543,,,,,,,asynch (PyPI),1,12,ping_latency
+1.2757922522723675,,,,,,,asynch (PyPI),1,13,ping_latency
+1.260584220290184,,,,,,,asynch (PyPI),1,14,ping_latency
+1.32695771753788,,,,,,,asynch (PyPI),1,15,ping_latency
+1.4474582858383656,,,,,,,asynch (PyPI),1,16,ping_latency
+1.3922909274697304,,,,,,,asynch (PyPI),1,17,ping_latency
+1.3175420463085175,,,,,,,asynch (PyPI),1,18,ping_latency
+1.3244575820863247,,,,,,,asynch (PyPI),1,19,ping_latency
+1.226208172738552,,,,,,,asynch (PyPI),1,20,ping_latency
+1.257666852325201,,,,,,,asynch (PyPI),1,21,ping_latency
+1.2377500534057617,,,,,,,asynch (PyPI),1,22,ping_latency
+1.2096250429749489,,,,,,,asynch (PyPI),1,23,ping_latency
+1.291834283620119,,,,,,,asynch (PyPI),1,24,ping_latency
+1.2784996069967747,,,,,,,asynch (PyPI),1,25,ping_latency
+1.3111657463014126,,,,,,,asynch (PyPI),1,26,ping_latency
+1.3110004365444183,,,,,,,asynch (PyPI),1,27,ping_latency
+1.2655830942094326,,,,,,,asynch (PyPI),1,28,ping_latency
+1.2695412151515484,,,,,,,asynch (PyPI),1,29,ping_latency
+1.2264582328498363,,,,,,,asynch (PyPI),1,30,ping_latency
+1.2857923284173012,,,,,,,asynch (PyPI),1,31,ping_latency
+1.387875061482191,,,,,,,asynch (PyPI),1,32,ping_latency
+1.4808331616222858,,,,,,,asynch (PyPI),1,33,ping_latency
+1.3743750751018524,,,,,,,asynch (PyPI),1,34,ping_latency
+1.2614168226718903,,,,,,,asynch (PyPI),1,35,ping_latency
+1.4264998026192188,,,,,,,asynch (PyPI),1,36,ping_latency
+1.271749846637249,,,,,,,asynch (PyPI),1,37,ping_latency
+1.6531669534742832,,,,,,,asynch (PyPI),1,38,ping_latency
+1.3141250237822533,,,,,,,asynch (PyPI),1,39,ping_latency
+1.3549583964049816,,,,,,,asynch (PyPI),1,40,ping_latency
+1.3943747617304325,,,,,,,asynch (PyPI),1,41,ping_latency
+1.2735840864479542,,,,,,,asynch (PyPI),1,42,ping_latency
+1.3345829211175442,,,,,,,asynch (PyPI),1,43,ping_latency
+1.298499759286642,,,,,,,asynch (PyPI),1,44,ping_latency
+1.325750257819891,,,,,,,asynch (PyPI),1,45,ping_latency
+1.3146661221981049,,,,,,,asynch (PyPI),1,46,ping_latency
+1.5249168500304222,,,,,,,asynch (PyPI),1,47,ping_latency
+1.4690421521663666,,,,,,,asynch (PyPI),1,48,ping_latency
+1.4405003748834133,,,,,,,asynch (PyPI),1,49,ping_latency
+1.2782500125467777,,,,,,,asynch (PyPI),1,50,ping_latency
+1.2242905795574188,,,,,,,asynch (PyPI),1,51,ping_latency
+1.3328343629837036,,,,,,,asynch (PyPI),1,52,ping_latency
+1.2515000998973846,,,,,,,asynch (PyPI),1,53,ping_latency
+1.3090409338474274,,,,,,,asynch (PyPI),1,54,ping_latency
+1.3641249388456345,,,,,,,asynch (PyPI),1,55,ping_latency
+1.1948752216994762,,,,,,,asynch (PyPI),1,56,ping_latency
+1.2407917529344559,,,,,,,asynch (PyPI),1,57,ping_latency
+1.1852090246975422,,,,,,,asynch (PyPI),1,58,ping_latency
+1.2967921793460846,,,,,,,asynch (PyPI),1,59,ping_latency
+1.2184581719338894,,,,,,,asynch (PyPI),1,60,ping_latency
+1.2455000542104244,,,,,,,asynch (PyPI),1,61,ping_latency
+1.1953748762607574,,,,,,,asynch (PyPI),1,62,ping_latency
+1.2455410324037075,,,,,,,asynch (PyPI),1,63,ping_latency
+1.3948329724371433,,,,,,,asynch (PyPI),1,64,ping_latency
+1.3516247272491455,,,,,,,asynch (PyPI),1,65,ping_latency
+1.28166563808918,,,,,,,asynch (PyPI),1,66,ping_latency
+1.3616252690553665,,,,,,,asynch (PyPI),1,67,ping_latency
+1.1530001647770405,,,,,,,asynch (PyPI),1,68,ping_latency
+1.198417041450739,,,,,,,asynch (PyPI),1,69,ping_latency
+1.2051663361489773,,,,,,,asynch (PyPI),1,70,ping_latency
+1.2526251375675201,,,,,,,asynch (PyPI),1,71,ping_latency
+1.163584180176258,,,,,,,asynch (PyPI),1,72,ping_latency
+1.1610412038862705,,,,,,,asynch (PyPI),1,73,ping_latency
+1.2176251038908958,,,,,,,asynch (PyPI),1,74,ping_latency
+1.2739170342683792,,,,,,,asynch (PyPI),1,75,ping_latency
+1.1819996871054173,,,,,,,asynch (PyPI),1,76,ping_latency
+1.3887924142181873,,,,,,,asynch (PyPI),1,77,ping_latency
+1.4720829203724861,,,,,,,asynch (PyPI),1,78,ping_latency
+1.3597500510513783,,,,,,,asynch (PyPI),1,79,ping_latency
+1.2782090343534946,,,,,,,asynch (PyPI),1,80,ping_latency
+1.3042502105236053,,,,,,,asynch (PyPI),1,81,ping_latency
+1.3590422458946705,,,,,,,asynch (PyPI),1,82,ping_latency
+1.275292132049799,,,,,,,asynch (PyPI),1,83,ping_latency
+1.3858750462532043,,,,,,,asynch (PyPI),1,84,ping_latency
+1.2644589878618717,,,,,,,asynch (PyPI),1,85,ping_latency
+1.3769585639238358,,,,,,,asynch (PyPI),1,86,ping_latency
+1.3770409859716892,,,,,,,asynch (PyPI),1,87,ping_latency
+1.4547500759363174,,,,,,,asynch (PyPI),1,88,ping_latency
+1.3325829058885574,,,,,,,asynch (PyPI),1,89,ping_latency
+1.3582082465291023,,,,,,,asynch (PyPI),1,90,ping_latency
+1.4559999108314514,,,,,,,asynch (PyPI),1,91,ping_latency
+1.6859578900039196,,,,,,,asynch (PyPI),1,92,ping_latency
+1.4432077296078205,,,,,,,asynch (PyPI),1,93,ping_latency
+1.3699163682758808,,,,,,,asynch (PyPI),1,94,ping_latency
+1.5592919662594795,,,,,,,asynch (PyPI),1,95,ping_latency
+1.41054205596447,,,,,,,asynch (PyPI),1,96,ping_latency
+1.458166167140007,,,,,,,asynch (PyPI),1,97,ping_latency
+1.4991657808423042,,,,,,,asynch (PyPI),1,98,ping_latency
+1.3337922282516956,,,,,,,asynch (PyPI),1,99,ping_latency
+2.376916818320751,,,,,,,asynch (PyPI),1,100,ping_latency
+1.6620419919490814,,,,,,,asynch (PyPI),1,101,ping_latency
+1.6337078996002674,,,,,,,asynch (PyPI),1,102,ping_latency
+2.18475004658103,,,,,,,asynch (PyPI),1,103,ping_latency
+2.0623751915991306,,,,,,,asynch (PyPI),1,104,ping_latency
+1.3845418579876423,,,,,,,asynch (PyPI),1,105,ping_latency
+1.2901248410344124,,,,,,,asynch (PyPI),1,106,ping_latency
+1.4362502843141556,,,,,,,asynch (PyPI),1,107,ping_latency
+1.3886671513319016,,,,,,,asynch (PyPI),1,108,ping_latency
+1.257165800780058,,,,,,,asynch (PyPI),1,109,ping_latency
+1.2902501039206982,,,,,,,asynch (PyPI),1,110,ping_latency
+1.254791859537363,,,,,,,asynch (PyPI),1,111,ping_latency
+1.3100001960992813,,,,,,,asynch (PyPI),1,112,ping_latency
+1.3384157791733742,,,,,,,asynch (PyPI),1,113,ping_latency
+1.3168328441679478,,,,,,,asynch (PyPI),1,114,ping_latency
+1.2022503651678562,,,,,,,asynch (PyPI),1,115,ping_latency
+1.1435826309025288,,,,,,,asynch (PyPI),1,116,ping_latency
+1.219500321894884,,,,,,,asynch (PyPI),1,117,ping_latency
+1.1504171416163445,,,,,,,asynch (PyPI),1,118,ping_latency
+1.2954999692738056,,,,,,,asynch (PyPI),1,119,ping_latency
+1.1424166150391102,,,,,,,asynch (PyPI),1,120,ping_latency
+1.2275408953428268,,,,,,,asynch (PyPI),1,121,ping_latency
+1.193916890770197,,,,,,,asynch (PyPI),1,122,ping_latency
+1.1597909033298492,,,,,,,asynch (PyPI),1,123,ping_latency
+1.2503750622272491,,,,,,,asynch (PyPI),1,124,ping_latency
+1.206334214657545,,,,,,,asynch (PyPI),1,125,ping_latency
+1.348583959043026,,,,,,,asynch (PyPI),1,126,ping_latency
+1.3460000045597553,,,,,,,asynch (PyPI),1,127,ping_latency
+1.2221247889101505,,,,,,,asynch (PyPI),1,128,ping_latency
+1.2091672979295254,,,,,,,asynch (PyPI),1,129,ping_latency
+1.2750830501317978,,,,,,,asynch (PyPI),1,130,ping_latency
+1.3022501952946186,,,,,,,asynch (PyPI),1,131,ping_latency
+1.321875024586916,,,,,,,asynch (PyPI),1,132,ping_latency
+1.231000293046236,,,,,,,asynch (PyPI),1,133,ping_latency
+1.1743339709937572,,,,,,,asynch (PyPI),1,134,ping_latency
+1.2707076966762543,,,,,,,asynch (PyPI),1,135,ping_latency
+1.115208026021719,,,,,,,asynch (PyPI),1,136,ping_latency
+1.1707497760653496,,,,,,,asynch (PyPI),1,137,ping_latency
+1.2681251391768456,,,,,,,asynch (PyPI),1,138,ping_latency
+1.1515002697706223,,,,,,,asynch (PyPI),1,139,ping_latency
+1.2684999965131283,,,,,,,asynch (PyPI),1,140,ping_latency
+1.1947499588131905,,,,,,,asynch (PyPI),1,141,ping_latency
+1.2629590928554535,,,,,,,asynch (PyPI),1,142,ping_latency
+1.2562088668346405,,,,,,,asynch (PyPI),1,143,ping_latency
+1.2307078577578068,,,,,,,asynch (PyPI),1,144,ping_latency
+1.4515412040054798,,,,,,,asynch (PyPI),1,145,ping_latency
+1.2969160452485085,,,,,,,asynch (PyPI),1,146,ping_latency
+1.2725829146802425,,,,,,,asynch (PyPI),1,147,ping_latency
+1.2800837866961956,,,,,,,asynch (PyPI),1,148,ping_latency
+1.2452499940991402,,,,,,,asynch (PyPI),1,149,ping_latency
+1.3433750718832016,,,,,,,asynch (PyPI),1,150,ping_latency
+1.3117920607328415,,,,,,,asynch (PyPI),1,151,ping_latency
+1.2463750317692757,,,,,,,asynch (PyPI),1,152,ping_latency
+1.2179161421954632,,,,,,,asynch (PyPI),1,153,ping_latency
+1.3059587217867374,,,,,,,asynch (PyPI),1,154,ping_latency
+1.3365419581532478,,,,,,,asynch (PyPI),1,155,ping_latency
+1.2414995580911636,,,,,,,asynch (PyPI),1,156,ping_latency
+1.2268749997019768,,,,,,,asynch (PyPI),1,157,ping_latency
+1.185708213597536,,,,,,,asynch (PyPI),1,158,ping_latency
+1.3175420463085175,,,,,,,asynch (PyPI),1,159,ping_latency
+1.2298328801989555,,,,,,,asynch (PyPI),1,160,ping_latency
+1.1707921512424946,,,,,,,asynch (PyPI),1,161,ping_latency
+1.192416064441204,,,,,,,asynch (PyPI),1,162,ping_latency
+1.2317500077188015,,,,,,,asynch (PyPI),1,163,ping_latency
+1.1879997327923775,,,,,,,asynch (PyPI),1,164,ping_latency
+1.142582856118679,,,,,,,asynch (PyPI),1,165,ping_latency
+1.265374943614006,,,,,,,asynch (PyPI),1,166,ping_latency
+1.169291790574789,,,,,,,asynch (PyPI),1,167,ping_latency
+1.249958761036396,,,,,,,asynch (PyPI),1,168,ping_latency
+1.2991661205887794,,,,,,,asynch (PyPI),1,169,ping_latency
+1.2021251022815704,,,,,,,asynch (PyPI),1,170,ping_latency
+1.2207087129354477,,,,,,,asynch (PyPI),1,171,ping_latency
+1.2656250037252903,,,,,,,asynch (PyPI),1,172,ping_latency
+1.1956249363720417,,,,,,,asynch (PyPI),1,173,ping_latency
+1.3060420751571655,,,,,,,asynch (PyPI),1,174,ping_latency
+1.4402912929654121,,,,,,,asynch (PyPI),1,175,ping_latency
+1.9664159044623375,,,,,,,asynch (PyPI),1,176,ping_latency
+1.3385000638663769,,,,,,,asynch (PyPI),1,177,ping_latency
+1.294541172683239,,,,,,,asynch (PyPI),1,178,ping_latency
+1.216250006109476,,,,,,,asynch (PyPI),1,179,ping_latency
+1.471374649554491,,,,,,,asynch (PyPI),1,180,ping_latency
+1.4525828883051872,,,,,,,asynch (PyPI),1,181,ping_latency
+1.4665829949080944,,,,,,,asynch (PyPI),1,182,ping_latency
+1.5203328803181648,,,,,,,asynch (PyPI),1,183,ping_latency
+1.4827498234808445,,,,,,,asynch (PyPI),1,184,ping_latency
+1.447542104870081,,,,,,,asynch (PyPI),1,185,ping_latency
+1.2566656805574894,,,,,,,asynch (PyPI),1,186,ping_latency
+1.3431250117719173,,,,,,,asynch (PyPI),1,187,ping_latency
+1.5972084365785122,,,,,,,asynch (PyPI),1,188,ping_latency
+1.554624643176794,,,,,,,asynch (PyPI),1,189,ping_latency
+1.2252917513251305,,,,,,,asynch (PyPI),1,190,ping_latency
+1.4739157631993294,,,,,,,asynch (PyPI),1,191,ping_latency
+1.366166863590479,,,,,,,asynch (PyPI),1,192,ping_latency
+1.3143331743776798,,,,,,,asynch (PyPI),1,193,ping_latency
+1.2322920374572277,,,,,,,asynch (PyPI),1,194,ping_latency
+1.299290917813778,,,,,,,asynch (PyPI),1,195,ping_latency
+1.3918331824243069,,,,,,,asynch (PyPI),1,196,ping_latency
+1.394249964505434,,,,,,,asynch (PyPI),1,197,ping_latency
+1.3439171016216278,,,,,,,asynch (PyPI),1,198,ping_latency
+1.2808339670300484,,,,,,,asynch (PyPI),1,199,ping_latency
+2044.788207858801,,,,,,,asynch (PyPI),1000000,0,read_throughput
+1998.3325828798115,,,,,,,asynch (PyPI),1000000,1,read_throughput
+1995.4387503676116,,,,,,,asynch (PyPI),1000000,2,read_throughput
+2001.261292025447,,,,,,,asynch (PyPI),1000000,3,read_throughput
+2011.5109998732805,,,,,,,asynch (PyPI),1000000,4,read_throughput
+2034.663415979594,,,,,,,asynch (PyPI),1000000,5,read_throughput
+2043.0746250785887,,,,,,,asynch (PyPI),1000000,6,read_throughput
+2007.0868749171495,,,,,,,asynch (PyPI),1000000,7,read_throughput
+2000.3877081908286,,,,,,,asynch (PyPI),1000000,8,read_throughput
+2010.8927078545094,,,,,,,asynch (PyPI),1000000,9,read_throughput
+146.5242919512093,,,,,,,asynch (PyPI),100000,0,insert_throughput
+128.67758283391595,,,,,,,asynch (PyPI),100000,1,insert_throughput
+132.1513750590384,,,,,,,asynch (PyPI),100000,2,insert_throughput
+128.12308268621564,,,,,,,asynch (PyPI),100000,3,insert_throughput
+154.18812492862344,,,,,,,asynch (PyPI),100000,4,insert_throughput
+139.65462520718575,,,,,,,asynch (PyPI),100000,5,insert_throughput
+138.88445915654302,,,,,,,asynch (PyPI),100000,6,insert_throughput
+128.3742501400411,,,,,,,asynch (PyPI),100000,7,insert_throughput
+136.9818332605064,,,,,,,asynch (PyPI),100000,8,insert_throughput
+136.02099986746907,,,,,,,asynch (PyPI),100000,9,insert_throughput
+16.601291950792074,16,,,,,,asynch (PyPI),1600000,0,concurrent_reads
+17.065125051885843,16,,,,,,asynch (PyPI),1600000,1,concurrent_reads
+15.355042181909084,16,,,,,,asynch (PyPI),1600000,2,concurrent_reads
+17.959625460207462,16,,,,,,asynch (PyPI),1600000,3,concurrent_reads
+15.261334367096424,16,,,,,,asynch (PyPI),1600000,4,concurrent_reads
+15.794083010405302,16,,,,,,asynch (PyPI),1600000,5,concurrent_reads
+15.616999939084053,16,,,,,,asynch (PyPI),1600000,6,concurrent_reads
+12.313959188759327,16,,,,,,asynch (PyPI),1600000,7,concurrent_reads
+13.459957670420408,16,,,,,,asynch (PyPI),1600000,8,concurrent_reads
+14.278416987508535,16,,,,,,asynch (PyPI),1600000,9,concurrent_reads
+777.4655418470502,,30.94,501.92,532.86,"[{'t_ms': 0.0, 'rss_mib': 30.94}, {'t_ms': 0.12, 'rss_mib': 30.97}, {'t_ms': 58.39, 'rss_mib': 102.5}, {'t_ms': 111.71, 'rss_mib': 161.08}, {'t_ms': 164.88, 'rss_mib': 213.19}, {'t_ms': 222.52, 'rss_mib': 258.77}, {'t_ms': 273.68, 'rss_mib': 297.83}, {'t_ms': 334.36, 'rss_mib': 337.52}, {'t_ms': 391.06, 'rss_mib': 376.58}, {'t_ms': 451.29, 'rss_mib': 415.64}, {'t_ms': 513.2, 'rss_mib': 454.72}, {'t_ms': 579.06, 'rss_mib': 493.78}, {'t_ms': 650.53, 'rss_mib': 532.86}, {'t_ms': 777.65, 'rss_mib': 138.72}, {'t_ms': 777.86, 'rss_mib': 138.69}]",50.0,asynch (PyPI),5000000,0,memory_ceiling
+1.4856667257845402,,,,,,,asynch (tacto fork),1,0,ping_latency
+1.464666798710823,,,,,,,asynch (tacto fork),1,1,ping_latency
+1.4277081936597824,,,,,,,asynch (tacto fork),1,2,ping_latency
+1.2461659498512745,,,,,,,asynch (tacto fork),1,3,ping_latency
+1.534332986921072,,,,,,,asynch (tacto fork),1,4,ping_latency
+1.3635419309139252,,,,,,,asynch (tacto fork),1,5,ping_latency
+1.3012909330427647,,,,,,,asynch (tacto fork),1,6,ping_latency
+1.37224979698658,,,,,,,asynch (tacto fork),1,7,ping_latency
+1.4040837995707989,,,,,,,asynch (tacto fork),1,8,ping_latency
+1.521875150501728,,,,,,,asynch (tacto fork),1,9,ping_latency
+1.4247079379856586,,,,,,,asynch (tacto fork),1,10,ping_latency
+1.3429578393697739,,,,,,,asynch (tacto fork),1,11,ping_latency
+1.2206248939037323,,,,,,,asynch (tacto fork),1,12,ping_latency
+1.3407077640295029,,,,,,,asynch (tacto fork),1,13,ping_latency
+1.319000031799078,,,,,,,asynch (tacto fork),1,14,ping_latency
+1.3824156485497952,,,,,,,asynch (tacto fork),1,15,ping_latency
+1.2373337522149086,,,,,,,asynch (tacto fork),1,16,ping_latency
+1.300167292356491,,,,,,,asynch (tacto fork),1,17,ping_latency
+1.2690830044448376,,,,,,,asynch (tacto fork),1,18,ping_latency
+1.2742499820888042,,,,,,,asynch (tacto fork),1,19,ping_latency
+1.3395408168435097,,,,,,,asynch (tacto fork),1,20,ping_latency
+1.3946248218417168,,,,,,,asynch (tacto fork),1,21,ping_latency
+1.2707086279988289,,,,,,,asynch (tacto fork),1,22,ping_latency
+1.3152495957911015,,,,,,,asynch (tacto fork),1,23,ping_latency
+1.2216251343488693,,,,,,,asynch (tacto fork),1,24,ping_latency
+1.2864167802035809,,,,,,,asynch (tacto fork),1,25,ping_latency
+1.2566656805574894,,,,,,,asynch (tacto fork),1,26,ping_latency
+1.3227080926299095,,,,,,,asynch (tacto fork),1,27,ping_latency
+1.3081668876111507,,,,,,,asynch (tacto fork),1,28,ping_latency
+1.2135417200624943,,,,,,,asynch (tacto fork),1,29,ping_latency
+1.2266668491065502,,,,,,,asynch (tacto fork),1,30,ping_latency
+1.2059160508215427,,,,,,,asynch (tacto fork),1,31,ping_latency
+1.2339171953499317,,,,,,,asynch (tacto fork),1,32,ping_latency
+1.2710830196738243,,,,,,,asynch (tacto fork),1,33,ping_latency
+1.2241248041391373,,,,,,,asynch (tacto fork),1,34,ping_latency
+1.1752503924071789,,,,,,,asynch (tacto fork),1,35,ping_latency
+1.1928332969546318,,,,,,,asynch (tacto fork),1,36,ping_latency
+1.2249997816979885,,,,,,,asynch (tacto fork),1,37,ping_latency
+1.1953338980674744,,,,,,,asynch (tacto fork),1,38,ping_latency
+1.1458750814199448,,,,,,,asynch (tacto fork),1,39,ping_latency
+1.2460420839488506,,,,,,,asynch (tacto fork),1,40,ping_latency
+1.2252498418092728,,,,,,,asynch (tacto fork),1,41,ping_latency
+1.3487907126545906,,,,,,,asynch (tacto fork),1,42,ping_latency
+1.2869997881352901,,,,,,,asynch (tacto fork),1,43,ping_latency
+1.206334214657545,,,,,,,asynch (tacto fork),1,44,ping_latency
+1.227041706442833,,,,,,,asynch (tacto fork),1,45,ping_latency
+1.225207932293415,,,,,,,asynch (tacto fork),1,46,ping_latency
+1.3748332858085632,,,,,,,asynch (tacto fork),1,47,ping_latency
+1.6298331320285797,,,,,,,asynch (tacto fork),1,48,ping_latency
+1.297833863645792,,,,,,,asynch (tacto fork),1,49,ping_latency
+1.3021663762629032,,,,,,,asynch (tacto fork),1,50,ping_latency
+1.3022497296333313,,,,,,,asynch (tacto fork),1,51,ping_latency
+1.2582079507410526,,,,,,,asynch (tacto fork),1,52,ping_latency
+1.299791969358921,,,,,,,asynch (tacto fork),1,53,ping_latency
+1.3013328425586224,,,,,,,asynch (tacto fork),1,54,ping_latency
+1.4007077552378178,,,,,,,asynch (tacto fork),1,55,ping_latency
+1.3259579427540302,,,,,,,asynch (tacto fork),1,56,ping_latency
+1.398415770381689,,,,,,,asynch (tacto fork),1,57,ping_latency
+1.694458071142435,,,,,,,asynch (tacto fork),1,58,ping_latency
+2.1199588663876057,,,,,,,asynch (tacto fork),1,59,ping_latency
+1.7463332042098045,,,,,,,asynch (tacto fork),1,60,ping_latency
+1.528291031718254,,,,,,,asynch (tacto fork),1,61,ping_latency
+1.3504168018698692,,,,,,,asynch (tacto fork),1,62,ping_latency
+1.3957913033664227,,,,,,,asynch (tacto fork),1,63,ping_latency
+1.2989169918000698,,,,,,,asynch (tacto fork),1,64,ping_latency
+1.3935421593487263,,,,,,,asynch (tacto fork),1,65,ping_latency
+1.1929580941796303,,,,,,,asynch (tacto fork),1,66,ping_latency
+1.2498339638113976,,,,,,,asynch (tacto fork),1,67,ping_latency
+1.236166339367628,,,,,,,asynch (tacto fork),1,68,ping_latency
+1.2690420262515545,,,,,,,asynch (tacto fork),1,69,ping_latency
+1.321166753768921,,,,,,,asynch (tacto fork),1,70,ping_latency
+1.3006250374019146,,,,,,,asynch (tacto fork),1,71,ping_latency
+1.2673749588429928,,,,,,,asynch (tacto fork),1,72,ping_latency
+1.2857923284173012,,,,,,,asynch (tacto fork),1,73,ping_latency
+1.3035419397056103,,,,,,,asynch (tacto fork),1,74,ping_latency
+1.3387501239776611,,,,,,,asynch (tacto fork),1,75,ping_latency
+1.1661248281598091,,,,,,,asynch (tacto fork),1,76,ping_latency
+1.2141657061874866,,,,,,,asynch (tacto fork),1,77,ping_latency
+1.1584577150642872,,,,,,,asynch (tacto fork),1,78,ping_latency
+1.236707903444767,,,,,,,asynch (tacto fork),1,79,ping_latency
+1.6751661896705627,,,,,,,asynch (tacto fork),1,80,ping_latency
+1.2487499043345451,,,,,,,asynch (tacto fork),1,81,ping_latency
+1.2911660596728325,,,,,,,asynch (tacto fork),1,82,ping_latency
+1.165582798421383,,,,,,,asynch (tacto fork),1,83,ping_latency
+1.235750038176775,,,,,,,asynch (tacto fork),1,84,ping_latency
+1.2599998153746128,,,,,,,asynch (tacto fork),1,85,ping_latency
+1.2684576213359833,,,,,,,asynch (tacto fork),1,86,ping_latency
+1.1475002393126488,,,,,,,asynch (tacto fork),1,87,ping_latency
+1.2646671384572983,,,,,,,asynch (tacto fork),1,88,ping_latency
+1.2316247448325157,,,,,,,asynch (tacto fork),1,89,ping_latency
+1.2660832144320011,,,,,,,asynch (tacto fork),1,90,ping_latency
+1.2040422298014164,,,,,,,asynch (tacto fork),1,91,ping_latency
+1.2001660652458668,,,,,,,asynch (tacto fork),1,92,ping_latency
+1.2513753026723862,,,,,,,asynch (tacto fork),1,93,ping_latency
+1.2189173139631748,,,,,,,asynch (tacto fork),1,94,ping_latency
+1.2592077255249023,,,,,,,asynch (tacto fork),1,95,ping_latency
+1.5979167073965073,,,,,,,asynch (tacto fork),1,96,ping_latency
+1.571249682456255,,,,,,,asynch (tacto fork),1,97,ping_latency
+1.3861670158803463,,,,,,,asynch (tacto fork),1,98,ping_latency
+1.220041885972023,,,,,,,asynch (tacto fork),1,99,ping_latency
+1.333707943558693,,,,,,,asynch (tacto fork),1,100,ping_latency
+1.232207752764225,,,,,,,asynch (tacto fork),1,101,ping_latency
+1.1554579250514507,,,,,,,asynch (tacto fork),1,102,ping_latency
+1.261166762560606,,,,,,,asynch (tacto fork),1,103,ping_latency
+1.2667500413954258,,,,,,,asynch (tacto fork),1,104,ping_latency
+1.2523327022790909,,,,,,,asynch (tacto fork),1,105,ping_latency
+1.2530828826129436,,,,,,,asynch (tacto fork),1,106,ping_latency
+1.2709172442555428,,,,,,,asynch (tacto fork),1,107,ping_latency
+1.3767499476671219,,,,,,,asynch (tacto fork),1,108,ping_latency
+1.3704579323530197,,,,,,,asynch (tacto fork),1,109,ping_latency
+1.2306668795645237,,,,,,,asynch (tacto fork),1,110,ping_latency
+1.2053330428898335,,,,,,,asynch (tacto fork),1,111,ping_latency
+1.1868327856063843,,,,,,,asynch (tacto fork),1,112,ping_latency
+1.317041926085949,,,,,,,asynch (tacto fork),1,113,ping_latency
+1.2779580429196358,,,,,,,asynch (tacto fork),1,114,ping_latency
+1.2857499532401562,,,,,,,asynch (tacto fork),1,115,ping_latency
+1.1729169636964798,,,,,,,asynch (tacto fork),1,116,ping_latency
+1.2409170158207417,,,,,,,asynch (tacto fork),1,117,ping_latency
+1.2194998562335968,,,,,,,asynch (tacto fork),1,118,ping_latency
+1.3048327527940273,,,,,,,asynch (tacto fork),1,119,ping_latency
+1.1864588595926762,,,,,,,asynch (tacto fork),1,120,ping_latency
+1.1644582264125347,,,,,,,asynch (tacto fork),1,121,ping_latency
+1.1972500942647457,,,,,,,asynch (tacto fork),1,122,ping_latency
+1.170916948467493,,,,,,,asynch (tacto fork),1,123,ping_latency
+1.2617497704923153,,,,,,,asynch (tacto fork),1,124,ping_latency
+1.206458080559969,,,,,,,asynch (tacto fork),1,125,ping_latency
+1.1596670374274254,,,,,,,asynch (tacto fork),1,126,ping_latency
+1.18591682985425,,,,,,,asynch (tacto fork),1,127,ping_latency
+1.148332841694355,,,,,,,asynch (tacto fork),1,128,ping_latency
+1.232207752764225,,,,,,,asynch (tacto fork),1,129,ping_latency
+1.2432090006768703,,,,,,,asynch (tacto fork),1,130,ping_latency
+1.2314161285758018,,,,,,,asynch (tacto fork),1,131,ping_latency
+1.188832800835371,,,,,,,asynch (tacto fork),1,132,ping_latency
+1.2680422514677048,,,,,,,asynch (tacto fork),1,133,ping_latency
+1.1589592322707176,,,,,,,asynch (tacto fork),1,134,ping_latency
+1.2862500734627247,,,,,,,asynch (tacto fork),1,135,ping_latency
+1.2395000085234642,,,,,,,asynch (tacto fork),1,136,ping_latency
+1.2336671352386475,,,,,,,asynch (tacto fork),1,137,ping_latency
+1.2265406548976898,,,,,,,asynch (tacto fork),1,138,ping_latency
+1.3317917473614216,,,,,,,asynch (tacto fork),1,139,ping_latency
+1.2185419909656048,,,,,,,asynch (tacto fork),1,140,ping_latency
+1.2110420502722263,,,,,,,asynch (tacto fork),1,141,ping_latency
+1.2487913481891155,,,,,,,asynch (tacto fork),1,142,ping_latency
+1.2353751808404922,,,,,,,asynch (tacto fork),1,143,ping_latency
+1.2792078778147697,,,,,,,asynch (tacto fork),1,144,ping_latency
+1.2536249123513699,,,,,,,asynch (tacto fork),1,145,ping_latency
+1.2547080405056477,,,,,,,asynch (tacto fork),1,146,ping_latency
+1.2670420110225677,,,,,,,asynch (tacto fork),1,147,ping_latency
+1.4980840496718884,,,,,,,asynch (tacto fork),1,148,ping_latency
+1.659332774579525,,,,,,,asynch (tacto fork),1,149,ping_latency
+1.3666655868291855,,,,,,,asynch (tacto fork),1,150,ping_latency
+1.2821662239730358,,,,,,,asynch (tacto fork),1,151,ping_latency
+1.310999970883131,,,,,,,asynch (tacto fork),1,152,ping_latency
+1.435707788914442,,,,,,,asynch (tacto fork),1,153,ping_latency
+1.374084036797285,,,,,,,asynch (tacto fork),1,154,ping_latency
+1.3377917930483818,,,,,,,asynch (tacto fork),1,155,ping_latency
+1.356292050331831,,,,,,,asynch (tacto fork),1,156,ping_latency
+1.2622498907148838,,,,,,,asynch (tacto fork),1,157,ping_latency
+1.3436670415103436,,,,,,,asynch (tacto fork),1,158,ping_latency
+1.4351662248373032,,,,,,,asynch (tacto fork),1,159,ping_latency
+1.9620838575065136,,,,,,,asynch (tacto fork),1,160,ping_latency
+1.7199157737195492,,,,,,,asynch (tacto fork),1,161,ping_latency
+1.36562529951334,,,,,,,asynch (tacto fork),1,162,ping_latency
+1.3953750021755695,,,,,,,asynch (tacto fork),1,163,ping_latency
+1.322875265032053,,,,,,,asynch (tacto fork),1,164,ping_latency
+1.4445832930505276,,,,,,,asynch (tacto fork),1,165,ping_latency
+1.6207918524742126,,,,,,,asynch (tacto fork),1,166,ping_latency
+1.3938327319920063,,,,,,,asynch (tacto fork),1,167,ping_latency
+1.385582610964775,,,,,,,asynch (tacto fork),1,168,ping_latency
+1.335667446255684,,,,,,,asynch (tacto fork),1,169,ping_latency
+1.3585826382040977,,,,,,,asynch (tacto fork),1,170,ping_latency
+1.2050000950694084,,,,,,,asynch (tacto fork),1,171,ping_latency
+1.4088749885559082,,,,,,,asynch (tacto fork),1,172,ping_latency
+1.3531660661101341,,,,,,,asynch (tacto fork),1,173,ping_latency
+1.429458148777485,,,,,,,asynch (tacto fork),1,174,ping_latency
+1.3502920046448708,,,,,,,asynch (tacto fork),1,175,ping_latency
+1.4070840552449226,,,,,,,asynch (tacto fork),1,176,ping_latency
+1.396666280925274,,,,,,,asynch (tacto fork),1,177,ping_latency
+2.126332838088274,,,,,,,asynch (tacto fork),1,178,ping_latency
+1.8370840698480606,,,,,,,asynch (tacto fork),1,179,ping_latency
+1.428375020623207,,,,,,,asynch (tacto fork),1,180,ping_latency
+1.2269997969269753,,,,,,,asynch (tacto fork),1,181,ping_latency
+1.2875832617282867,,,,,,,asynch (tacto fork),1,182,ping_latency
+1.733665820211172,,,,,,,asynch (tacto fork),1,183,ping_latency
+1.5962920151650906,,,,,,,asynch (tacto fork),1,184,ping_latency
+1.3153338804841042,,,,,,,asynch (tacto fork),1,185,ping_latency
+1.3073752634227276,,,,,,,asynch (tacto fork),1,186,ping_latency
+1.3636252842843533,,,,,,,asynch (tacto fork),1,187,ping_latency
+1.2922920286655426,,,,,,,asynch (tacto fork),1,188,ping_latency
+1.4506662264466286,,,,,,,asynch (tacto fork),1,189,ping_latency
+1.4149169437587261,,,,,,,asynch (tacto fork),1,190,ping_latency
+1.3375421985983849,,,,,,,asynch (tacto fork),1,191,ping_latency
+1.2823748402297497,,,,,,,asynch (tacto fork),1,192,ping_latency
+1.4978330582380295,,,,,,,asynch (tacto fork),1,193,ping_latency
+1.6477080062031746,,,,,,,asynch (tacto fork),1,194,ping_latency
+2.5628753937780857,,,,,,,asynch (tacto fork),1,195,ping_latency
+1.5834160149097443,,,,,,,asynch (tacto fork),1,196,ping_latency
+1.2785829603672028,,,,,,,asynch (tacto fork),1,197,ping_latency
+1.1935830116271973,,,,,,,asynch (tacto fork),1,198,ping_latency
+1.2043747119605541,,,,,,,asynch (tacto fork),1,199,ping_latency
+2011.0243749804795,,,,,,,asynch (tacto fork),1000000,0,read_throughput
+2005.2179172635078,,,,,,,asynch (tacto fork),1000000,1,read_throughput
+2008.3542079664767,,,,,,,asynch (tacto fork),1000000,2,read_throughput
+2006.0629583895206,,,,,,,asynch (tacto fork),1000000,3,read_throughput
+2042.9132501594722,,,,,,,asynch (tacto fork),1000000,4,read_throughput
+1999.9985001049936,,,,,,,asynch (tacto fork),1000000,5,read_throughput
+2010.1066250354052,,,,,,,asynch (tacto fork),1000000,6,read_throughput
+2016.8755003251135,,,,,,,asynch (tacto fork),1000000,7,read_throughput
+2019.0947502851486,,,,,,,asynch (tacto fork),1000000,8,read_throughput
+2018.5448327101767,,,,,,,asynch (tacto fork),1000000,9,read_throughput
+132.44420802220702,,,,,,,asynch (tacto fork),100000,0,insert_throughput
+130.70304226130247,,,,,,,asynch (tacto fork),100000,1,insert_throughput
+137.94283289462328,,,,,,,asynch (tacto fork),100000,2,insert_throughput
+127.11104191839695,,,,,,,asynch (tacto fork),100000,3,insert_throughput
+134.45741683244705,,,,,,,asynch (tacto fork),100000,4,insert_throughput
+140.2766671963036,,,,,,,asynch (tacto fork),100000,5,insert_throughput
+136.2153752706945,,,,,,,asynch (tacto fork),100000,6,insert_throughput
+138.77979200333357,,,,,,,asynch (tacto fork),100000,7,insert_throughput
+134.79745807126164,,,,,,,asynch (tacto fork),100000,8,insert_throughput
+126.94475008174777,,,,,,,asynch (tacto fork),100000,9,insert_throughput
+17.384374979883432,16,,,,,,asynch (tacto fork),1600000,0,concurrent_reads
+18.227041233330965,16,,,,,,asynch (tacto fork),1600000,1,concurrent_reads
+16.573041677474976,16,,,,,,asynch (tacto fork),1600000,2,concurrent_reads
+15.680625103414059,16,,,,,,asynch (tacto fork),1600000,3,concurrent_reads
+16.42262516543269,16,,,,,,asynch (tacto fork),1600000,4,concurrent_reads
+16.503000166267157,16,,,,,,asynch (tacto fork),1600000,5,concurrent_reads
+15.843207947909832,16,,,,,,asynch (tacto fork),1600000,6,concurrent_reads
+16.634957864880562,16,,,,,,asynch (tacto fork),1600000,7,concurrent_reads
+15.883250162005424,16,,,,,,asynch (tacto fork),1600000,8,concurrent_reads
+14.71666619181633,16,,,,,,asynch (tacto fork),1600000,9,concurrent_reads
+770.9643747657537,,30.94,500.44,531.38,"[{'t_ms': 0.0, 'rss_mib': 30.94}, {'t_ms': 0.11, 'rss_mib': 30.97}, {'t_ms': 56.81, 'rss_mib': 100.72}, {'t_ms': 109.98, 'rss_mib': 159.3}, {'t_ms': 165.07, 'rss_mib': 204.91}, {'t_ms': 223.46, 'rss_mib': 256.98}, {'t_ms': 275.86, 'rss_mib': 302.59}, {'t_ms': 331.08, 'rss_mib': 335.73}, {'t_ms': 389.71, 'rss_mib': 375.08}, {'t_ms': 448.2, 'rss_mib': 414.14}, {'t_ms': 509.85, 'rss_mib': 453.22}, {'t_ms': 574.81, 'rss_mib': 492.27}, {'t_ms': 642.37, 'rss_mib': 531.38}, {'t_ms': 771.14, 'rss_mib': 137.23}, {'t_ms': 771.33, 'rss_mib': 137.2}]",50.0,asynch (tacto fork),5000000,0,memory_ceiling

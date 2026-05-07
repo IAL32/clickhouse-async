@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-05-07T18:54:25Z",
+  "timestamp": "2026-05-07T19:10:18Z",
   "os": "Darwin 25.2.0 arm64",
   "cpu": "Apple M3 Pro \u2014 11P/11L cores",
   "ram": "36.0 GiB",
@@ -8,7 +8,7 @@
   "docker": "29.4.0",
   "clickhouse_image": "26.3",
   "clickhouse_server": "26.3.9.8",
-  "git_sha": "389e33f",
+  "git_sha": "73cbcd4",
   "git_dirty": true,
   "ca_version": "0.4.0",
   "cc_version": "0.15.1",

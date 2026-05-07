@@ -111,7 +111,7 @@ wheels = [
 
 [[package]]
 name = "clickhouse-async"
-version = "0.5.0"
+version = "0.5.1"
 source = { editable = "." }
 
 [package.optional-dependencies]

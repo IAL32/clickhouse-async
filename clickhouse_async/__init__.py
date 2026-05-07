@@ -4,7 +4,7 @@
 # reads `clickhouse_async.__version__` at import time to populate the
 # Hello packet's client_version_{major,minor}. Re-ordering here would
 # trigger a circular import that fails attribute lookup.
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 
 from clickhouse_async.client import (
     Client,

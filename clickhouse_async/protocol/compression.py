@@ -35,6 +35,7 @@ from typing import TYPE_CHECKING
 from clickhouse_async.errors import MissingExtraError, ProtocolError
 from clickhouse_async.protocol.block import Block, read_block, write_block
 from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+from clickhouse_async.protocol.io_sync import BufferUnderflow, SyncBinaryReader
 
 if TYPE_CHECKING:
     from types import ModuleType
@@ -197,14 +198,13 @@ class CompressedBlockWriter:
 
 class _MultiFrameReader(AsyncBinaryReader):
     """Wraps a raw `AsyncBinaryReader` and reads compressed frames on
-    demand, presenting the concatenated decompressed stream to the codec
-    layer.
+    demand, presenting the concatenated decompressed stream to its
+    callers.
 
-    ClickHouse's `CompressedWriteBuffer` flushes at ~1 MB compressed,
-    so a block larger than ~1 MB raw spans multiple frames in the same
-    DATA packet. Reading only the first frame leaves `read_block` with
-    partial data. This reader transparently fetches the next frame
-    whenever the buffer runs dry.
+    Used for compressed packet bodies that aren't blocks — e.g. the
+    `TABLE_COLUMNS` body at revision 54481+, which the server wraps
+    in compression frames but isn't a Block (so the sync block-parse
+    path doesn't apply). Block reads use `read_block_buffered` instead.
     """
 
     __slots__ = ("_buf", "_raw")
@@ -213,6 +213,8 @@ class _MultiFrameReader(AsyncBinaryReader):
         self._raw = raw
         self._buf: bytearray = bytearray()
         self._pos = 0
+        self._pushback = b""
+        self._pushback_pos = 0
 
     async def read_exact(self, n: int) -> bytes:  # pragma: no cover
         if n == 0:
@@ -226,7 +228,16 @@ class _MultiFrameReader(AsyncBinaryReader):
         return data
 
 
-async def read_block_framed(
+# Initial drain cap for an uncompressed block read. We block only for
+# the first byte and then take whatever the kernel has buffered up to
+# this size — too small means many tiny refills, too large risks
+# stranding bytes in the asyncio buffer that we'd rather have parsed.
+# 1 MiB matches typical ClickHouse `network_compression_method` frame
+# sizes and easily covers the default `max_block_size` row counts.
+_UNCOMPRESSED_INITIAL_CAP = 1 << 20
+
+
+async def read_block_buffered(
     reader: AsyncBinaryReader,
     *,
     revision: int,
@@ -238,6 +249,15 @@ async def read_block_framed(
     raw otherwise. Used for the DATA / TOTALS / EXTREMES packet bodies
     on a connection that negotiated compression.
 
+    Drains bytes off the async reader into an in-memory buffer, then
+    hands the buffer to the synchronous `read_block` codec stack via
+    `SyncBinaryReader`. On `BufferUnderflow` we top up the buffer
+    (one more compressed frame for the framed path; an exact-sized
+    refill for the raw path) and re-parse from the start. The block's
+    encoded size isn't on the wire, so we can't pre-size the buffer;
+    after a successful parse we push any unconsumed bytes back to the
+    reader to belong to the next packet.
+
     `session_timezone` flows through to the inner `read_block` so
     bare `DateTime` codecs in the block's column specs honour the
     Connection's session timezone fallback.
@@ -245,19 +265,66 @@ async def read_block_framed(
     `json_nested` flows through to configure `JSON` codecs to
     return nested dicts on read.
     """
+    buf = bytearray()
     if compression == CompressionMethod.NONE:
-        return await read_block(
-            reader,
-            revision=revision,
-            session_timezone=session_timezone,
-            json_nested=json_nested,
-        )
-    return await read_block(  # pragma: no cover — requires extras
-        _MultiFrameReader(reader),
-        revision=revision,
-        session_timezone=session_timezone,
-        json_nested=json_nested,
-    )
+        # Drain whatever's currently buffered without over-asking past
+        # what the server has emitted — a small one-shot DATA packet
+        # would deadlock if we blocked for a fixed minimum. The cap is
+        # set high enough that typical large blocks arrive in one read.
+        buf.extend(await reader.read_available(_UNCOMPRESSED_INITIAL_CAP))
+        refill = _refill_uncompressed
+    else:  # pragma: no cover — requires extras
+        # Compressed framing is self-describing; drain at least one
+        # frame before the first parse attempt.
+        buf.extend(await CompressedBlockReader(reader).read_payload())
+        refill = _refill_compressed
+
+    while True:
+        sync = SyncBinaryReader(bytes(buf))
+        try:
+            block = read_block(
+                sync,
+                revision=revision,
+                session_timezone=session_timezone,
+                json_nested=json_nested,
+            )
+        except BufferUnderflow as exc:
+            await refill(reader, buf, exc.needed)
+            continue
+        # Hand the bytes our codec didn't consume back to the reader
+        # so the next packet sees them at the head of its read queue.
+        leftover = bytes(buf[sync.position :])
+        if leftover:
+            reader.push_back(leftover)
+        return block
+
+
+async def _refill_uncompressed(
+    reader: AsyncBinaryReader, buf: bytearray, needed: int
+) -> None:
+    """Top up `buf` from the raw socket by exactly `needed` bytes plus
+    any extra the asyncio buffer is happy to hand over without
+    blocking. Reading exactly `needed` ensures we don't deadlock on
+    short server responses; the bonus drain that follows reduces the
+    retry count when more bytes happen to already be buffered."""
+    buf.extend(await reader.read_exact(needed))
+    extra = await reader.read_available(_UNCOMPRESSED_INITIAL_CAP)
+    if extra:
+        buf.extend(extra)
+
+
+async def _refill_compressed(
+    reader: AsyncBinaryReader, buf: bytearray, needed: int
+) -> None:  # pragma: no cover — requires extras
+    """Top up `buf` by pulling another compressed frame. `needed` is
+    advisory — frames have their own size baked in so we drain at
+    least one and keep going if it still isn't enough."""
+    while True:
+        frame = await CompressedBlockReader(reader).read_payload()
+        buf.extend(frame)
+        if len(frame) >= needed:
+            return
+        needed -= len(frame)
 
 
 def write_block_framed(
@@ -268,7 +335,7 @@ def write_block_framed(
     compression: CompressionMethod,
 ) -> None:
     """Write a Block — framed-and-compressed when compression is on,
-    raw otherwise. Counterpart to `read_block_framed`."""
+    raw otherwise. Counterpart to `read_block_buffered`."""
     if compression == CompressionMethod.NONE:
         write_block(writer, block, revision=revision)
         return

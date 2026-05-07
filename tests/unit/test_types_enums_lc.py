@@ -3,13 +3,13 @@
 
 from __future__ import annotations
 
-import asyncio
 from typing import TYPE_CHECKING, Any
 
 import pytest
 
 from clickhouse_async.errors import ProtocolError
-from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+from clickhouse_async.protocol.io import BinaryWriter
+from clickhouse_async.protocol.io_sync import SyncBinaryReader
 from clickhouse_async.types import ColumnCodec, parse_type
 from clickhouse_async.types.composite import LowCardinality
 from clickhouse_async.types.enums import Enum8, Enum16
@@ -18,17 +18,14 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-def _reader(data: bytes) -> AsyncBinaryReader:
-    stream = asyncio.StreamReader()
-    stream.feed_data(data)
-    stream.feed_eof()
-    return AsyncBinaryReader(stream)
+def _reader(data: bytes) -> SyncBinaryReader:
+    return SyncBinaryReader(bytes(data))
 
 
 async def _round_trip(codec: ColumnCodec, values: Sequence[Any]) -> list[Any]:
     writer = BinaryWriter()
     codec.write(writer, values)
-    return await codec.read(_reader(writer.getvalue()), len(values))
+    return codec.read(_reader(writer.getvalue()), len(values))
 
 
 # ---- Enum8 / Enum16 -----------------------------------------------------
@@ -90,7 +87,7 @@ async def test_enum_rejects_unknown_value_on_read() -> None:
     # WHEN: reading bytes that don't correspond to any mapped value
     # THEN: a ProtocolError surfaces, naming the offending row
     with pytest.raises(ProtocolError, match="unknown"):
-        await codec.read(_reader(bytes([99])), 1)
+        codec.read(_reader(bytes([99])), 1)
 
 
 def test_enum_rejects_duplicate_values() -> None:
@@ -227,10 +224,7 @@ async def test_low_cardinality_nullable_wire_format_pin() -> None:
     assert dict_size == 3
 
     # And the body decodes back to the same values
-    stream = asyncio.StreamReader()
-    stream.feed_data(written)
-    stream.feed_eof()
-    decoded = await codec.read(AsyncBinaryReader(stream), len(values))
+    decoded = codec.read(SyncBinaryReader(written), len(values))
     assert decoded == values
 
 

@@ -22,19 +22,31 @@ _VARUINT_PAYLOAD_MASK = 0x7F
 
 
 class AsyncBinaryReader:
-    """Async reader over an `asyncio.StreamReader` with ClickHouse codecs."""
+    """Async reader over an `asyncio.StreamReader` with ClickHouse codecs.
 
-    __slots__ = ("_pos", "_stream")
+    Carries a pushback buffer alongside the stream. The buffered Block
+    reader (`compression.read_block_buffered`) drains more bytes than
+    the codec layer ends up consuming — the leftover belongs to the
+    *next* packet, so it gets pushed back here to be returned by the
+    next read in FIFO order.
+    """
+
+    __slots__ = ("_pos", "_pushback", "_pushback_pos", "_stream")
 
     def __init__(self, stream: asyncio.StreamReader) -> None:
         self._stream = stream
         self._pos = 0
+        # Pushback uses a (bytes, position) pair so reading off the
+        # front is O(1) — slicing the front off a bytearray on every
+        # 1-byte varuint read would dominate the hot path.
+        self._pushback: bytes = b""
+        self._pushback_pos: int = 0
 
     @classmethod
     def from_bytes(cls, data: bytes) -> AsyncBinaryReader:
-        """Wrap an in-memory byte buffer as a reader. Used by the
-        compression layer to feed a decompressed frame into the rest
-        of the codec stack without spinning up a real socket."""
+        """Wrap an in-memory byte buffer as a reader. Used by tests
+        and helpers that feed a literal buffer into the codec stack
+        without spinning up a real socket."""
         stream = asyncio.StreamReader()
         stream.feed_data(data)
         stream.feed_eof()
@@ -44,9 +56,48 @@ class AsyncBinaryReader:
     def position(self) -> int:
         return self._pos
 
+    def _pushback_remaining(self) -> int:
+        return len(self._pushback) - self._pushback_pos
+
+    def push_back(self, data: bytes) -> None:
+        """Stash bytes the codec layer drained but didn't consume back
+        at the front of the read queue. Subsequent reads pull from
+        pushback before the underlying stream."""
+        if not data:
+            return
+        if self._pushback_pos == len(self._pushback):
+            self._pushback = data
+            self._pushback_pos = 0
+        else:
+            self._pushback = data + self._pushback[self._pushback_pos :]
+            self._pushback_pos = 0
+        self._pos -= len(data)
+
     async def read_exact(self, n: int) -> bytes:
         if n == 0:
             return b""
+        avail = self._pushback_remaining()
+        if avail >= n:
+            data = self._pushback[self._pushback_pos : self._pushback_pos + n]
+            self._pushback_pos += n
+            if self._pushback_pos == len(self._pushback):
+                self._pushback = b""
+                self._pushback_pos = 0
+            self._pos += n
+            return data
+        if avail:
+            front = self._pushback[self._pushback_pos :]
+            self._pushback = b""
+            self._pushback_pos = 0
+            try:
+                rest = await self._stream.readexactly(n - len(front))
+            except asyncio.IncompleteReadError as exc:
+                raise ProtocolError(
+                    f"short read at offset {self._pos}: "
+                    f"wanted {n} bytes, got {len(front) + len(exc.partial)}"
+                ) from exc
+            self._pos += n
+            return front + bytes(rest)
         try:
             data = await self._stream.readexactly(n)
         except asyncio.IncompleteReadError as exc:
@@ -56,6 +107,32 @@ class AsyncBinaryReader:
             ) from exc
         self._pos += n
         return data
+
+    async def read_available(self, max_n: int) -> bytes:
+        """Return up to `max_n` bytes, blocking only when the read
+        queue is completely empty.
+
+        Sized for the buffered Block reader's initial drain: it wants
+        whatever the server has already pushed but mustn't block on
+        more than the protocol has emitted (a small DATA packet may be
+        the entire payload). Pushback is consumed first; otherwise a
+        single `StreamReader.read(max_n)` returns whatever's currently
+        buffered (or blocks for the first byte)."""
+        if max_n == 0:
+            return b""
+        avail = self._pushback_remaining()
+        if avail:
+            take = min(avail, max_n)
+            data = self._pushback[self._pushback_pos : self._pushback_pos + take]
+            self._pushback_pos += take
+            if self._pushback_pos == len(self._pushback):
+                self._pushback = b""
+                self._pushback_pos = 0
+            self._pos += take
+            return data
+        chunk = await self._stream.read(max_n)
+        self._pos += len(chunk)
+        return chunk
 
     async def read_byte(self) -> int:
         data = await self.read_exact(1)

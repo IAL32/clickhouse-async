@@ -17,7 +17,8 @@ from clickhouse_async.errors import ProtocolError
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+    from clickhouse_async.protocol.io import BinaryWriter
+    from clickhouse_async.protocol.io_sync import SyncBinaryReader
 
 
 class _EnumCodec:
@@ -38,11 +39,11 @@ class _EnumCodec:
         self.name = f"Enum{self._size * 8}({entries})"
         self.null_value = next(iter(self.mapping))
 
-    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[str]:
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[str]:
         if n_rows == 0:
             return []
         size = self._size
-        data = await reader.read_exact(size * n_rows)
+        data = reader.read_exact(size * n_rows)
         out: list[str] = []
         for i in range(n_rows):
             v = int.from_bytes(data[i * size : (i + 1) * size], "little", signed=True)

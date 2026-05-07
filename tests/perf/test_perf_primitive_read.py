@@ -2,19 +2,17 @@
 
 ``_StructCodec.read`` uses a single ``struct.unpack`` over the whole
 buffer, so per-row Python work is bounded — this benchmark mostly
-captures the async-dispatch overhead at the reader layer (one
-``read_exact(n_rows * size)`` per call) and gives us a baseline
-for the wider-int / float codecs.
+captures the reader-layer overhead (one ``read_exact(n_rows * size)``
+per call) and gives us a baseline for the wider-int / float codecs.
 """
 
 from __future__ import annotations
 
-import asyncio
 from typing import TYPE_CHECKING
 
 import pytest
 
-from clickhouse_async.protocol.io import AsyncBinaryReader
+from clickhouse_async.protocol.io_sync import SyncBinaryReader
 from clickhouse_async.types.primitive import Float64, Int32, Int64, UInt64
 
 from .conftest import build_fixed_int_column
@@ -35,7 +33,7 @@ if TYPE_CHECKING:
     ids=["Int32", "Int64", "UInt64", "Float64"],
 )
 @pytest.mark.parametrize("n_rows", [10_000, 100_000], ids=["n10k", "n100k"])
-def test_fixed_width_read_async(
+def test_fixed_width_read_sync(
     benchmark: BenchmarkFixture, n_rows: int, codec_factory: type, fmt: str
 ) -> None:
     """Read ``n_rows`` of a primitive in one bulk ``struct.unpack``."""
@@ -43,12 +41,9 @@ def test_fixed_width_read_async(
     codec = codec_factory()
 
     def run() -> int:
-        async def _inner() -> int:
-            reader = AsyncBinaryReader.from_bytes(body)
-            values = await codec.read(reader, n_rows)
-            return len(values)
-
-        return asyncio.run(_inner())
+        reader = SyncBinaryReader(body)
+        values = codec.read(reader, n_rows)
+        return len(values)
 
     decoded = benchmark(run)
     assert decoded == n_rows

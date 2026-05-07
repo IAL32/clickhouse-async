@@ -23,7 +23,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+    from clickhouse_async.protocol.io import BinaryWriter
+    from clickhouse_async.protocol.io_sync import SyncBinaryReader
 
 _NIL_UUID = uuid.UUID(int=0)
 _ZERO_IPV4 = IPv4Address(0)
@@ -35,10 +36,10 @@ class UUID:
     null_value: uuid.UUID = _NIL_UUID
     python_type: type = uuid.UUID
 
-    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[uuid.UUID]:
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[uuid.UUID]:
         if n_rows == 0:
             return []
-        data = await reader.read_exact(16 * n_rows)
+        data = reader.read_exact(16 * n_rows)
         out: list[uuid.UUID] = []
         for i in range(n_rows):
             base = i * 16
@@ -64,10 +65,10 @@ class IPv4:
     null_value: IPv4Address = _ZERO_IPV4
     python_type: type = IPv4Address
 
-    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[IPv4Address]:
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[IPv4Address]:
         if n_rows == 0:
             return []
-        data = await reader.read_exact(4 * n_rows)
+        data = reader.read_exact(4 * n_rows)
         return [
             IPv4Address(
                 int.from_bytes(data[i * 4 : (i + 1) * 4], "little", signed=False)
@@ -89,10 +90,10 @@ class IPv6:
     null_value: IPv6Address = _ZERO_IPV6
     python_type: type = IPv6Address
 
-    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[IPv6Address]:
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[IPv6Address]:
         if n_rows == 0:
             return []
-        data = await reader.read_exact(16 * n_rows)
+        data = reader.read_exact(16 * n_rows)
         return [IPv6Address(bytes(data[i * 16 : (i + 1) * 16])) for i in range(n_rows)]
 
     def write(self, writer: BinaryWriter, values: Sequence[IPv6Address]) -> None:

@@ -4,6 +4,12 @@ Each codec encodes/decodes one ClickHouse column type. The reader and
 writer call into codecs row-batch-at-a-time: `read(reader, n_rows)`
 returns a list of Python values, `write(writer, values)` emits them.
 
+Codecs are **synchronous** since v0.4 — they read from a
+`SyncBinaryReader` over an already-in-memory buffer. The async
+boundary lives at the transport layer (`protocol/compression.py::
+read_block_buffered`) which fetches socket bytes / drains compressed
+frames into the buffer before invoking the sync parse.
+
 `null_value` is the placeholder a codec uses for itself when wrapped
 in `Nullable(T)` — the on-wire format requires a value at every row
 position even when the row is null, so `Nullable` substitutes
@@ -17,7 +23,8 @@ from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+    from clickhouse_async.protocol.io import BinaryWriter
+    from clickhouse_async.protocol.io_sync import SyncBinaryReader
 
 
 @runtime_checkable
@@ -33,8 +40,8 @@ class ColumnCodec(Protocol):
     name: str
     null_value: Any
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
+    def read(
+        self, reader: SyncBinaryReader, n_rows: int
     ) -> list[Any]: ...  # pragma: no cover — Protocol stub
 
     def write(

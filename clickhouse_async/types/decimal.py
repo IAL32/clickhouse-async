@@ -23,7 +23,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+    from clickhouse_async.protocol.io import BinaryWriter
+    from clickhouse_async.protocol.io_sync import SyncBinaryReader
 
 # Storage-width breakpoints for the `Decimal(P, S)` dispatcher.
 # ClickHouse caps total decimal precision at 76 digits.
@@ -47,12 +48,12 @@ class _DecimalCodec:
         self._scale_factor = PyDecimal(10) ** scale
         self.name = f"Decimal{self._size * 8}({scale})"
 
-    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[PyDecimal]:
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[PyDecimal]:
         if n_rows == 0:
             return []
         size = self._size
         scale_factor = self._scale_factor
-        data = await reader.read_exact(size * n_rows)
+        data = reader.read_exact(size * n_rows)
         out: list[PyDecimal] = []
         for i in range(n_rows):
             raw = int.from_bytes(data[i * size : (i + 1) * size], "little", signed=True)

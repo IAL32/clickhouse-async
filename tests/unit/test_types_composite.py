@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import asyncio
 from typing import TYPE_CHECKING, Any
 
 import pytest
 
-from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+from clickhouse_async.protocol.io import BinaryWriter
+from clickhouse_async.protocol.io_sync import SyncBinaryReader
 from clickhouse_async.types import ColumnCodec, parse_type
 from clickhouse_async.types.composite import Array, Map, Nested, Tuple
 from clickhouse_async.types.primitive import Int32
@@ -17,17 +17,14 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-def _reader(data: bytes) -> AsyncBinaryReader:
-    stream = asyncio.StreamReader()
-    stream.feed_data(data)
-    stream.feed_eof()
-    return AsyncBinaryReader(stream)
+def _reader(data: bytes) -> SyncBinaryReader:
+    return SyncBinaryReader(bytes(data))
 
 
 async def _round_trip(codec: ColumnCodec, values: Sequence[Any]) -> list[Any]:
     writer = BinaryWriter()
     codec.write(writer, values)
-    return await codec.read(_reader(writer.getvalue()), len(values))
+    return codec.read(_reader(writer.getvalue()), len(values))
 
 
 # ---- Array(T) ------------------------------------------------------------
@@ -244,10 +241,7 @@ async def test_named_tuple_round_trips_values_through_codec() -> None:
     codec.write(writer, values)
     written = writer.getvalue()
 
-    stream = asyncio.StreamReader()
-    stream.feed_data(written)
-    stream.feed_eof()
-    decoded = await codec.read(AsyncBinaryReader(stream), len(values))
+    decoded = codec.read(SyncBinaryReader(written), len(values))
 
     # THEN: every row comes back identically as a plain tuple — the
     #       names live only in the codec metadata, not in the values
@@ -312,10 +306,7 @@ async def test_nested_round_trips_values_through_codec() -> None:
     codec.write(writer, values)
     written = writer.getvalue()
 
-    stream = asyncio.StreamReader()
-    stream.feed_data(written)
-    stream.feed_eof()
-    decoded = await codec.read(AsyncBinaryReader(stream), len(values))
+    decoded = codec.read(SyncBinaryReader(written), len(values))
 
     # THEN: every row's array of tuples comes back identically
     assert decoded == values

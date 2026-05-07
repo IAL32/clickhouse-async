@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING
 
 from clickhouse_async.protocol.compression import (
     CompressionMethod,
-    read_block_framed,
+    read_block_buffered,
 )
 from clickhouse_async.protocol.packets import (
     DBMS_MIN_PROTOCOL_VERSION_WITH_SERVER_QUERY_TIME_IN_PROGRESS,
@@ -149,7 +149,7 @@ async def read_block_packet_body(
     `PROFILE_EVENTS` (which upstream always sends raw, even when the
     connection has compression on).
 
-    `session_timezone` is forwarded to `read_block_framed` so
+    `session_timezone` is forwarded to `read_block_buffered` so
     naive `DateTime` columns in the block honour the connection's
     session timezone.
 
@@ -158,7 +158,7 @@ async def read_block_packet_body(
     """
 
     table_name = await reader.read_string()
-    block = await read_block_framed(
+    block = await read_block_buffered(
         reader,
         revision=revision,
         compression=compression,

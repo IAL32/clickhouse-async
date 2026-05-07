@@ -4,8 +4,7 @@ Two implementation paths based on width:
 
 - **≤ 64 bits** (Int{8,16,32,64}, UInt{8,16,32,64}, Float{32,64}, Bool):
   bulk encode/decode with `struct` over the whole column buffer at
-  once. One `await` per batch on the read path; one `write_raw` on
-  the write path.
+  once.
 - **128 / 256 bits**: `struct` has no format characters for these
   widths, so we use `int.from_bytes` / `int.to_bytes` per row, but
   still issue exactly one `read_exact` and one `write_raw` per batch.
@@ -19,7 +18,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+    from clickhouse_async.protocol.io import BinaryWriter
+    from clickhouse_async.protocol.io_sync import SyncBinaryReader
 
 
 class _StructCodec:
@@ -36,10 +36,10 @@ class _StructCodec:
     _format: str = ""
     _size: int = 0
 
-    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[Any]:
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[Any]:
         if n_rows == 0:
             return []
-        data = await reader.read_exact(self._size * n_rows)
+        data = reader.read_exact(self._size * n_rows)
         return list(struct.unpack(f"<{n_rows}{self._format}", data))
 
     def write(self, writer: BinaryWriter, values: Sequence[Any]) -> None:
@@ -151,12 +151,12 @@ class _BigIntCodec:
     _size: int = 0
     _signed: bool = False
 
-    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[int]:
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[int]:
         if n_rows == 0:
             return []
         size = self._size
         signed = self._signed
-        data = await reader.read_exact(size * n_rows)
+        data = reader.read_exact(size * n_rows)
         return [
             int.from_bytes(data[i * size : (i + 1) * size], "little", signed=signed)
             for i in range(n_rows)
@@ -210,10 +210,10 @@ class Bool:
     null_value: bool = False
     python_type: type = bool
 
-    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[bool]:
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[bool]:
         if n_rows == 0:
             return []
-        data = await reader.read_exact(n_rows)
+        data = reader.read_exact(n_rows)
         return [b != 0 for b in data]
 
     def write(self, writer: BinaryWriter, values: Sequence[bool]) -> None:

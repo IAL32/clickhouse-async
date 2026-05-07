@@ -44,7 +44,8 @@ from clickhouse_async.types._datetime_helpers import _naive_utc_from_ts, _resolv
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+    from clickhouse_async.protocol.io import BinaryWriter
+    from clickhouse_async.protocol.io_sync import SyncBinaryReader
 
 _EPOCH_DATE = date(1970, 1, 1)
 
@@ -120,10 +121,10 @@ class Date:
     null_value: date = _EPOCH_DATE
     python_type: type = date
 
-    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[date]:
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[date]:
         if n_rows == 0:
             return []
-        data = await reader.read_exact(2 * n_rows)
+        data = reader.read_exact(2 * n_rows)
         return [
             _EPOCH_DATE
             + timedelta(
@@ -147,10 +148,10 @@ class Date32:
     null_value: date = _EPOCH_DATE
     python_type: type = date
 
-    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[date]:
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[date]:
         if n_rows == 0:
             return []
-        data = await reader.read_exact(4 * n_rows)
+        data = reader.read_exact(4 * n_rows)
         return [
             _EPOCH_DATE
             + timedelta(
@@ -201,10 +202,10 @@ class DateTime:
             else datetime(1970, 1, 1)
         )
 
-    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[datetime]:
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[datetime]:
         if n_rows == 0:
             return []
-        data = await reader.read_exact(4 * n_rows)
+        data = reader.read_exact(4 * n_rows)
         out: list[datetime] = []
         for i in range(n_rows):
             ts = int.from_bytes(data[i * 4 : (i + 1) * 4], "little", signed=False)
@@ -282,12 +283,12 @@ class DateTime64:
                 else datetime(1970, 1, 1)
             )
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
+    def read(
+        self, reader: SyncBinaryReader, n_rows: int
     ) -> list[datetime | HighPrecisionTimestamp]:
         if n_rows == 0:
             return []
-        data = await reader.read_exact(8 * n_rows)
+        data = reader.read_exact(8 * n_rows)
         if self.high_precision:
             return self._read_high_precision(data, n_rows)
         return self._read_datetime(data, n_rows)

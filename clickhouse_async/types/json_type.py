@@ -58,7 +58,8 @@ from clickhouse_async.types.variant import (
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+    from clickhouse_async.protocol.io import BinaryWriter
+    from clickhouse_async.protocol.io_sync import SyncBinaryReader
 
 
 # `ObjectSerializationVersion` constants are *different* from
@@ -108,14 +109,12 @@ class JSON:
         else:
             self.name = "JSON"
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
-    ) -> list[dict[str, Any]]:
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[dict[str, Any]]:
         if n_rows == 0:
             return []
 
         # 1. ObjectSerializationVersion + (V1) max_dynamic_paths slot.
-        version = await reader.read_int(8, signed=False)
+        version = reader.read_int(8, signed=False)
         if version == _OBJECT_VERSION_STRING:
             # STRING mode: each row is one length-prefixed JSON-text
             # string. We don't decode — return the raw strings under a
@@ -131,10 +130,10 @@ class JSON:
                 f"expected V1 ({_OBJECT_VERSION_V1}) or V2 ({_OBJECT_VERSION_V2})"
             )
         if version == _OBJECT_VERSION_V1:
-            await reader.read_varuint()  # max_dynamic_paths slot
+            reader.read_varuint()  # max_dynamic_paths slot
         # 2. Sorted path-name list.
-        n_paths = await reader.read_varuint()
-        path_names = [await reader.read_string() for _ in range(n_paths)]
+        n_paths = reader.read_varuint()
+        path_names = [reader.read_string() for _ in range(n_paths)]
 
         # 3. Per-path Dynamic STATE PREFIX, all consumed before any
         #    bulk body. This mirrors upstream `SerializationObject`,
@@ -146,16 +145,16 @@ class JSON:
         #    boundary moves and you'd read the wrong bytes.
         per_path_components: list[list[Any]] = []
         for _ in path_names:
-            dyn_version = await reader.read_int(8, signed=False)
+            dyn_version = reader.read_int(8, signed=False)
             if dyn_version not in (_DYNAMIC_VERSION_V1, _DYNAMIC_VERSION_V2):
                 raise ProtocolError(
                     f"unsupported Dynamic structure version {dyn_version} "
                     f"inside JSON path"
                 )
             if dyn_version == _DYNAMIC_VERSION_V1:
-                await reader.read_varuint()  # max_dynamic_types slot
-            n_types = await reader.read_varuint()
-            declared_specs = [await reader.read_string() for _ in range(n_types)]
+                reader.read_varuint()  # max_dynamic_types slot
+            n_types = reader.read_varuint()
+            declared_specs = [reader.read_string() for _ in range(n_types)]
             # Sort declared specs together with the implicit
             # `SharedVariant` arm — same rule as standalone Dynamic.
             sorted_specs = sorted([*declared_specs, _SHARED_VARIANT_NAME])
@@ -165,7 +164,7 @@ class JSON:
                 else parse_type(spec)
                 for spec in sorted_specs
             ]
-            inner_version = await reader.read_int(8, signed=False)
+            inner_version = reader.read_int(8, signed=False)
             if inner_version != _VARIANT_VERSION_BASIC:
                 raise ProtocolError(
                     f"unsupported Variant mode {inner_version} inside JSON "
@@ -179,7 +178,7 @@ class JSON:
         # 5. Per-path Dynamic BULK BODY (discs + per-arm bodies in
         #    sorted variant order).
         per_path_values: list[list[Any]] = [
-            await Variant._read_body(reader, n_rows, components)
+            Variant._read_body(reader, n_rows, components)
             for components in per_path_components
         ]
 
@@ -187,7 +186,7 @@ class JSON:
         #    Each per-row element is a list of (dotted_path, json_str)
         #    pairs for paths that spilled past max_dynamic_paths.
         shared_data_codec = parse_type("Array(Tuple(String, String))")
-        shared_data: list[list[Any]] = await shared_data_codec.read(reader, n_rows)
+        shared_data: list[list[Any]] = shared_data_codec.read(reader, n_rows)
 
         # 7. Reassemble per-row dicts. NULL on a path's Dynamic stream
         #    means "this row had no value for this path" — represent

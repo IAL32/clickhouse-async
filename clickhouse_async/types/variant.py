@@ -55,7 +55,8 @@ from clickhouse_async.types._parser import parse_type
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+    from clickhouse_async.protocol.io import BinaryWriter
+    from clickhouse_async.protocol.io_sync import SyncBinaryReader
     from clickhouse_async.types.base import ColumnCodec
 
 
@@ -191,20 +192,20 @@ class Variant:
         """
         return _VariantTag(value, type_index)
 
-    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[Any]:
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[Any]:
         if n_rows == 0:
             return []
-        version = await reader.read_int(8, signed=False)
+        version = reader.read_int(8, signed=False)
         if version != _VARIANT_VERSION_BASIC:
             raise ProtocolError(
                 f"unsupported Variant discriminator-stream version {version}; "
                 f"only BASIC (0) is supported"
             )
-        return await self._read_body(reader, n_rows, self.components)
+        return self._read_body(reader, n_rows, self.components)
 
     @staticmethod
-    async def _read_body(
-        reader: AsyncBinaryReader,
+    def _read_body(
+        reader: SyncBinaryReader,
         n_rows: int,
         components: Sequence[ColumnCodec],
     ) -> list[Any]:
@@ -216,7 +217,7 @@ class Variant:
         Variant inner reuses the same path — Dynamic just hands in the
         per-block-resolved component list.
         """
-        disc = await reader.read_exact(n_rows)
+        disc = reader.read_exact(n_rows)
         # Count rows per arm in declared order so we know how many
         # values to ask each arm's codec for.
         counts = [0] * len(components)
@@ -230,8 +231,7 @@ class Variant:
                 )
             counts[d] += 1
         bodies = [
-            await component.read(reader, counts[i])
-            for i, component in enumerate(components)
+            component.read(reader, counts[i]) for i, component in enumerate(components)
         ]
         # Reassemble row order: walk discriminators, pull next value
         # from the matching arm's body queue.
@@ -368,10 +368,10 @@ class Dynamic:
         """
         return _DynamicTag(value, type_spec)
 
-    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[Any]:
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[Any]:
         if n_rows == 0:
             return []
-        version = await reader.read_int(8, signed=False)
+        version = reader.read_int(8, signed=False)
         if version not in (_DYNAMIC_VERSION_V1, _DYNAMIC_VERSION_V2):
             raise ProtocolError(
                 f"unsupported Dynamic structure version {version}; "
@@ -381,9 +381,9 @@ class Dynamic:
         if version == _DYNAMIC_VERSION_V1:
             # V1 emits `max_dynamic_types` before the actual count; we
             # ignore the cap (server-side policy, not a wire constraint).
-            await reader.read_varuint()
-        n_types = await reader.read_varuint()
-        declared_specs = [await reader.read_string() for _ in range(n_types)]
+            reader.read_varuint()
+        n_types = reader.read_varuint()
+        declared_specs = [reader.read_string() for _ in range(n_types)]
         # Sort the declared specs together with the implicit
         # `SharedVariant` arm to mirror upstream `DataTypeVariant`'s
         # by-name sort. The sorted order is what the inner `Variant`
@@ -397,13 +397,13 @@ class Dynamic:
             for spec in sorted_specs
         ]
         # The Variant payload carries its own state-prefix version byte.
-        inner_version = await reader.read_int(8, signed=False)
+        inner_version = reader.read_int(8, signed=False)
         if inner_version != _VARIANT_VERSION_BASIC:
             raise ProtocolError(
                 f"unsupported Dynamic Variant version {inner_version}; "
                 f"only BASIC (0) is supported"
             )
-        return await Variant._read_body(reader, n_rows, components)
+        return Variant._read_body(reader, n_rows, components)
 
     def write(self, writer: BinaryWriter, values: Sequence[Any]) -> None:
         if not values:

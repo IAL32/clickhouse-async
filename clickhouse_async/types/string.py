@@ -13,7 +13,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+    from clickhouse_async.protocol.io import BinaryWriter
+    from clickhouse_async.protocol.io_sync import SyncBinaryReader
 
 
 class String:
@@ -21,8 +22,8 @@ class String:
     null_value: str = ""
     python_type: type = str
 
-    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[str]:
-        return [await reader.read_string() for _ in range(n_rows)]
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[str]:
+        return [reader.read_string() for _ in range(n_rows)]
 
     def write(self, writer: BinaryWriter, values: Sequence[str]) -> None:
         for v in values:
@@ -40,11 +41,11 @@ class FixedString:
         self.name = f"FixedString({length})"
         self.null_value = b"\x00" * length
 
-    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[bytes]:
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[bytes]:
         if n_rows == 0:
             return []
         n = self.length
-        data = await reader.read_exact(n * n_rows)
+        data = reader.read_exact(n * n_rows)
         return [bytes(data[i * n : (i + 1) * n]) for i in range(n_rows)]
 
     def write(self, writer: BinaryWriter, values: Sequence[bytes]) -> None:

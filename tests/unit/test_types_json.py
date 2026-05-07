@@ -2,20 +2,16 @@
 
 from __future__ import annotations
 
-import asyncio
-
 import pytest
 
-from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+from clickhouse_async.protocol.io import BinaryWriter
+from clickhouse_async.protocol.io_sync import SyncBinaryReader
 from clickhouse_async.types import ColumnCodec, parse_type
 from clickhouse_async.types.json_type import _DEFAULT_MAX_DYNAMIC_PATHS, JSON
 
 
-def _reader(data: bytes) -> AsyncBinaryReader:
-    stream = asyncio.StreamReader()
-    stream.feed_data(data)
-    stream.feed_eof()
-    return AsyncBinaryReader(stream)
+def _reader(data: bytes) -> SyncBinaryReader:
+    return SyncBinaryReader(bytes(data))
 
 
 # ---- parser surface -----------------------------------------------------
@@ -74,7 +70,7 @@ async def test_read_with_zero_rows_returns_empty_list() -> None:
     # BEGIN / WHEN: reading zero rows — the codec's empty-block
     #               short-circuit means no bytes are consumed
     codec = parse_type("JSON")
-    decoded = await codec.read(_reader(b""), 0)
+    decoded = codec.read(_reader(b""), 0)
 
     # THEN: an empty list comes back
     assert decoded == []
@@ -99,7 +95,7 @@ async def _round_trip(
 ) -> list[dict[str, object]]:
     writer = BinaryWriter()
     codec.write(writer, values)
-    return await codec.read(_reader(writer.getvalue()), len(values))
+    return codec.read(_reader(writer.getvalue()), len(values))
 
 
 async def test_flat_dict_round_trip() -> None:
@@ -208,7 +204,7 @@ async def test_json_read_nested_mode() -> None:
     codec_flat.write(writer, values)
 
     # WHEN: reading with nested codec
-    decoded = await codec_nested.read(_reader(writer.getvalue()), len(values))
+    decoded = codec_nested.read(_reader(writer.getvalue()), len(values))
 
     # THEN: dotted keys are reconstructed into nested dicts
     assert decoded == [

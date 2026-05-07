@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import struct
 
 import pytest
@@ -17,15 +16,13 @@ from clickhouse_async.protocol.block import (
     write_block,
     write_block_info,
 )
-from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+from clickhouse_async.protocol.io import BinaryWriter
+from clickhouse_async.protocol.io_sync import SyncBinaryReader
 from clickhouse_async.protocol.packets import OUR_REVISION
 
 
-def _reader(data: bytes) -> AsyncBinaryReader:
-    stream = asyncio.StreamReader()
-    stream.feed_data(data)
-    stream.feed_eof()
-    return AsyncBinaryReader(stream)
+def _reader(data: bytes) -> SyncBinaryReader:
+    return SyncBinaryReader(bytes(data))
 
 
 # ---- BlockInfo ----------------------------------------------------------
@@ -38,7 +35,7 @@ async def test_block_info_default_round_trip() -> None:
 
     # WHEN: writing then reading back
     write_block_info(writer, info)
-    decoded = await read_block_info(_reader(writer.getvalue()))
+    decoded = read_block_info(_reader(writer.getvalue()))
 
     # THEN: defaults round-trip identically
     assert decoded == info
@@ -51,7 +48,7 @@ async def test_block_info_custom_round_trip() -> None:
 
     # WHEN: writing then reading back
     write_block_info(writer, info)
-    decoded = await read_block_info(_reader(writer.getvalue()))
+    decoded = read_block_info(_reader(writer.getvalue()))
 
     # THEN: every field round-trips
     assert decoded == info
@@ -81,7 +78,7 @@ async def test_block_info_unknown_field_raises_protocol_error() -> None:
     # WHEN: reading the block info
     # THEN: a ProtocolError surfaces — unknown field numbers are rejected
     with pytest.raises(ProtocolError, match="unknown BlockInfo field number 99"):
-        await read_block_info(reader)
+        read_block_info(reader)
 
 
 async def test_block_info_field_3_out_of_order_buckets_is_drained() -> None:
@@ -99,7 +96,7 @@ async def test_block_info_field_3_out_of_order_buckets_is_drained() -> None:
     reader = _reader(data)
 
     # WHEN: reading block info
-    info = await read_block_info(reader)
+    info = read_block_info(reader)
 
     # THEN: field 3 was drained; the subsequent is_overflows field was read
     assert info.is_overflows is True
@@ -116,7 +113,7 @@ async def test_empty_block_round_trip() -> None:
 
     # WHEN: writing then reading back at OUR_REVISION
     write_block(writer, block, revision=OUR_REVISION)
-    decoded = await read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
+    decoded = read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
 
     # THEN: the empty block round-trips with default BlockInfo
     assert decoded.info == BlockInfo()
@@ -141,7 +138,7 @@ async def test_header_only_block_carries_column_metadata_no_rows() -> None:
 
     # WHEN: writing then reading back
     write_block(writer, block, revision=OUR_REVISION)
-    decoded = await read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
+    decoded = read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
 
     # THEN: column names and type specs survive even though no rows are present
     assert decoded.n_rows == 0
@@ -166,7 +163,7 @@ async def test_single_column_int32_round_trip() -> None:
 
     # WHEN: writing then reading back
     write_block(writer, block, revision=OUR_REVISION)
-    decoded = await read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
+    decoded = read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
 
     # THEN: column metadata and values come back identical
     assert decoded.n_rows == 3
@@ -192,7 +189,7 @@ async def test_multi_column_mixed_types_round_trip() -> None:
 
     # WHEN: writing then reading back
     write_block(writer, block, revision=OUR_REVISION)
-    decoded = await read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
+    decoded = read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
 
     # THEN: every column survives, order preserved, nulls intact
     assert decoded.n_rows == 3
@@ -219,7 +216,7 @@ async def test_nested_types_round_trip() -> None:
 
     # WHEN: writing then reading back
     write_block(writer, block, revision=OUR_REVISION)
-    decoded = await read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
+    decoded = read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
 
     # THEN: nested values survive, including the inner null mask
     assert decoded.data == [[["a", None, "b"], [], ["c"]]]
@@ -242,7 +239,7 @@ async def test_below_custom_serialization_revision_omits_has_custom_byte() -> No
     # THEN: there is no extra has_custom byte in the per-column header — we
     #       can verify this by reading back at the same revision and getting
     #       the same data
-    decoded = await read_block(_reader(encoded), revision=revision)
+    decoded = read_block(_reader(encoded), revision=revision)
     assert decoded.data == [[1]]
 
 
@@ -259,7 +256,7 @@ async def test_has_custom_byte_above_one_raises_protocol_error() -> None:
     # WHEN: reading the block at OUR_REVISION
     # THEN: a ProtocolError surfaces, naming the offending column and value
     with pytest.raises(ProtocolError, match="has_custom byte 2"):
-        await read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
+        read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
 
 
 async def test_custom_serialization_unknown_kind_raises() -> None:
@@ -274,7 +271,7 @@ async def test_custom_serialization_unknown_kind_raises() -> None:
 
     # WHEN / THEN: a ProtocolError surfaces, naming the offending kind
     with pytest.raises(ProtocolError, match=r"kind=2"):
-        await read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
+        read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
 
 
 # ---- Block: sparse-serialised columns ----------------------------------
@@ -332,7 +329,7 @@ async def test_sparse_all_default_column_decodes_to_null_values() -> None:
     _write_sparse_uint8_column(writer, group_sizes=[], trailing_defaults=5, values=[])
 
     # WHEN: reading the block
-    decoded = await read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
+    decoded = read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
 
     # THEN: every row carries the codec's null_value (0 for UInt8)
     assert decoded.n_rows == 5
@@ -349,7 +346,7 @@ async def test_sparse_single_non_default_at_position_zero() -> None:
     _write_sparse_uint8_column(writer, group_sizes=[0], trailing_defaults=4, values=[7])
 
     # WHEN: reading
-    decoded = await read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
+    decoded = read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
 
     # THEN: position 0 holds 7, positions 1-4 hold the default 0
     assert decoded.data == [[7, 0, 0, 0, 0]]
@@ -372,7 +369,7 @@ async def test_sparse_multiple_non_defaults_interleaved() -> None:
     )
 
     # WHEN: reading
-    decoded = await read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
+    decoded = read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
 
     # THEN: non-defaults land at the right positions; rest is the codec's
     #       null_value (0 for UInt8)
@@ -396,7 +393,7 @@ async def test_sparse_offsets_overshoot_n_rows_raises() -> None:
 
     # WHEN / THEN: ProtocolError flags the mismatch by name
     with pytest.raises(ProtocolError, match="sparse offsets"):
-        await read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
+        read_block(_reader(writer.getvalue()), revision=OUR_REVISION)
 
 
 # ---- Block: validation on write ----------------------------------------

@@ -19,7 +19,8 @@ from clickhouse_async.errors import ProtocolError
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+    from clickhouse_async.protocol.io import BinaryWriter
+    from clickhouse_async.protocol.io_sync import SyncBinaryReader
     from clickhouse_async.types.base import ColumnCodec
 
 
@@ -44,11 +45,11 @@ class Nullable:
         self.name = f"Nullable({inner.name})"
         self.python_type = getattr(inner, "python_type", object)
 
-    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[Any]:
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[Any]:
         if n_rows == 0:
             return []
-        mask = await reader.read_exact(n_rows)
-        values = await self.inner.read(reader, n_rows)
+        mask = reader.read_exact(n_rows)
+        values = self.inner.read(reader, n_rows)
         return [None if mask[i] else values[i] for i in range(n_rows)]
 
     def write(self, writer: BinaryWriter, values: Sequence[Any]) -> None:
@@ -80,17 +81,17 @@ class Array:
         self.name = f"Array({inner.name})"
         self.null_value = []
 
-    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[list[Any]]:
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[list[Any]]:
         if n_rows == 0:
             return []
         # Cumulative offsets — one UInt64 per row.
-        offsets_data = await reader.read_exact(8 * n_rows)
+        offsets_data = reader.read_exact(8 * n_rows)
         offsets = [
             int.from_bytes(offsets_data[i * 8 : (i + 1) * 8], "little", signed=False)
             for i in range(n_rows)
         ]
         total = offsets[-1]
-        flat = await self.inner.read(reader, total)
+        flat = self.inner.read(reader, total)
         out: list[list[Any]] = []
         prev = 0
         for end in offsets:
@@ -170,13 +171,11 @@ class Tuple:
         """`True` iff this Tuple was constructed with field names."""
         return self.names is not None
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
-    ) -> list[tuple[Any, ...]]:
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[tuple[Any, ...]]:
         if n_rows == 0:
             return []
         columns: list[list[Any]] = [
-            await component.read(reader, n_rows) for component in self.components
+            component.read(reader, n_rows) for component in self.components
         ]
         return [
             tuple(columns[c][i] for c in range(len(self.components)))
@@ -234,10 +233,10 @@ class Nested:
         )
         self.null_value = []
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
+    def read(
+        self, reader: SyncBinaryReader, n_rows: int
     ) -> list[list[tuple[Any, ...]]]:
-        return await self._inner.read(reader, n_rows)
+        return self._inner.read(reader, n_rows)
 
     def write(
         self, writer: BinaryWriter, values: Sequence[Sequence[Sequence[Any]]]
@@ -264,10 +263,8 @@ class Map:
         self._inner: Array = Array(Tuple(key, value))
         self.null_value = {}
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
-    ) -> list[dict[Any, Any]]:
-        rows = await self._inner.read(reader, n_rows)
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[dict[Any, Any]]:
+        rows = self._inner.read(reader, n_rows)
         return [dict(row) for row in rows]
 
     def write(
@@ -369,20 +366,20 @@ class LowCardinality:
             return cast("Nullable", self.inner).inner
         return self.inner
 
-    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[Any]:
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[Any]:
         if n_rows == 0:
             return []
-        version = await reader.read_int(8, signed=False)
+        version = reader.read_int(8, signed=False)
         if version != self._VERSION:
             raise ProtocolError(f"unsupported LowCardinality version: {version}")
-        sertype = await reader.read_int(8, signed=False)
+        sertype = reader.read_int(8, signed=False)
         index_tag = sertype & 0xFF
         if index_tag not in (0, 1, 2, 3):
             raise ProtocolError(f"invalid LowCardinality index tag: {index_tag}")
         index_size = self._byte_width_for_tag(index_tag)
 
-        dict_size = await reader.read_int(8, signed=False)
-        dict_body = await self._dictionary_codec().read(reader, dict_size)
+        dict_size = reader.read_int(8, signed=False)
+        dict_body = self._dictionary_codec().read(reader, dict_size)
         # Map slot 0 to None so a downstream lookup with index 0 yields
         # null. The placeholder bytes the server wrote at slot 0 are
         # ignored — we never expose them.
@@ -390,12 +387,12 @@ class LowCardinality:
             [None, *dict_body[1:]] if self._inner_is_nullable else dict_body
         )
 
-        idx_count = await reader.read_int(8, signed=False)
+        idx_count = reader.read_int(8, signed=False)
         if idx_count != n_rows:
             raise ProtocolError(
                 f"LowCardinality indices count {idx_count} != n_rows {n_rows}"
             )
-        idx_data = await reader.read_exact(index_size * n_rows)
+        idx_data = reader.read_exact(index_size * n_rows)
         return [
             dictionary[
                 int.from_bytes(

@@ -9,8 +9,6 @@ of the building blocks.
 
 from __future__ import annotations
 
-import asyncio
-
 import pytest
 
 from clickhouse_async.connection import Connection, State
@@ -21,7 +19,8 @@ from clickhouse_async.protocol.block import (
     read_block,
     write_block,
 )
-from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+from clickhouse_async.protocol.io import BinaryWriter
+from clickhouse_async.protocol.io_sync import SyncBinaryReader
 from clickhouse_async.protocol.packets import OUR_REVISION, ClientPacket
 
 from ._mock_transport import ScriptedTransport
@@ -32,11 +31,8 @@ from ._scripted_packets import (
 )
 
 
-def _reader_over(data: bytes) -> AsyncBinaryReader:
-    stream = asyncio.StreamReader()
-    stream.feed_data(data)
-    stream.feed_eof()
-    return AsyncBinaryReader(stream)
+def _reader_over(data: bytes) -> SyncBinaryReader:
+    return SyncBinaryReader(bytes(data))
 
 
 async def _open_in_flight(transport: ScriptedTransport) -> Connection:
@@ -68,9 +64,9 @@ async def test_send_data_writes_packet_id_empty_name_then_block() -> None:
     # THEN: the bytes start with ClientPacket.DATA (varuint), an empty
     #       external-table-name string, then a write_block round-trip
     rdr = _reader_over(after)
-    assert await rdr.read_varuint() == ClientPacket.DATA
-    assert await rdr.read_string() == ""
-    decoded = await read_block(rdr, revision=OUR_REVISION)
+    assert rdr.read_varuint() == ClientPacket.DATA
+    assert rdr.read_string() == ""
+    decoded = read_block(rdr, revision=OUR_REVISION)
     assert decoded.n_rows == 3
     assert decoded.data == [[1, 2, 3]]
     assert decoded.columns[0].name == "id"
@@ -191,9 +187,9 @@ async def test_send_data_block_round_trips_via_scripted_loopback() -> None:
     # WHEN: sending the block and decoding what we wrote
     await conn.send_data(block)
     rdr = _reader_over(transport.written()[pre:])
-    assert await rdr.read_varuint() == ClientPacket.DATA
-    assert await rdr.read_string() == ""
-    decoded = await read_block(rdr, revision=conn.negotiated_revision)
+    assert rdr.read_varuint() == ClientPacket.DATA
+    assert rdr.read_string() == ""
+    decoded = read_block(rdr, revision=conn.negotiated_revision)
 
     # THEN: the bytes round-trip back to a block with the same columns
     #       and values

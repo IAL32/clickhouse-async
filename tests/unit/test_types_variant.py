@@ -8,22 +8,19 @@ one (`Dynamic`) — both share the same body shape (8B version,
 
 from __future__ import annotations
 
-import asyncio
 from datetime import date
 
 import pytest
 
 from clickhouse_async.errors import ProtocolError
-from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+from clickhouse_async.protocol.io import BinaryWriter
+from clickhouse_async.protocol.io_sync import SyncBinaryReader
 from clickhouse_async.types import ColumnCodec, parse_type
 from clickhouse_async.types.variant import Dynamic, Variant
 
 
-def _reader(data: bytes) -> AsyncBinaryReader:
-    stream = asyncio.StreamReader()
-    stream.feed_data(data)
-    stream.feed_eof()
-    return AsyncBinaryReader(stream)
+def _reader(data: bytes) -> SyncBinaryReader:
+    return SyncBinaryReader(bytes(data))
 
 
 # ---- parser surface -----------------------------------------------------
@@ -91,7 +88,7 @@ async def test_variant_round_trip_mixed_rows_recovers_each_arm() -> None:
     # WHEN: writing then reading back through the codec
     writer = BinaryWriter()
     codec.write(writer, values)
-    decoded = await codec.read(_reader(writer.getvalue()), len(values))
+    decoded = codec.read(_reader(writer.getvalue()), len(values))
 
     # THEN: every row's value comes back identical (and the discriminator
     #       was inferred correctly from the Python type per arm)
@@ -108,7 +105,7 @@ async def test_variant_all_null_column_round_trips() -> None:
     writer = BinaryWriter()
     codec.write(writer, values)
     encoded = writer.getvalue()
-    decoded = await codec.read(_reader(encoded), len(values))
+    decoded = codec.read(_reader(encoded), len(values))
 
     # THEN: every row is None and the encoded body is exactly the
     #       8-byte version + 3 x 0xFF discriminator (no arm bodies)
@@ -130,7 +127,7 @@ async def test_variant_tag_forces_arm_when_inference_would_pick_first_match() ->
     writer = BinaryWriter()
     codec.write(writer, values)
     encoded = writer.getvalue()
-    decoded = await codec.read(_reader(encoded), len(values))
+    decoded = codec.read(_reader(encoded), len(values))
 
     # THEN: both rows surface the integer 7 on read (the discriminator
     #       lives in the codec only) but the on-wire discriminator
@@ -168,7 +165,7 @@ async def test_variant_empty_column_reads_and_writes_zero_bytes() -> None:
     writer = BinaryWriter()
     codec.write(writer, [])
     encoded = writer.getvalue()
-    decoded = await codec.read(_reader(encoded), 0)
+    decoded = codec.read(_reader(encoded), 0)
 
     # THEN: exactly zero bytes round-trip
     assert encoded == b""
@@ -193,7 +190,7 @@ async def test_variant_wire_format_pin_for_int32_string() -> None:
     codec = parse_type("Variant(Int32, String)")
 
     # WHEN: decoding the payload
-    decoded = await codec.read(_reader(payload), 4)
+    decoded = codec.read(_reader(payload), 4)
 
     # THEN: the values land in the rows their discriminators point at,
     #       in the original row order (NOT in arm-body order)
@@ -209,7 +206,7 @@ async def test_variant_unsupported_version_raises_protocol_error() -> None:
     # WHEN / THEN: the codec surfaces the version with a clear error
     #              instead of silently misinterpreting bytes
     with pytest.raises(ProtocolError, match="version"):
-        await codec.read(_reader(payload), 1)
+        codec.read(_reader(payload), 1)
 
 
 async def test_variant_out_of_range_discriminator_raises() -> None:
@@ -220,7 +217,7 @@ async def test_variant_out_of_range_discriminator_raises() -> None:
 
     # WHEN / THEN: a discriminator that doesn't index any arm raises
     with pytest.raises(ProtocolError, match="out of range"):
-        await codec.read(_reader(payload), 1)
+        codec.read(_reader(payload), 1)
 
 
 # ---- Dynamic round-trips -----------------------------------------------
@@ -235,7 +232,7 @@ async def test_dynamic_two_active_types_round_trip() -> None:
     # WHEN: round-tripping
     writer = BinaryWriter()
     codec.write(writer, values)
-    decoded = await codec.read(_reader(writer.getvalue()), len(values))
+    decoded = codec.read(_reader(writer.getvalue()), len(values))
 
     # THEN: every row's value survives, and the per-block prefix
     #       declared exactly the active arms
@@ -372,4 +369,4 @@ def test_codec_name_round_trips_through_parser(spec: str) -> None:
 async def _round_trip_dynamic(codec: ColumnCodec, values: list[object]) -> list[object]:
     writer = BinaryWriter()
     codec.write(writer, values)
-    return await codec.read(_reader(writer.getvalue()), len(values))
+    return codec.read(_reader(writer.getvalue()), len(values))

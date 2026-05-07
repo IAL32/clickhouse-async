@@ -24,17 +24,18 @@ the Python level.
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+    from clickhouse_async.protocol.io import BinaryWriter
+    from clickhouse_async.protocol.io_sync import SyncBinaryReader
     from clickhouse_async.types.base import ColumnCodec
 
 
-_StateReader = Callable[["AsyncBinaryReader"], Awaitable[bytes]]
+_StateReader = Callable[["SyncBinaryReader"], bytes]
 
 # LEB128 varuint continuation marker — bit 7 = "more bytes follow".
 # Mirrored from `clickhouse_async.protocol.io` to keep this module
@@ -43,7 +44,7 @@ _StateReader = Callable[["AsyncBinaryReader"], Awaitable[bytes]]
 _VARUINT_CONTINUATION_BIT = 0x80
 
 
-async def _read_varuint_bytes(reader: AsyncBinaryReader) -> bytes:
+def _read_varuint_bytes(reader: SyncBinaryReader) -> bytes:
     """Read a LEB128 varuint and return its raw byte encoding.
 
     We round-trip the bytes verbatim back into INSERTs, so we need
@@ -52,27 +53,27 @@ async def _read_varuint_bytes(reader: AsyncBinaryReader) -> bytes:
     """
     out = bytearray()
     while True:
-        b = await reader.read_byte()
+        b = reader.read_byte()
         out.append(b)
         if b < _VARUINT_CONTINUATION_BIT:
             return bytes(out)
 
 
-async def _read_avg_state(reader: AsyncBinaryReader) -> bytes:
+def _read_avg_state(reader: SyncBinaryReader) -> bytes:
     """`avg` state: `Float64 numerator` + `varuint denominator`.
 
     The total length is variable (the denominator is varuint-encoded
     in upstream `AggregateFunctionAvgBase::serialize`), so we read
     each piece by hand and return the concatenated bytes.
     """
-    numerator = await reader.read_exact(8)
-    denom_bytes = await _read_varuint_bytes(reader)
+    numerator = reader.read_exact(8)
+    denom_bytes = _read_varuint_bytes(reader)
     return bytes(numerator) + denom_bytes
 
 
-async def _read_count_state(reader: AsyncBinaryReader) -> bytes:
+def _read_count_state(reader: SyncBinaryReader) -> bytes:
     """`count` state: a single `UInt64` row counter (8 bytes)."""
-    return bytes(await reader.read_exact(8))
+    return bytes(reader.read_exact(8))
 
 
 # Per-function readers. Keys are the bare function names (no parens
@@ -137,11 +138,11 @@ class AggregateFunction:
             )
         return rd
 
-    async def read(self, reader: AsyncBinaryReader, n_rows: int) -> list[bytes]:
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[bytes]:
         if n_rows == 0:
             return []
         rd = self._reader()
-        return [await rd(reader) for _ in range(n_rows)]
+        return [rd(reader) for _ in range(n_rows)]
 
     def write(self, writer: BinaryWriter, values: Sequence[bytes]) -> None:
         if not values:

@@ -41,7 +41,8 @@ from clickhouse_async.types import ColumnCodec, parse_type
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+    from clickhouse_async.protocol.io import BinaryWriter
+    from clickhouse_async.protocol.io_sync import SyncBinaryReader
 
 # BlockInfo TLV field numbers (canonical layout, `Core/BlockInfo.cpp`).
 _BLOCK_INFO_FIELD_TERMINATOR = 0
@@ -87,22 +88,22 @@ class Block:
 # ---- BlockInfo -------------------------------------------------------------
 
 
-async def read_block_info(reader: AsyncBinaryReader) -> BlockInfo:
+def read_block_info(reader: SyncBinaryReader) -> BlockInfo:
     info = BlockInfo()
     while True:
-        field_num = await reader.read_varuint()
+        field_num = reader.read_varuint()
         if field_num == _BLOCK_INFO_FIELD_TERMINATOR:
             return info
         if field_num == _BLOCK_INFO_FIELD_IS_OVERFLOWS:
-            info.is_overflows = (await reader.read_byte()) != 0
+            info.is_overflows = reader.read_byte() != 0
         elif field_num == _BLOCK_INFO_FIELD_BUCKET_NUM:
-            info.bucket_num = await reader.read_int(4, signed=True)
+            info.bucket_num = reader.read_int(4, signed=True)
         elif field_num == _BLOCK_INFO_FIELD_OUT_OF_ORDER_BUCKETS:
             # vector<Int32>: varuint count followed by count x Int32 entries.
             # Used only for server-side aggregation ordering; read and discard.
-            n = await reader.read_varuint()
+            n = reader.read_varuint()
             for _ in range(n):
-                await reader.read_int(4, signed=True)
+                reader.read_int(4, signed=True)
         else:
             raise ProtocolError(
                 f"unknown BlockInfo field number {field_num} at offset "
@@ -122,8 +123,8 @@ def write_block_info(writer: BinaryWriter, info: BlockInfo) -> None:
 # ---- Block -----------------------------------------------------------------
 
 
-async def read_block(
-    reader: AsyncBinaryReader,
+def read_block(
+    reader: SyncBinaryReader,
     *,
     revision: int,
     session_timezone: str | None = None,
@@ -145,21 +146,21 @@ async def read_block(
     the block to return nested dicts on read.
     """
 
-    info = await read_block_info(reader)
-    n_columns = await reader.read_varuint()
-    n_rows = await reader.read_varuint()
+    info = read_block_info(reader)
+    n_columns = reader.read_varuint()
+    n_rows = reader.read_varuint()
     columns: list[ColumnSpec] = []
     data: list[list[Any]] = []
     for _ in range(n_columns):
-        name = await reader.read_string()
-        type_spec = await reader.read_string()
+        name = reader.read_string()
+        type_spec = reader.read_string()
         codec = parse_type(
             type_spec, session_timezone=session_timezone, json_nested=json_nested
         )
         if revision >= DBMS_MIN_REVISION_WITH_CUSTOM_SERIALIZATION:
-            has_custom = await reader.read_byte()
+            has_custom = reader.read_byte()
             if has_custom == 1:
-                column_data = await _read_custom_serialised_column(
+                column_data = _read_custom_serialised_column(
                     reader, codec, n_rows, name=name, type_spec=type_spec
                 )
             elif has_custom != 0:
@@ -168,9 +169,9 @@ async def read_block(
                     f"{name!r} of type {type_spec!r}: must be 0 or 1"
                 )
             else:
-                column_data = await codec.read(reader, n_rows)
+                column_data = codec.read(reader, n_rows)
         else:
-            column_data = await codec.read(reader, n_rows)
+            column_data = codec.read(reader, n_rows)
         columns.append(ColumnSpec(name=name, type_spec=type_spec, codec=codec))
         data.append(column_data)
     return Block(info=info, columns=columns, n_rows=n_rows, data=data)
@@ -188,8 +189,8 @@ _KIND_SPARSE = 1
 _SPARSE_END_OF_GRANULE_FLAG = 1 << 62
 
 
-async def _read_custom_serialised_column(
-    reader: AsyncBinaryReader,
+def _read_custom_serialised_column(
+    reader: SyncBinaryReader,
     codec: ColumnCodec,
     n_rows: int,
     *,
@@ -203,9 +204,9 @@ async def _read_custom_serialised_column(
     body that follows depends on the kind — see `_read_sparse_column`.
     """
 
-    kind = await reader.read_byte()
+    kind = reader.read_byte()
     if kind == _KIND_SPARSE:
-        return await _read_sparse_column(
+        return _read_sparse_column(
             reader, codec, n_rows, name=name, type_spec=type_spec
         )
     raise ProtocolError(
@@ -214,8 +215,8 @@ async def _read_custom_serialised_column(
     )
 
 
-async def _read_sparse_column(
-    reader: AsyncBinaryReader,
+def _read_sparse_column(
+    reader: SyncBinaryReader,
     codec: ColumnCodec,
     n_rows: int,
     *,
@@ -243,7 +244,7 @@ async def _read_sparse_column(
 
     group_sizes: list[int] = []
     while True:
-        raw = await reader.read_varuint()
+        raw = reader.read_varuint()
         if raw & _SPARSE_END_OF_GRANULE_FLAG:
             # Trailing-defaults count is the low 62 bits; we don't need
             # it for reconstruction (we know n_rows from the block
@@ -253,7 +254,7 @@ async def _read_sparse_column(
         group_sizes.append(raw)
 
     n_non_default = len(group_sizes)
-    values = await codec.read(reader, n_non_default)
+    values = codec.read(reader, n_non_default)
 
     result: list[Any] = [codec.null_value] * n_rows
     position = 0

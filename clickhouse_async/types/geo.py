@@ -30,7 +30,8 @@ from clickhouse_async.types.primitive import Float64
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+    from clickhouse_async.protocol.io import BinaryWriter
+    from clickhouse_async.protocol.io_sync import SyncBinaryReader
 
 
 class Point:
@@ -43,10 +44,8 @@ class Point:
     def __init__(self) -> None:
         self._inner: Tuple = Tuple(Float64(), Float64())
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
-    ) -> list[tuple[float, float]]:
-        return await self._inner.read(reader, n_rows)
+    def read(self, reader: SyncBinaryReader, n_rows: int) -> list[tuple[float, float]]:
+        return self._inner.read(reader, n_rows)
 
     def write(self, writer: BinaryWriter, values: Sequence[Sequence[Any]]) -> None:
         self._inner.write(writer, values)
@@ -62,10 +61,10 @@ class Ring:
     def __init__(self) -> None:
         self._inner: Array = Array(Point())
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
+    def read(
+        self, reader: SyncBinaryReader, n_rows: int
     ) -> list[list[tuple[float, float]]]:
-        return await self._inner.read(reader, n_rows)
+        return self._inner.read(reader, n_rows)
 
     def write(self, writer: BinaryWriter, values: Sequence[Sequence[Any]]) -> None:
         self._inner.write(writer, values)
@@ -81,10 +80,10 @@ class Polygon:
     def __init__(self) -> None:
         self._inner: Array = Array(Ring())
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
+    def read(
+        self, reader: SyncBinaryReader, n_rows: int
     ) -> list[list[list[tuple[float, float]]]]:
-        return await self._inner.read(reader, n_rows)
+        return self._inner.read(reader, n_rows)
 
     def write(self, writer: BinaryWriter, values: Sequence[Sequence[Any]]) -> None:
         self._inner.write(writer, values)
@@ -100,10 +99,10 @@ class MultiPolygon:
     def __init__(self) -> None:
         self._inner: Array = Array(Polygon())
 
-    async def read(
-        self, reader: AsyncBinaryReader, n_rows: int
+    def read(
+        self, reader: SyncBinaryReader, n_rows: int
     ) -> list[list[list[list[tuple[float, float]]]]]:
-        return await self._inner.read(reader, n_rows)
+        return self._inner.read(reader, n_rows)
 
     def write(self, writer: BinaryWriter, values: Sequence[Sequence[Any]]) -> None:
         self._inner.write(writer, values)

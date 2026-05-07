@@ -9,21 +9,18 @@ parametric ones (`quantilesTDigest(0.5, 0.9)`).
 
 from __future__ import annotations
 
-import asyncio
 import struct
 
 import pytest
 
-from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+from clickhouse_async.protocol.io import BinaryWriter
+from clickhouse_async.protocol.io_sync import SyncBinaryReader
 from clickhouse_async.types import parse_type
 from clickhouse_async.types.aggregate import AggregateFunction
 
 
-def _reader(data: bytes) -> AsyncBinaryReader:
-    stream = asyncio.StreamReader()
-    stream.feed_data(data)
-    stream.feed_eof()
-    return AsyncBinaryReader(stream)
+def _reader(data: bytes) -> SyncBinaryReader:
+    return SyncBinaryReader(bytes(data))
 
 
 # ---- parser surface -----------------------------------------------------
@@ -90,7 +87,7 @@ async def test_aggregate_function_avg_state_round_trips_byte_for_byte() -> None:
     # WHEN: writing then reading back through the codec
     writer = BinaryWriter()
     codec.write(writer, states)
-    decoded = await codec.read(_reader(writer.getvalue()), len(states))
+    decoded = codec.read(_reader(writer.getvalue()), len(states))
 
     # THEN: every state survives byte-for-byte (lengths and varuint
     #       payloads preserved across the round-trip)
@@ -109,7 +106,7 @@ async def test_aggregate_function_count_state_round_trips() -> None:
     # WHEN: round-tripping
     writer = BinaryWriter()
     codec.write(writer, states)
-    decoded = await codec.read(_reader(writer.getvalue()), len(states))
+    decoded = codec.read(_reader(writer.getvalue()), len(states))
 
     # THEN: every 8-byte state round-trips
     assert decoded == states
@@ -120,7 +117,7 @@ async def test_aggregate_function_empty_column_round_trip() -> None:
     codec = parse_type("AggregateFunction(avg, Float64)")
     writer = BinaryWriter()
     codec.write(writer, [])
-    decoded = await codec.read(_reader(writer.getvalue()), 0)
+    decoded = codec.read(_reader(writer.getvalue()), 0)
     assert decoded == []
 
 
@@ -134,7 +131,7 @@ async def test_aggregate_function_unknown_function_raises() -> None:
     # WHEN / THEN: reading raises NotImplementedError naming the
     #              function and pointing the user at the workaround
     with pytest.raises(NotImplementedError, match="uniqHLL12"):
-        await codec.read(_reader(b"\x00" * 100), 1)
+        codec.read(_reader(b"\x00" * 100), 1)
     # And writing raises symmetrically — we don't pretend the bytes
     # would round-trip when we don't know the format
     with pytest.raises(NotImplementedError, match="uniqHLL12"):

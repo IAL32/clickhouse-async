@@ -9,7 +9,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal as PyDecimal
 from typing import TYPE_CHECKING, Any
@@ -17,7 +16,8 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+from clickhouse_async.protocol.io import BinaryWriter
+from clickhouse_async.protocol.io_sync import SyncBinaryReader
 from clickhouse_async.types import ColumnCodec, parse_type
 from clickhouse_async.types.datetime import (
     DateTime,
@@ -36,17 +36,14 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-def _reader(data: bytes) -> AsyncBinaryReader:
-    stream = asyncio.StreamReader()
-    stream.feed_data(data)
-    stream.feed_eof()
-    return AsyncBinaryReader(stream)
+def _reader(data: bytes) -> SyncBinaryReader:
+    return SyncBinaryReader(bytes(data))
 
 
 async def _round_trip(codec: ColumnCodec, values: Sequence[Any]) -> list[Any]:
     writer = BinaryWriter()
     codec.write(writer, values)
-    return await codec.read(_reader(writer.getvalue()), len(values))
+    return codec.read(_reader(writer.getvalue()), len(values))
 
 
 # ---- integer matrix ------------------------------------------------------

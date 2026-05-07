@@ -16,7 +16,6 @@ Covers:
 
 from __future__ import annotations
 
-import asyncio
 import sys
 from importlib import reload
 from typing import TYPE_CHECKING
@@ -39,6 +38,7 @@ from clickhouse_async.protocol.compression import (
     CompressionMethod,
 )
 from clickhouse_async.protocol.io import AsyncBinaryReader, BinaryWriter
+from clickhouse_async.protocol.io_sync import SyncBinaryReader
 from clickhouse_async.protocol.packets import (
     OUR_REVISION,
     ClientPacket,
@@ -52,11 +52,12 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
 
 
-def _reader_over(data: bytes) -> AsyncBinaryReader:
-    stream = asyncio.StreamReader()
-    stream.feed_data(data)
-    stream.feed_eof()
-    return AsyncBinaryReader(stream)
+def _reader_over(data: bytes) -> SyncBinaryReader:
+    return SyncBinaryReader(bytes(data))
+
+
+def _async_reader_over(data: bytes) -> AsyncBinaryReader:
+    return AsyncBinaryReader.from_bytes(bytes(data))
 
 
 # ---- bare-install discipline -------------------------------------------
@@ -199,7 +200,7 @@ async def test_compressed_frame_round_trip(method: CompressionMethod) -> None:
     # WHEN: framing the payload and reading it back through the reader
     writer = BinaryWriter()
     CompressedBlockWriter(writer, method=method).write_payload(payload)
-    reader = CompressedBlockReader(_reader_over(writer.getvalue()))
+    reader = CompressedBlockReader(_async_reader_over(writer.getvalue()))
     decoded = await reader.read_payload()
 
     # THEN: every byte round-trips
@@ -219,7 +220,7 @@ async def test_multi_frame_round_trip_over_one_megabyte() -> None:
     writer = BinaryWriter()
     for p in payloads:
         CompressedBlockWriter(writer, method=CompressionMethod.LZ4).write_payload(p)
-    rdr = _reader_over(writer.getvalue())
+    rdr = _async_reader_over(writer.getvalue())
     decoded = [await CompressedBlockReader(rdr).read_payload() for _ in payloads]
 
     # THEN: each frame's CityHash128 verifies and the payloads round-trip
@@ -236,7 +237,7 @@ async def test_corrupted_frame_raises_protocol_error_with_hex_diagnostic() -> No
     framed = bytearray(writer.getvalue())
     # Flip a byte inside the compressed body (after the 16-byte hash + header)
     framed[-1] ^= 0x01
-    rdr = _reader_over(bytes(framed))
+    rdr = _async_reader_over(bytes(framed))
 
     # WHEN: reading the frame
     # THEN: CityHash mismatch surfaces as a ProtocolError naming both
@@ -265,49 +266,49 @@ async def test_send_query_compression_flag_flips_when_lz4_enabled() -> None:
     #       compression flag is 1 (sits right after the query stage)
     rdr = _reader_over(transport.written())
     # Drain Hello packet
-    assert await rdr.read_varuint() == ClientPacket.HELLO
-    await rdr.read_string()  # client name
-    await rdr.read_varuint()  # version major
-    await rdr.read_varuint()  # version minor
-    await rdr.read_varuint()  # revision
-    await rdr.read_string()  # database
-    await rdr.read_string()  # user
-    await rdr.read_string()  # password
-    await rdr.read_string()  # addendum: quota_key (empty)
-    await rdr.read_string()  # addendum: proto_send_chunked
-    await rdr.read_string()  # addendum: proto_recv_chunked
-    await rdr.read_varuint()  # addendum: parallel_replicas_protocol_version
+    assert rdr.read_varuint() == ClientPacket.HELLO
+    rdr.read_string()  # client name
+    rdr.read_varuint()  # version major
+    rdr.read_varuint()  # version minor
+    rdr.read_varuint()  # revision
+    rdr.read_string()  # database
+    rdr.read_string()  # user
+    rdr.read_string()  # password
+    rdr.read_string()  # addendum: quota_key (empty)
+    rdr.read_string()  # addendum: proto_send_chunked
+    rdr.read_string()  # addendum: proto_recv_chunked
+    rdr.read_varuint()  # addendum: parallel_replicas_protocol_version
     # Drain Query packet up to the compression flag
-    assert await rdr.read_varuint() == ClientPacket.QUERY
-    await rdr.read_string()  # query_id
+    assert rdr.read_varuint() == ClientPacket.QUERY
+    rdr.read_string()  # query_id
     # ClientInfo block at OUR_REVISION
-    await rdr.read_byte()  # query_kind
-    await rdr.read_string()  # initial_user
-    await rdr.read_string()  # initial_query_id
-    await rdr.read_string()  # initial_address
-    await rdr.read_int(8, signed=True)  # initial_query_start_time
-    await rdr.read_byte()  # interface = TCP
-    await rdr.read_string()  # os_user
-    await rdr.read_string()  # hostname
-    await rdr.read_string()  # client_name
-    await rdr.read_varuint()  # client version major
-    await rdr.read_varuint()  # client version minor
-    await rdr.read_varuint()  # revision
-    await rdr.read_string()  # quota_key
-    await rdr.read_varuint()  # distributed_depth
-    await rdr.read_varuint()  # client_version_patch
-    await rdr.read_byte()  # has_otel
-    await rdr.read_varuint()  # parallel_replicas: collaborate
-    await rdr.read_varuint()  # parallel_replicas: count
-    await rdr.read_varuint()  # parallel_replicas: replica idx
-    await rdr.read_varuint()  # script_query_number
-    await rdr.read_varuint()  # script_line_number
-    await rdr.read_byte()  # have_jwt
-    await rdr.read_string()  # settings terminator
-    await rdr.read_string()  # extra_roles (empty for non-interserver)
-    await rdr.read_string()  # interserver secret
-    await rdr.read_varuint()  # stage
-    assert await rdr.read_varuint() == 1  # compression flag flipped on
+    rdr.read_byte()  # query_kind
+    rdr.read_string()  # initial_user
+    rdr.read_string()  # initial_query_id
+    rdr.read_string()  # initial_address
+    rdr.read_int(8, signed=True)  # initial_query_start_time
+    rdr.read_byte()  # interface = TCP
+    rdr.read_string()  # os_user
+    rdr.read_string()  # hostname
+    rdr.read_string()  # client_name
+    rdr.read_varuint()  # client version major
+    rdr.read_varuint()  # client version minor
+    rdr.read_varuint()  # revision
+    rdr.read_string()  # quota_key
+    rdr.read_varuint()  # distributed_depth
+    rdr.read_varuint()  # client_version_patch
+    rdr.read_byte()  # has_otel
+    rdr.read_varuint()  # parallel_replicas: collaborate
+    rdr.read_varuint()  # parallel_replicas: count
+    rdr.read_varuint()  # parallel_replicas: replica idx
+    rdr.read_varuint()  # script_query_number
+    rdr.read_varuint()  # script_line_number
+    rdr.read_byte()  # have_jwt
+    rdr.read_string()  # settings terminator
+    rdr.read_string()  # extra_roles (empty for non-interserver)
+    rdr.read_string()  # interserver secret
+    rdr.read_varuint()  # stage
+    assert rdr.read_varuint() == 1  # compression flag flipped on
 
 
 @pytest.mark.skipif(not _LZ4_AVAILABLE, reason="requires [lz4] extra")
@@ -331,10 +332,11 @@ async def test_send_data_round_trips_compressed_block_through_loopback() -> None
     # THEN: parsing the captured bytes — Data packet id, empty name,
     #       then a compressed frame that decodes to the original block
     rdr = _reader_over(captured)
-    assert await rdr.read_varuint() == ClientPacket.DATA
-    assert await rdr.read_string() == ""
-    payload = await CompressedBlockReader(rdr).read_payload()
-    decoded = await read_block(_reader_over(payload), revision=conn.negotiated_revision)
+    assert rdr.read_varuint() == ClientPacket.DATA
+    assert rdr.read_string() == ""
+    async_rdr = AsyncBinaryReader.from_bytes(bytes(captured)[rdr.position :])
+    payload = await CompressedBlockReader(async_rdr).read_payload()
+    decoded = read_block(_reader_over(payload), revision=conn.negotiated_revision)
     assert decoded.n_rows == 1000
     assert decoded.data[0][:5] == [1, 2, 3, 4, 5]
 
@@ -399,7 +401,7 @@ async def test_default_connection_uses_no_compression() -> None:
     #       defaults to NONE on a bare-install connection
     captured = transport.written()[pre:]
     rdr = _reader_over(captured)
-    assert await rdr.read_varuint() == ClientPacket.DATA
-    assert await rdr.read_string() == ""
-    decoded = await read_block(rdr, revision=conn.negotiated_revision)
+    assert rdr.read_varuint() == ClientPacket.DATA
+    assert rdr.read_string() == ""
+    decoded = read_block(rdr, revision=conn.negotiated_revision)
     assert decoded.n_rows == 3

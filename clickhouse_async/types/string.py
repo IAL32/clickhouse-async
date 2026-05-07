@@ -68,8 +68,27 @@ class String:
         return out
 
     def write(self, writer: BinaryWriter, values: Sequence[str]) -> None:
+        # Hot path: build the whole column body in a local bytearray
+        # via inline UTF-8 encode + varuint emit, then `write_raw` the
+        # whole thing in one call. Avoids per-row method overhead
+        # (`write_string` → `write_varuint` → bytearray.append) which
+        # dominated the 100k-row insert benchmark.
+        if not values:
+            return
+        out = bytearray()
+        extend = out.extend
+        append = out.append
+        cont = _VARUINT_CONTINUATION_BIT
         for v in values:
-            writer.write_string(v)
+            data = v.encode("utf-8")
+            n = len(data)
+            # Inline LEB128 varuint for the length prefix.
+            while n >= cont:
+                append((n & 0x7F) | cont)
+                n >>= 7
+            append(n)
+            extend(data)
+        writer.write_raw(bytes(out))
 
 
 class FixedString:

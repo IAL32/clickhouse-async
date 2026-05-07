@@ -609,18 +609,40 @@ class Client:
             return len(batch)
 
         try:
-            async for row_index, row in _enumerate_async(_normalise_row_source(rows)):
-                if len(row) != n_columns:
-                    with contextlib.suppress(QueryCancellationError):
-                        await self._conn.cancel()
-                    raise ValueError(
-                        f"INSERT row {row_index} has {len(row)} columns; "
-                        f"expected {n_columns} (column names: {server_names!r})"
-                    )
-                batch.append(row)
-                if len(batch) >= insert_block_size:
-                    client_sent_rows += await _flush(batch)
-                    batch = []
+            # Sync iterables get a fast path that batches in pure
+            # Python without yielding through an async generator on
+            # every row — at 100k rows that's ~100 ms saved on the
+            # insert benchmark (one async-yield costs ~1 µs).
+            if isinstance(rows, AsyncIterable):
+                async for row_index, row in _enumerate_async(
+                    cast("AsyncIterable[Sequence[object]]", rows)
+                ):
+                    if len(row) != n_columns:
+                        with contextlib.suppress(QueryCancellationError):
+                            await self._conn.cancel()
+                        raise ValueError(
+                            f"INSERT row {row_index} has {len(row)} columns; "
+                            f"expected {n_columns} (column names: {server_names!r})"
+                        )
+                    batch.append(row)
+                    if len(batch) >= insert_block_size:
+                        client_sent_rows += await _flush(batch)
+                        batch = []
+            else:
+                for row_index, row in enumerate(
+                    cast("Iterable[Sequence[object]]", rows)
+                ):
+                    if len(row) != n_columns:
+                        with contextlib.suppress(QueryCancellationError):
+                            await self._conn.cancel()
+                        raise ValueError(
+                            f"INSERT row {row_index} has {len(row)} columns; "
+                            f"expected {n_columns} (column names: {server_names!r})"
+                        )
+                    batch.append(row)
+                    if len(batch) >= insert_block_size:
+                        client_sent_rows += await _flush(batch)
+                        batch = []
             if batch:
                 client_sent_rows += await _flush(batch)
 
@@ -775,17 +797,26 @@ def _build_insert_block(
     row's arity doesn't match."""
     n_cols = len(specs)
     n_rows = len(rows)
-    columns_data: list[list[object]] = [[] for _ in range(n_cols)]
-    for i, row in enumerate(rows):
-        if (
-            len(row) != n_cols
-        ):  # pragma: no cover — caller validates before building block
-            raise ValueError(
-                f"INSERT row {i} has {len(row)} columns; expected {n_cols} "
-                f"(column names: {[s.name for s in specs]})"
-            )
-        for c, val in enumerate(row):
-            columns_data[c].append(val)
+    if n_rows == 0:
+        return Block(
+            info=BlockInfo(),
+            columns=list(specs),
+            n_rows=0,
+            data=[[] for _ in range(n_cols)],
+        )
+    # Caller validates row arity before getting here, but a defensive
+    # spot-check protects against `zip` silently truncating. We sample
+    # the first row; `Client.insert` does the per-row check during the
+    # async iteration so a stray short row will already have raised.
+    first_len = len(rows[0])
+    if first_len != n_cols:  # pragma: no cover — caller validates first
+        raise ValueError(
+            f"INSERT row 0 has {first_len} columns; expected {n_cols} "
+            f"(column names: {[s.name for s in specs]})"
+        )
+    # `zip(*rows)` materialises the columns in one C-level call rather
+    # than n_rows*n_cols Python `list.append` operations.
+    columns_data = [list(col) for col in zip(*rows, strict=False)]
     return Block(
         info=BlockInfo(),
         columns=list(specs),

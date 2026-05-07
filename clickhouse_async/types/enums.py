@@ -62,13 +62,17 @@ class _EnumCodec:
         if not values:
             return
         size = self._size
-        out = bytearray()
+        mapping = self.mapping
+        ints: list[int] = []
         for label in values:
-            v = self.mapping.get(label)
+            v = mapping.get(label)
             if v is None:
                 raise ValueError(f"unknown {self.name} label: {label!r}")
-            out.extend(v.to_bytes(size, "little", signed=True))
-        writer.write_raw(bytes(out))
+            ints.append(v)
+        # Width 1 → "b" (Int8), width 2 → "h" (Int16); same as the
+        # read-side dispatch.
+        fmt = "b" if size == 1 else "h"
+        writer.write_raw(struct.pack(f"<{len(ints)}{fmt}", *ints))
 
 
 class Enum8(_EnumCodec):

@@ -110,13 +110,13 @@ class Array:
         rows: list[Sequence[Any]] = [
             self.null_value if v is None else v for v in values
         ]
-        # Cumulative offsets.
-        offsets = bytearray()
+        # Cumulative offsets — bulk-pack as UInt64 LE in one struct call.
+        offsets: list[int] = []
         running = 0
         for row in rows:
             running += len(row)
-            offsets.extend(running.to_bytes(8, "little", signed=False))
-        writer.write_raw(bytes(offsets))
+            offsets.append(running)
+        writer.write_raw(struct.pack(f"<{len(offsets)}Q", *offsets))
         # Flat inner body.
         flat: list[Any] = [item for row in rows for item in row]
         self.inner.write(writer, flat)

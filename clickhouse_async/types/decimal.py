@@ -83,10 +83,16 @@ class _DecimalCodec:
             return
         size = self._size
         scale_factor = self._scale_factor
+        scaled = [int(PyDecimal(v) * scale_factor) for v in values]
+        if size == _DECIMAL32_BYTES:
+            writer.write_raw(struct.pack(f"<{len(scaled)}i", *scaled))
+            return
+        if size == _DECIMAL64_BYTES:
+            writer.write_raw(struct.pack(f"<{len(scaled)}q", *scaled))
+            return
         out = bytearray()
-        for v in values:
-            scaled = int(PyDecimal(v) * scale_factor)
-            out.extend(scaled.to_bytes(size, "little", signed=True))
+        for v in scaled:
+            out.extend(v.to_bytes(size, "little", signed=True))
         writer.write_raw(bytes(out))
 
 

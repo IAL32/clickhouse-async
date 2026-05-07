@@ -52,13 +52,14 @@ class UUID:
     def write(self, writer: BinaryWriter, values: Sequence[uuid.UUID]) -> None:
         if not values:
             return
-        out = bytearray()
+        # Bulk-pack two UInt64 halves per UUID in one struct call.
+        mask = (1 << 64) - 1
+        halves: list[int] = []
         for v in values:
-            high = (v.int >> 64) & ((1 << 64) - 1)
-            low = v.int & ((1 << 64) - 1)
-            out.extend(high.to_bytes(8, "little", signed=False))
-            out.extend(low.to_bytes(8, "little", signed=False))
-        writer.write_raw(bytes(out))
+            i = v.int
+            halves.append((i >> 64) & mask)
+            halves.append(i & mask)
+        writer.write_raw(struct.pack(f"<{len(halves)}Q", *halves))
 
 
 class IPv4:
@@ -77,10 +78,8 @@ class IPv4:
     def write(self, writer: BinaryWriter, values: Sequence[IPv4Address]) -> None:
         if not values:
             return
-        out = bytearray()
-        for v in values:
-            out.extend(int(v).to_bytes(4, "little", signed=False))
-        writer.write_raw(bytes(out))
+        ints = [int(v) for v in values]
+        writer.write_raw(struct.pack(f"<{len(ints)}I", *ints))
 
 
 class IPv6:

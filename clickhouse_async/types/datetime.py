@@ -134,11 +134,9 @@ class Date:
     def write(self, writer: BinaryWriter, values: Sequence[date]) -> None:
         if not values:
             return
-        out = bytearray()
-        for v in values:
-            days = (v - _EPOCH_DATE).days
-            out.extend(days.to_bytes(2, "little", signed=False))
-        writer.write_raw(bytes(out))
+        epoch = _EPOCH_DATE
+        days = [(v - epoch).days for v in values]
+        writer.write_raw(struct.pack(f"<{len(days)}H", *days))
 
 
 class Date32:
@@ -158,11 +156,9 @@ class Date32:
     def write(self, writer: BinaryWriter, values: Sequence[date]) -> None:
         if not values:
             return
-        out = bytearray()
-        for v in values:
-            days = (v - _EPOCH_DATE).days
-            out.extend(days.to_bytes(4, "little", signed=True))
-        writer.write_raw(bytes(out))
+        epoch = _EPOCH_DATE
+        days = [(v - epoch).days for v in values]
+        writer.write_raw(struct.pack(f"<{len(days)}i", *days))
 
 
 # ---- DateTime ------------------------------------------------------------
@@ -217,15 +213,15 @@ class DateTime:
     def write(self, writer: BinaryWriter, values: Sequence[datetime]) -> None:
         if not values:
             return
-        out = bytearray()
-        for v in values:
-            if v.tzinfo is None:
-                # Treat naive as UTC seconds (matches read semantics).
-                ts = int(v.replace(tzinfo=UTC).timestamp())
-            else:
-                ts = int(v.timestamp())
-            out.extend(ts.to_bytes(4, "little", signed=False))
-        writer.write_raw(bytes(out))
+        # Resolve all timestamps first, then bulk-pack with `struct`
+        # in one C call rather than per-row `int.to_bytes`.
+        timestamps = [
+            int(v.replace(tzinfo=UTC).timestamp())
+            if v.tzinfo is None
+            else int(v.timestamp())
+            for v in values
+        ]
+        writer.write_raw(struct.pack(f"<{len(timestamps)}I", *timestamps))
 
 
 # ---- DateTime64 ----------------------------------------------------------

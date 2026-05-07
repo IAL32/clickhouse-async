@@ -42,20 +42,6 @@ pip install clickhouse-async
 
 Requires Python 3.11+.
 
-Since v0.4 the package ships a small Rust extension (built with
-[`maturin`](https://www.maturin.rs/) + [PyO3](https://pyo3.rs/)) for
-the hot read paths. Installing from a published wheel needs no extra
-tools; **building from source needs a Rust toolchain** (`cargo` 1.74+).
-
-```bash
-# install Rust if you don't have it (rustup is the official installer)
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-# then either pip will build automatically, or for development:
-uv sync                  # installs deps including maturin
-uv run maturin develop --uv   # build the Rust extension into the venv
-```
-
 ## Quick start
 
 ### One-shot client
@@ -164,12 +150,7 @@ ZSTD is also supported (`compression=CompressionMethod.ZSTD` /
 git clone https://github.com/IAL32/clickhouse-async
 cd clickhouse-async
 uv sync
-uv run maturin develop --uv       # build the Rust extension into the venv
 ```
-
-The `maturin develop` step is required after every `git pull` or
-edit under `src/` (the Rust crate). Pure-Python edits don't need a
-rebuild.
 
 ### Day-to-day
 
@@ -210,28 +191,6 @@ uv run pytest tests/integration --localdb
 # custom DSN
 uv run pytest tests/integration --localdb=clickhouse://user:pass@host:9000/db
 ```
-
-## Performance
-
-A reproducible head-to-head benchmark suite against
-[`asynch`](https://github.com/long2ice/asynch) and
-[`clickhouse-connect`](https://github.com/ClickHouse/clickhouse-connect)
-lives under [`benchmarks/`](./benchmarks/). The committed
-`benchmarks/results/report.md` is the reference baseline (M3 Pro,
-ClickHouse 26.3) and shows the five KPIs the suite tracks: ping
-latency, read throughput, insert throughput, concurrent reads, and
-RSS-over-time during a 5M-row scan.
-
-```bash
-cd benchmarks
-./run.sh                           # full run, ~5 min
-./run.sh --quick                   # smaller dataset, ~1 min
-```
-
-The benchmarks pin specific versions of each library (see
-`benchmarks/pyproject.toml`) so re-runs across machines are
-comparable. The report's first section captures the host and
-package versions for the run.
 
 ## Contributing
 

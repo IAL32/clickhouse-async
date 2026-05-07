@@ -379,16 +379,16 @@ On `BufferUnderflow` the parse retries from the start with a topped-up
 buffer. Removing the per-row `await` is the single biggest factor in v0.4's
 read-throughput jump; see §13 v0.4.
 
-### Optional C extension
+### `_fast_read` C extension
 
-The `String` and `DateTime` read paths route through an optional
-`_fast_read` extension when it's available. The extension exposes two
-pure functions:
+The `String` and `DateTime` read paths route through the `_fast_read`
+extension. It exposes two pure functions:
 
 - `decode_strings(buf, pos, n_rows) -> (list[str], int)` — walks
   varuint length + UTF-8 over the buffer in a tight C loop, calling
-  `PyUnicode_DecodeUTF8` per row. Same end behaviour as the pure-Python
-  inlined loop, minus the bytecode dispatch.
+  `PyUnicode_DecodeUTF8` per row. Raises `BufferUnderflow` on a
+  short buffer — same sentinel the rest of the read path raises, so
+  the outer `read_block_buffered` retry loop is unaffected.
 - `decode_datetime(buf, n_rows, tzinfo) -> list[datetime]` — naive
   case goes `gmtime_r` → `datetime(...)` directly, skipping the
   `fromtimestamp(ts, UTC).replace(tzinfo=None)` two-call dance pure
@@ -396,16 +396,12 @@ pure functions:
   for correctness on DST boundaries; the win there is the lack of an
   interpreter frame per row.
 
-Both functions raise `BufferUnderflow` on a short buffer — same
-sentinel the pure-Python codecs raise — so the outer
-`read_block_buffered` retry loop is unaffected.
-
-The extension is **best-effort**. `setup.py` declares it with
-`optional=True`, the codecs check `clickhouse_async._fast.module` and
-fall back to their inlined pure-Python implementations when it's
-`None`. Bare installs without a working C compiler stay import-clean
-and behave identically — just a constant-factor slower on the read
-path.
+The extension is **required**. The codecs that import it have no
+pure-Python fallback — the constant-factor gap was big enough that
+maintaining two parallel decoders wasn't worth it. Source installs
+without a working C compiler will fail; binary wheels ship for the
+common platforms (see §13 v0.5.1) so `pip install` works without a
+compiler in the typical case.
 
 Build shape: ABI3 (`Py_LIMITED_API = 0x030B0000`) plus the
 `bdist_wheel` `py_limited_api = "cp311"` setting means one
@@ -629,12 +625,10 @@ tests/
 
 ### v0.5 (shipped — 2026-05-07)
 
-1. **Optional `_fast_read` C extension.** ABI3 setuptools-built
-   extension hosting `decode_datetime` and `decode_strings`. Codecs
-   route through the extension when loaded and fall back to inlined
-   pure Python otherwise — bare installs without a C compiler keep
-   importing cleanly. See §7 "Optional C extension" for the function
-   surface and the build-shape rationale.
+1. **`_fast_read` C extension.** ABI3 setuptools-built extension
+   hosting `decode_datetime` and `decode_strings`. The String and
+   DateTime read codecs route through it. See §7 "`_fast_read` C
+   extension" for the function surface and the build-shape rationale.
 2. **`Date` / `Date32` `date.fromordinal` swap.** Pure-Python win
    surfaced while building the missing per-codec micro-bench:
    replacing `_EPOCH_DATE + timedelta(days=d)` with
@@ -644,6 +638,23 @@ tests/
    `(UInt64, String, DateTime)` read goes from 1.47 M r/s (v0.4.1) to
    3.79 M r/s — within 1.34x of `clickhouse-connect`'s native-async
    client and roughly 5.6x faster than the `asynch` forks.
+
+### v0.5.1 (shipped — 2026-05-07)
+
+1. **Pure-Python fallback removed.** v0.5.0 carried inlined
+   pure-Python implementations alongside the C path so installs
+   without a compiler kept working. The maintenance cost outweighed
+   the benefit — the C build is well-supported on every platform we
+   target, and the pure-Python branch was hard to keep in lockstep
+   with the C semantics. The codecs now require the extension; source
+   installs without a C compiler fail explicitly rather than
+   silently picking the slow path.
+2. **cibuildwheel matrix.** A new `wheels.yml` workflow builds
+   binary wheels for the common platforms (linux/x86_64,
+   linux/aarch64, linux/x86_64-musl, macos/arm64, macos/x86_64,
+   windows/AMD64) on every push and attaches them to GitHub
+   Releases on tag pushes. ABI3 means one wheel per platform covers
+   Python 3.11+, so the matrix is platforms only.
 
 ### v1
 

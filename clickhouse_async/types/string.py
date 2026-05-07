@@ -10,11 +10,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from clickhouse_async import _fast
-from clickhouse_async.protocol.io_sync import (
-    _VARUINT_CONTINUATION_BIT,
-    BufferUnderflow,
-)
+from clickhouse_async import _fast_read
+from clickhouse_async.protocol.io_sync import _VARUINT_CONTINUATION_BIT
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -31,51 +28,9 @@ class String:
     def read(self, reader: SyncBinaryReader, n_rows: int) -> list[str]:
         if n_rows == 0:
             return []
-        # C path: tight loop over the buffer doing varuint + UTF-8
-        # decode without bytecode dispatch per row. Same BufferUnderflow
-        # contract as the pure-Python implementation below, so the
-        # outer retry loop in `read_block_buffered` is unaffected.
-        fast = _fast.module
-        if fast is not None:
-            rows, new_pos = fast.decode_strings(reader._buf, reader._pos, n_rows)
-            reader._pos = new_pos
-            return rows
-        # Pure-Python fallback: hoist `_buf` and `_pos` into locals and
-        # inline the varuint + slice + decode so we avoid the per-row
-        # method-call overhead of `read_string` → `read_varuint` →
-        # `read_byte`. The 1M-row read benchmark spends ~45% here, so
-        # a constant factor matters.
-        buf = reader._buf
-        pos = reader._pos
-        buflen = len(buf)
-        cont = _VARUINT_CONTINUATION_BIT
-        out: list[str] = [""] * n_rows
-        for i in range(n_rows):
-            if pos >= buflen:
-                raise BufferUnderflow(needed=1, available=0)
-            b = buf[pos]
-            pos += 1
-            if b < cont:
-                n = b
-            else:
-                n = b & 0x7F
-                shift = 7
-                while True:
-                    if pos >= buflen:
-                        raise BufferUnderflow(needed=1, available=0)
-                    b = buf[pos]
-                    pos += 1
-                    n |= (b & 0x7F) << shift
-                    if b < cont:
-                        break
-                    shift += 7
-            end = pos + n
-            if end > buflen:
-                raise BufferUnderflow(needed=n, available=buflen - pos)
-            out[i] = buf[pos:end].decode("utf-8")
-            pos = end
-        reader._pos = pos
-        return out
+        rows, new_pos = _fast_read.decode_strings(reader._buf, reader._pos, n_rows)
+        reader._pos = new_pos
+        return rows
 
     def write(self, writer: BinaryWriter, values: Sequence[str]) -> None:
         # Hot path: build the whole column body in a local bytearray

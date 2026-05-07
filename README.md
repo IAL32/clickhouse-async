@@ -5,13 +5,14 @@ port `9000` (or `9440` for TLS).
 
 > **Status:** v0.5. Native protocol, full v0 type system, client, pool,
 > multi-host failover, idle reaper, cross-connection cancel. The hot
-> read codecs (`String`, `DateTime`) route through an optional
-> `_fast_read` C extension that drops the per-row Python frame; falls
-> back to pure Python automatically when the extension isn't built.
-> The 1M-row mixed-type read benchmark lands at ~3.8 M rows/sec, ~2.6×
-> faster than v0.4.1 and within 1.34× of `clickhouse-connect`'s
-> native-async client. Not yet on PyPI — installable via VCS until the
-> first release artefact ships.
+> read codecs (`String`, `DateTime`) route through a `_fast_read` C
+> extension that drops the per-row Python frame. Pre-built `cp311-abi3`
+> wheels ship for Linux (x86_64, aarch64, musllinux), macOS (arm64,
+> x86_64), and Windows (AMD64); `pip install` from sdist requires a C
+> compiler. The 1M-row mixed-type read benchmark lands at ~3.8 M
+> rows/sec, ~2.6× faster than v0.4.1 and within 1.34× of
+> `clickhouse-connect`'s native-async client. Not yet on PyPI —
+> installable via VCS until the first release artefact ships.
 
 ## Why another ClickHouse client?
 
@@ -46,12 +47,13 @@ pip install clickhouse-async
 
 Requires Python 3.11+.
 
-The wheel includes an optional C extension (`_fast_read`) that
-accelerates `String` and `DateTime` decode. Pre-built `cp311-abi3`
-wheels carry the extension; source builds compile it via setuptools
-when a C compiler is available, and fall back to a pure-Python
-implementation otherwise — bare installs without a compiler stay
-import-clean.
+The package ships a `_fast_read` C extension that accelerates
+`String` and `DateTime` decode — required, not optional. Binary
+wheels (`cp311-abi3`) are published for Linux (x86_64, aarch64,
+musllinux), macOS (arm64, x86_64), and Windows (AMD64); on these
+platforms `pip install` is a binary install with no compiler needed.
+For other platforms the sdist builds the extension from source and
+needs a working C compiler.
 
 ## Quick start
 

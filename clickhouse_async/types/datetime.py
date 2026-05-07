@@ -40,7 +40,7 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from typing import TYPE_CHECKING
 
-from clickhouse_async import _fast
+from clickhouse_async import _fast_read
 from clickhouse_async.types._datetime_helpers import _naive_utc_from_ts, _resolve_tz
 
 if TYPE_CHECKING:
@@ -202,27 +202,10 @@ class DateTime:
         if n_rows == 0:
             return []
         data = reader.read_exact(4 * n_rows)
-        # Fast path: hand the buffer to the C extension which walks
-        # the UInt32 timestamps via gmtime_r and constructs `datetime`
-        # objects directly — skips the aware-then-strip dance the
-        # pure-Python path is forced into.
-        fast = _fast.module
-        if fast is not None:
-            return fast.decode_datetime(bytes(data), n_rows, self._tz)
-        # Pure-Python fallback. Bulk-unpack all timestamps in one
-        # C-level struct call, then drive the per-row datetime
-        # construction off the resulting tuple.
-        timestamps = struct.unpack(f"<{n_rows}I", data)
-        from_ts = datetime.fromtimestamp
-        tz = self._tz
-        if tz is not None:
-            return [from_ts(ts, tz=tz) for ts in timestamps]
-        # Naive UTC: inline the aware-then-strip-tz dance the helper
-        # used to do, hoisting both `from_ts` and `UTC` into locals.
-        # Calling the helper added a Python frame per row (~120 ns)
-        # that the inline version avoids.
-        utc = UTC
-        return [from_ts(ts, tz=utc).replace(tzinfo=None) for ts in timestamps]
+        # Walk the UInt32 timestamps via `gmtime_r` and construct
+        # `datetime` objects directly in C — skips the aware-then-strip
+        # dance any pure-Python path would be forced into.
+        return _fast_read.decode_datetime(bytes(data), n_rows, self._tz)
 
     def write(self, writer: BinaryWriter, values: Sequence[datetime]) -> None:
         if not values:

@@ -1,0 +1,142 @@
+name: Build wheels
+
+# Build the binary wheel matrix the project ships to PyPI. Runs on:
+#
+# - every PR / push to `main`, smoke-testing that the C extension still
+#   compiles on every supported platform; wheels are uploaded as workflow
+#   artefacts but not published.
+# - tag pushes matching `v*`, when the wheels also get attached to the
+#   matching GitHub Release.
+#
+# ABI3 (`Py_LIMITED_API = 0x030B0000`) means one `cp311-abi3` wheel per
+# platform covers Python 3.11, 3.12, 3.13, 3.14 — so the matrix is
+# platforms × archs only, not Python minor versions.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+# Cancel in-progress runs from the same PR/branch when a new one starts,
+# but never cancel a tag-triggered build (those publish to releases).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  # The matrix below is the "most commonly used combinations" that
+  # actually cover the install footprint we care about:
+  #
+  # - manylinux2014 / x86_64: glibc-based Linux distros from CentOS 7
+  #   onward (covers Ubuntu 18.04+, RHEL 7+, Debian 10+, etc.).
+  # - manylinux2014 / aarch64: ARM Linux servers (AWS Graviton, Ampere).
+  # - musllinux_1_2 / x86_64: Alpine-based images (common in containers).
+  # - macOS / arm64: Apple Silicon, the default for new Macs.
+  # - macOS / x86_64: Intel Macs, still in service.
+  # - Windows / AMD64: 64-bit Windows.
+  #
+  # We intentionally don't build 32-bit wheels (i686, win32) — pre-v1
+  # production targets are 64-bit. ppc64le / s390x can be added later if
+  # demand surfaces; cibuildwheel supports them via `archs: all`.
+  wheels:
+    name: Wheel ${{ matrix.os }} ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: linux
+            arch: x86_64
+            runner: ubuntu-latest
+          - os: linux
+            arch: aarch64
+            runner: ubuntu-24.04-arm
+          - os: macos
+            arch: arm64
+            runner: macos-14
+          - os: macos
+            arch: x86_64
+            runner: macos-13
+          - os: windows
+            arch: AMD64
+            runner: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.21
+        env:
+          # ABI3 is configured in pyproject.toml's
+          # `[tool.distutils.bdist_wheel] py_limited_api = "cp311"`,
+          # so we ask cibuildwheel to drive the build with the
+          # lowest supported Python (3.11). One run per platform
+          # produces one `cp311-abi3` wheel that covers 3.11+.
+          CIBW_BUILD: "cp311-*"
+          CIBW_ARCHS: ${{ matrix.arch }}
+          # manylinux2014 + musllinux_1_2 are the conservative defaults —
+          # broad compatibility without forcing users onto bleeding-edge
+          # libc. Override here if newer versions become the norm.
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
+          CIBW_MUSLLINUX_X86_64_IMAGE: musllinux_1_2
+          # Smoke-test every built wheel by importing the package and
+          # exercising the C path. Bigger checks (the unit suite,
+          # integration) run in `tests.yml`; this is the cibuildwheel
+          # smoke-pass to confirm the wheel actually loads on the
+          # target platform.
+          CIBW_TEST_REQUIRES: ""
+          CIBW_TEST_COMMAND: >-
+            python -c "from clickhouse_async import _fast_read;
+            assert _fast_read.available() is True;
+            print('_fast_read', _fast_read.__version__)"
+
+      - name: Upload wheel artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}-${{ matrix.arch }}
+          path: wheelhouse/*.whl
+          retention-days: 14
+          if-no-files-found: error
+
+  # Source distribution. Always built once per run; the `.c` file rides
+  # along (per the package-data spec in pyproject.toml) so users on
+  # platforms outside the wheel matrix can still `pip install` from sdist.
+  sdist:
+    name: sdist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.11"
+      - name: Build sdist
+        run: uv build --sdist
+      - name: Upload sdist artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+          retention-days: 14
+          if-no-files-found: error
+
+  # Attach the wheels + sdist to the GitHub Release on tag pushes.
+  # `gh release upload --clobber` lets us re-run the workflow on an
+  # existing tag without manually deleting the previous artefacts.
+  publish:
+    name: Attach to release
+    needs: [wheels, sdist]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Upload to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${GITHUB_REF_NAME}" dist/*.whl dist/*.tar.gz --clobber

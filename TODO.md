@@ -153,12 +153,6 @@ version advances to 1.0.
 - **`polars` adapter.** Same shape as the Arrow adapter.
 - **Read-only / write-only pool variants.** Multi-host opens this up —
   primary-only writes, replica-fanout reads.
-- **Per-platform wheel publishing.** The C extension lands as a
-  `cp311-abi3` wheel on developer machines via `uv sync`, but PyPI
-  distribution still requires a cibuildwheel matrix
-  (`linux/x86_64`, `linux/aarch64`, `macos/universal2`,
-  `windows/x86_64`). Sdist already ships the `.c` source so source
-  builds work; binary wheels are the next gating item for v1.
 - **Uncompressed refill chunk size.** `_refill_uncompressed` reads
   exactly `needed` bytes per `BufferUnderflow`. With small varuint
   underflows (`needed=1`) and a multi-block result, this degrades to
@@ -166,6 +160,10 @@ version advances to 1.0.
   draining whole frames; uncompressed installs hit the slow path
   unless they're behind a single readable chunk. Worth a smarter
   refill (drain whatever's already buffered without blocking).
+- **PyPI publishing job.** `wheels.yml` builds and attaches the
+  cibuildwheel matrix to GitHub Releases on tag pushes; pushing the
+  same artefacts to PyPI via `pypa/gh-action-pypi-publish` (with
+  trusted-publishing OIDC) is the next step.
 
 ### v1 — Observability and API stability
 

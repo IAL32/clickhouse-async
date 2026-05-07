@@ -1,58 +1,33 @@
-"""Tests for the optional ``_fast_read`` C extension scaffolding.
+"""Smoke tests for the ``_fast_read`` C extension.
 
-The C extension is built when a working C compiler is available and
-``setup.py`` ran during install; otherwise it's absent and the Python
-codecs fall back. The contract these tests pin:
+The extension is a hard requirement now (no pure-Python fallback).
+These tests pin the contract:
 
-- ``import clickhouse_async`` succeeds either way (bare-install discipline).
-- ``clickhouse_async._fast`` exposes ``module`` (the extension) or
-  ``None``; ``is_available()`` mirrors that boolean.
-- When loaded, the module exposes ``__version__`` and a working
-  ``available()`` callable. Codec-level fast paths in subsequent
-  commits will key off these.
+- ``_fast_read`` imports cleanly as a submodule of ``clickhouse_async``.
+- It exposes ``__version__`` and a working ``available()`` callable.
+- ``decode_strings`` and ``decode_datetime`` are exposed and callable.
+
+Round-trip parity with the codecs is covered by the regular type-suite
+tests; these tests are the canary that the wheel actually shipped the
+extension.
 """
 
 from __future__ import annotations
 
-import importlib
-
-import pytest
-
-from clickhouse_async import _fast
+from clickhouse_async import _fast_read
 
 
-def test_import_clickhouse_async_does_not_require_fast_extension() -> None:
-    # BEGIN: the package itself
-    # WHEN: importing it
-    importlib.import_module("clickhouse_async")
-    # THEN: the import succeeds whether or not the .abi3.so was built
-    #       — the extension is wrapped in a try/except in `_fast.py`.
+def test_fast_read_imports() -> None:
+    # WHEN / THEN: the module loads and has both decode entry points
+    assert hasattr(_fast_read, "decode_strings")
+    assert hasattr(_fast_read, "decode_datetime")
 
 
-def test_fast_module_is_module_or_none() -> None:
-    # BEGIN: the lazy-import shim
-    # WHEN / THEN: `module` is either the loaded extension or `None`
-    assert _fast.module is None or hasattr(_fast.module, "available")
+def test_fast_read_smoke() -> None:
+    # WHEN: invoking the no-op smoke-test callable
+    result = _fast_read.available()
 
-
-def test_is_available_matches_module_presence() -> None:
-    # BEGIN: the lazy-import shim
-    # WHEN / THEN: `is_available()` agrees with `module is not None`
-    assert _fast.is_available() is (_fast.module is not None)
-
-
-@pytest.mark.skipif(
-    _fast.module is None,
-    reason="C extension not built — exercising the fallback path instead",
-)
-def test_fast_module_smoke() -> None:
-    # BEGIN: the loaded C extension
-    assert _fast.module is not None  # type: narrowing for ty / mypy
-
-    # WHEN: invoking its smoke-test callable
-    result = _fast.module.available()
-
-    # THEN: the no-op stub returns True and a `__version__` is exposed
+    # THEN: it returns True and a `__version__` is exposed
     assert result is True
-    assert isinstance(_fast.module.__version__, str)
-    assert _fast.module.__version__  # non-empty
+    assert isinstance(_fast_read.__version__, str)
+    assert _fast_read.__version__  # non-empty

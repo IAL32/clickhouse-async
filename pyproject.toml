@@ -57,7 +57,8 @@ include = ["clickhouse_async*"]
 
 [tool.setuptools.package-data]
 # Type stubs and the C source ride along in the sdist so source builds
-# can compile the optional extension.
+# can compile the extension. The .c file is required for ``pip install
+# clickhouse-async`` to succeed without a binary wheel.
 clickhouse_async = ["py.typed", "*.pyi", "*.c"]
 
 [tool.distutils.bdist_wheel]

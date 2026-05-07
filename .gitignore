@@ -181,6 +181,15 @@ cython_debug/
 .actrc
 .act/
 
+# Rust build artefacts (Cargo.lock IS committed for reproducibility)
+target/
+
+# Compiled Python extension dropped next to the Python source by
+# `maturin develop`. Wheels include this; the source tree should not.
+clickhouse_async/_fast*.so
+clickhouse_async/_fast*.pyd
+clickhouse_async/_fast*.dylib
+
 # Benchmark outputs — `results/.gitkeep` is the only checked-in file
 # in that directory. Reports are reproducible from the lockfile +
 # `run.sh`, so the canonical artefact is the source, not the rendered

@@ -1,0 +1,28 @@
+[package]
+name = "clickhouse-async-fast"
+version = "0.0.0"            # Version tracking lives in pyproject.toml; this
+                              # crate ships only as the Python extension.
+edition = "2021"
+license = "Apache-2.0"
+description = "Internal Rust acceleration for clickhouse-async hot decode paths"
+publish = false               # Crate is built into the Python wheel, not
+                              # published to crates.io.
+
+[lib]
+name = "_fast"                # Produces _fast.so (matches the Python module
+                              # name expected at clickhouse_async._fast).
+crate-type = ["cdylib"]
+
+[dependencies]
+# abi3-py311 emits a stable-ABI wheel that loads on any Python ≥ 3.11 —
+# matches the project's `requires-python = ">=3.11"` and shrinks the
+# eventual cibuildwheel matrix from per-(os × arch × py) to per-(os × arch).
+pyo3 = { version = "0.22", features = ["extension-module", "abi3-py311"] }
+
+[profile.release]
+# Tight, predictable release builds. The hot loops are a few hundred
+# lines of straight-line Rust — fat LTO is overkill, thin gives most
+# of the win without the link-time blowup.
+lto = "thin"
+codegen-units = 1
+opt-level = 3

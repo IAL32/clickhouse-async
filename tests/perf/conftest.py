@@ -44,6 +44,24 @@ def build_fixed_int_column(n_rows: int, fmt: str) -> bytes:
     return struct.pack(f"<{n_rows}{fmt}", *range(n_rows))
 
 
+def build_datetime_column(n_rows: int) -> bytes:
+    """Body of a ``DateTime`` column on the wire: ``n_rows`` x UInt32 LE.
+
+    Timestamps step by 1 second from a fixed epoch so the codec sees
+    a realistic mix of values rather than the same byte pattern N
+    times — the latter would let the kernel page-cache hide buffer
+    walks.
+    """
+    base = 1_700_000_000
+    return struct.pack(f"<{n_rows}I", *range(base, base + n_rows))
+
+
+def build_date_column(n_rows: int) -> bytes:
+    """Body of a ``Date`` column on the wire: ``n_rows`` x UInt16 LE
+    days since the Unix epoch."""
+    return struct.pack(f"<{n_rows}H", *(i % 50000 for i in range(n_rows)))
+
+
 def build_block_body(n_rows: int) -> bytes:
     """A whole-block body with mixed types — the same shape the
     1M-row read benchmark uses ``(UInt64, String, DateTime)``.

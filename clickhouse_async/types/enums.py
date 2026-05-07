@@ -10,6 +10,7 @@ to enum bodies — there is no general `key = value` param syntax.
 
 from __future__ import annotations
 
+import struct
 from typing import TYPE_CHECKING
 
 from clickhouse_async.errors import ProtocolError
@@ -44,13 +45,17 @@ class _EnumCodec:
             return []
         size = self._size
         data = reader.read_exact(size * n_rows)
-        out: list[str] = []
-        for i in range(n_rows):
-            v = int.from_bytes(data[i * size : (i + 1) * size], "little", signed=True)
-            label = self._reverse.get(v)
+        # Bulk-unpack with struct so the per-row decode is just a dict
+        # lookup. Width 1 → "b" (Int8), width 2 → "h" (Int16).
+        fmt = "b" if size == 1 else "h"
+        ints = struct.unpack(f"<{n_rows}{fmt}", data)
+        reverse = self._reverse
+        out: list[str] = [""] * n_rows
+        for i, v in enumerate(ints):
+            label = reverse.get(v)
             if label is None:
                 raise ProtocolError(f"unknown {self.name} value at row {i}: {v}")
-            out.append(label)
+            out[i] = label
         return out
 
     def write(self, writer: BinaryWriter, values: Sequence[str]) -> None:

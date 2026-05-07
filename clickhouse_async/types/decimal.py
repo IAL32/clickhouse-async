@@ -17,6 +17,7 @@ to the right size) or as the explicit `Decimal32(S)`/`…(S)` form
 
 from __future__ import annotations
 
+import struct
 from decimal import Decimal as PyDecimal
 from typing import TYPE_CHECKING
 
@@ -32,6 +33,11 @@ _DECIMAL32_MAX_PRECISION = 9
 _DECIMAL64_MAX_PRECISION = 18
 _DECIMAL128_MAX_PRECISION = 38
 _MAX_DECIMAL_PRECISION = 76
+
+# Storage widths in bytes — used to dispatch to the right `struct`
+# format on read.
+_DECIMAL32_BYTES = 4
+_DECIMAL64_BYTES = 8
 
 
 class _DecimalCodec:
@@ -54,11 +60,23 @@ class _DecimalCodec:
         size = self._size
         scale_factor = self._scale_factor
         data = reader.read_exact(size * n_rows)
-        out: list[PyDecimal] = []
-        for i in range(n_rows):
-            raw = int.from_bytes(data[i * size : (i + 1) * size], "little", signed=True)
-            out.append(PyDecimal(raw) / scale_factor)
-        return out
+        # Decimal32/64 round-trip through `struct` (4-byte / 8-byte
+        # signed ints); 128/256 don't have a `struct` format char, so
+        # fall back to `int.from_bytes` in a tight local-binding loop.
+        if size == _DECIMAL32_BYTES:
+            ints = struct.unpack(f"<{n_rows}i", data)
+            return [PyDecimal(v) / scale_factor for v in ints]
+        if size == _DECIMAL64_BYTES:
+            ints = struct.unpack(f"<{n_rows}q", data)
+            return [PyDecimal(v) / scale_factor for v in ints]
+        from_bytes = int.from_bytes
+        return [
+            PyDecimal(
+                from_bytes(data[i * size : (i + 1) * size], "little", signed=True)
+            )
+            / scale_factor
+            for i in range(n_rows)
+        ]
 
     def write(self, writer: BinaryWriter, values: Sequence[PyDecimal]) -> None:
         if not values:

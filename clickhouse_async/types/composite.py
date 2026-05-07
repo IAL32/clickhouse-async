@@ -12,6 +12,7 @@
 
 from __future__ import annotations
 
+import struct
 from typing import TYPE_CHECKING, Any, cast
 
 from clickhouse_async.errors import ProtocolError
@@ -84,12 +85,10 @@ class Array:
     def read(self, reader: SyncBinaryReader, n_rows: int) -> list[list[Any]]:
         if n_rows == 0:
             return []
-        # Cumulative offsets — one UInt64 per row.
+        # Cumulative offsets — one UInt64 per row. Bulk-unpack with
+        # struct rather than a per-row `int.from_bytes`.
         offsets_data = reader.read_exact(8 * n_rows)
-        offsets = [
-            int.from_bytes(offsets_data[i * 8 : (i + 1) * 8], "little", signed=False)
-            for i in range(n_rows)
-        ]
+        offsets = struct.unpack(f"<{n_rows}Q", offsets_data)
         total = offsets[-1]
         flat = self.inner.read(reader, total)
         out: list[list[Any]] = []

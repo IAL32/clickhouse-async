@@ -35,6 +35,7 @@ fall back to UTC interpretation (the v0 behaviour).
 
 from __future__ import annotations
 
+import struct
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from typing import TYPE_CHECKING
@@ -125,13 +126,10 @@ class Date:
         if n_rows == 0:
             return []
         data = reader.read_exact(2 * n_rows)
-        return [
-            _EPOCH_DATE
-            + timedelta(
-                days=int.from_bytes(data[i * 2 : (i + 1) * 2], "little", signed=False)
-            )
-            for i in range(n_rows)
-        ]
+        days_arr = struct.unpack(f"<{n_rows}H", data)
+        epoch = _EPOCH_DATE
+        td = timedelta
+        return [epoch + td(days=d) for d in days_arr]
 
     def write(self, writer: BinaryWriter, values: Sequence[date]) -> None:
         if not values:
@@ -152,13 +150,10 @@ class Date32:
         if n_rows == 0:
             return []
         data = reader.read_exact(4 * n_rows)
-        return [
-            _EPOCH_DATE
-            + timedelta(
-                days=int.from_bytes(data[i * 4 : (i + 1) * 4], "little", signed=True)
-            )
-            for i in range(n_rows)
-        ]
+        days_arr = struct.unpack(f"<{n_rows}i", data)
+        epoch = _EPOCH_DATE
+        td = timedelta
+        return [epoch + td(days=d) for d in days_arr]
 
     def write(self, writer: BinaryWriter, values: Sequence[date]) -> None:
         if not values:
@@ -206,15 +201,18 @@ class DateTime:
         if n_rows == 0:
             return []
         data = reader.read_exact(4 * n_rows)
-        out: list[datetime] = []
-        for i in range(n_rows):
-            ts = int.from_bytes(data[i * 4 : (i + 1) * 4], "little", signed=False)
-            if self._tz is not None:
-                out.append(datetime.fromtimestamp(ts, tz=self._tz))
-            else:
-                # Naive: interpret as UTC seconds, present without tz
-                out.append(_naive_utc_from_ts(ts))
-        return out
+        # Bulk-unpack all timestamps in one C-level call rather than
+        # per-row `int.from_bytes`, then drive the per-row datetime
+        # construction off the resulting tuple.
+        timestamps = struct.unpack(f"<{n_rows}I", data)
+        tz = self._tz
+        if tz is not None:
+            from_ts = datetime.fromtimestamp
+            return [from_ts(ts, tz=tz) for ts in timestamps]
+        # Naive UTC: do the resolution-then-strip dance once per row.
+        # `_naive_utc_from_ts` is hoisted to a local for the loop.
+        naive = _naive_utc_from_ts
+        return [naive(ts) for ts in timestamps]
 
     def write(self, writer: BinaryWriter, values: Sequence[datetime]) -> None:
         if not values:

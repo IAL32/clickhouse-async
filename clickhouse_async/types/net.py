@@ -16,6 +16,7 @@ On-wire layouts:
 
 from __future__ import annotations
 
+import struct
 import uuid
 from ipaddress import IPv4Address, IPv6Address
 from typing import TYPE_CHECKING
@@ -40,13 +41,13 @@ class UUID:
         if n_rows == 0:
             return []
         data = reader.read_exact(16 * n_rows)
-        out: list[uuid.UUID] = []
-        for i in range(n_rows):
-            base = i * 16
-            high = int.from_bytes(data[base : base + 8], "little", signed=False)
-            low = int.from_bytes(data[base + 8 : base + 16], "little", signed=False)
-            out.append(uuid.UUID(int=(high << 64) | low))
-        return out
+        # Bulk-unpack the two UInt64 halves of each UUID in one C-level
+        # call; we get a flat 2*n_rows tuple back and stride pairwise.
+        halves = struct.unpack(f"<{2 * n_rows}Q", data)
+        cls = uuid.UUID
+        return [
+            cls(int=(halves[i] << 64) | halves[i + 1]) for i in range(0, 2 * n_rows, 2)
+        ]
 
     def write(self, writer: BinaryWriter, values: Sequence[uuid.UUID]) -> None:
         if not values:
@@ -69,12 +70,9 @@ class IPv4:
         if n_rows == 0:
             return []
         data = reader.read_exact(4 * n_rows)
-        return [
-            IPv4Address(
-                int.from_bytes(data[i * 4 : (i + 1) * 4], "little", signed=False)
-            )
-            for i in range(n_rows)
-        ]
+        ints = struct.unpack(f"<{n_rows}I", data)
+        cls = IPv4Address
+        return [cls(v) for v in ints]
 
     def write(self, writer: BinaryWriter, values: Sequence[IPv4Address]) -> None:
         if not values:

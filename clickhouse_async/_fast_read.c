@@ -327,7 +327,11 @@ fast_read_decode_strings(PyObject *self, PyObject *args)
     }
 
     PyBuffer_Release(&buffer);
-    return Py_BuildValue("(On)", result, pos);
+    /* `N` steals our reference to `result` rather than INCREF-ing it
+     * (the `O` format would). Using `O` here would leak `result` once
+     * per call — the surrounding tuple's destructor would only undo
+     * the INCREF, leaving the original `PyList_New` ref dangling. */
+    return Py_BuildValue("(Nn)", result, pos);
 }
 
 static PyMethodDef FastReadMethods[] = {

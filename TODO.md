@@ -113,7 +113,11 @@ version advances to 1.0.
 - **PyPI release and versioned wheels.** Installable via VCS only. VCS
   installs are not reproducible, fail security scanners, and can't be
   pinned in lockfiles. Publish to PyPI at v0.3 or v0.4; gate on a tag
-  matching `v*` in CI.
+  matching `v*` in CI. Since v0.4 the package contains a Rust
+  extension built via maturin, so the wheel matrix is per-OS × per-
+  arch (with `abi3-py311` flattening Python-minor variants). Use
+  `cibuildwheel` for the linux/macos/windows × x86_64/aarch64 build
+  matrix; `maturin publish` once for sdist.
   *Code:* `pyproject.toml`, `.github/workflows/`.
 
 
@@ -127,8 +131,27 @@ version advances to 1.0.
 - **`polars` adapter.** Same shape as the Arrow adapter.
 - **Read-only / write-only pool variants.** Multi-host opens this up —
   primary-only writes, replica-fanout reads.
-- **C/Cython hot path** for int/float/string codecs *only if* profiling
-  shows pure-Python encoders are the bottleneck on large inserts.
+- **Additional Rust hot paths.** v0.4 ships one Rust function
+  (`decode_strings`) that replaces `String.read`'s per-row UTF-8 +
+  PyUnicode loop. Two further candidates were prototyped during v0.4
+  and **abandoned** because CPython's intrinsics are already C-fast
+  for those shapes (transpose: `tuple()` + comprehension, big-int
+  decode: `int.from_bytes`) — see `.plans/04-transpose.md` and
+  `.plans/05-decode-big-int.md` for the postmortems. The v0.5+
+  candidates worth re-measuring against the same discriminator
+  ("does the inner loop touch raw bytes, or already-Pythonised
+  objects?"):
+  - **AggregateFunction state per-row decode** (`aggregate.py:144`):
+    has a per-row `await`, so the async-dispatch saving may exceed
+    CPython's baseline. Worth a prototype if AggregateFunction
+    performance matters.
+  - **Long-string columns** (logs, JSON-as-text, English text):
+    `decode_strings`'s 4 % win on the short-string benchmark grows
+    when the per-row UTF-8 work dominates over async dispatch.
+    Worth a dedicated benchmark scenario before deciding.
+  - **Nullable mask + values combine** in `composite.py`: per-row
+    Python conditional that may benefit from a vectorised Rust
+    pass.
 
 ### v1 — Observability and API stability
 

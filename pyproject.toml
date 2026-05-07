@@ -52,15 +52,26 @@ dev = [
     "commitizen>=4.0",
 ]
 
-[tool.hatch.build.targets.sdist]
-include = ["clickhouse_async"]
+[tool.setuptools.packages.find]
+include = ["clickhouse_async*"]
 
-[tool.hatch.build.targets.wheel]
-include = ["clickhouse_async"]
+[tool.setuptools.package-data]
+# Type stubs and the C source ride along in the sdist so source builds
+# can compile the optional extension.
+clickhouse_async = ["py.typed", "*.pyi", "*.c"]
+
+[tool.distutils.bdist_wheel]
+# ABI3 (`Py_LIMITED_API = 0x030B0000`) means one wheel per platform
+# covers Python 3.11+. Without this flag the wheel envelope ends up
+# tagged for the building Python's specific minor version, defeating
+# the point of the limited-API build.
+py_limited_api = "cp311"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+# Setuptools handles the optional C extension declared in setup.py.
+# `wheel` is required for `bdist_wheel` to produce ABI3 artefacts.
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [tool.coverage.run]
 source = ["clickhouse_async"]
@@ -184,7 +195,12 @@ target-version = "py311"
 # venv those imports are intentionally absent (bare-install discipline)
 # so ``ty`` cannot resolve them. Type-check benchmarks via
 # ``cd benchmarks && uv run ty check`` instead.
-exclude = ["benchmarks"]
+#
+# ``setup.py`` declares the optional C extension and is run by the
+# build backend (setuptools). It imports ``setuptools`` which isn't
+# in the runtime venv — type-checking it would force adding setuptools
+# stubs purely to silence one build-script import.
+exclude = ["benchmarks", "setup.py"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["clickhouse_async"]

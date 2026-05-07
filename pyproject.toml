@@ -145,12 +145,45 @@ target-version = "py311"
     # Lazy imports inside functions are intentional in scripts
     "PLC0415",
 ]
+"benchmarks/**/*.py" = [
+    # Benchmark scripts print results to stdout — that's the contract.
+    "T20",
+    # Magic numbers (warmup counts, dataset sizes) are inherent to bench
+    # scripts; pulling them into named constants would obscure rather
+    # than clarify what each scenario actually exercises.
+    "PLR2004",
+    # Subprocess + shell strings live in the orchestrator's helper paths;
+    # the inputs are entirely script-controlled.
+    "S603",
+    "S607",
+    # ``assert`` is fine in throwaway tooling.
+    "S101",
+    # SQL string interpolation against script-controlled int args is not
+    # a real injection vector in this directory.
+    "S608",
+    # Bench main() functions are deliberately long.
+    "PLR0915",
+    # Adapter signatures take/return ``Any`` because every library returns
+    # a different row shape; the scenarios only depend on the row count.
+    "ANN401",
+    # Lazy imports in adapter modules let a single library run without
+    # the others being installed.
+    "PLC0415",
+]
 # ``Connection`` and ``Pool`` use ``assert`` for state-machine invariant
 # narrowing (``assert self._reader is not None`` after a State check).
 # These are real invariants — the State enum guarantees the values are
 # set in the relevant states — and serve as type narrowing for ty / mypy.
 "clickhouse_async/connection.py" = ["S101"]
 "clickhouse_async/pool.py" = ["S101"]
+
+[tool.ty.src]
+# The ``benchmarks/`` sub-project has its own virtualenv that pulls
+# in ``asynch`` and ``clickhouse-connect``; from the parent project's
+# venv those imports are intentionally absent (bare-install discipline)
+# so ``ty`` cannot resolve them. Type-check benchmarks via
+# ``cd benchmarks && uv run ty check`` instead.
+exclude = ["benchmarks"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["clickhouse_async"]

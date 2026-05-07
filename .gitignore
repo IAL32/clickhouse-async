@@ -180,3 +180,14 @@ cython_debug/
 # `act` (local GitHub Actions runner) — local-only config + cache
 .actrc
 .act/
+
+# Benchmark outputs — `results/.gitkeep` is the only checked-in file
+# in that directory. Reports are reproducible from the lockfile +
+# `run.sh`, so the canonical artefact is the source, not the rendered
+# output. Drop these lines if you decide to commit a baseline report.
+benchmarks/.venv/
+benchmarks/results/raw.jsonl
+benchmarks/results/results.csv
+benchmarks/results/report.md
+benchmarks/results/environment.json
+benchmarks/results/*.png

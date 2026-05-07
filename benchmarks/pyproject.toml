@@ -1,0 +1,87 @@
+[project]
+name = "clickhouse-async-benchmarks"
+version = "0.0.0"
+description = "Head-to-head benchmark suite for clickhouse-async / asynch / clickhouse-connect"
+requires-python = ">=3.11"
+# Base carries the harness deps + clickhouse-async. The latter is
+# always installed because the integration scenarios use it for admin
+# operations (DDL, TRUNCATE between insert runs) regardless of which
+# library is under measurement. The ``ca`` extra is a no-op alias so
+# ``--extra ca`` reads consistently with the others.
+dependencies = [
+    "clickhouse-async[compression]",
+    "matplotlib>=3.8",
+    "psutil>=5.9",          # process-RSS sampler used by memory_ceiling
+]
+
+[project.optional-dependencies]
+# One extra per library under test. ``asynch_pypi`` and
+# ``asynch_tacto`` install the same Python module name (``asynch``)
+# from different sources — they are mutually exclusive at sync time;
+# pick one or alternate via ``--reinstall-package asynch``. ``run.sh``
+# does the alternate-and-rerun dance when both labels are requested.
+ca = [
+    "clickhouse-async[compression]",   # already in base; declared again so
+                                       # ``--extra ca`` is a valid no-op
+]
+asynch_pypi = [
+    "asynch==0.3.1",
+]
+asynch_tacto = [
+    # Fork tracked at https://github.com/nils-borrmann-tacto/asynch.
+    # Pinned by branch — when bumping, prefer a tag/commit so refreshes
+    # are reproducible (`uv lock` records the resolved hash either way).
+    "asynch @ git+https://github.com/nils-borrmann-tacto/asynch.git",
+]
+cc = [
+    "clickhouse-connect==0.15.1",
+]
+cc_async = [
+    # 1.0.0rc2 ships a fully native async client behind the
+    # ``[async]`` extra. The 0.15.x async surface is a thread-pool
+    # wrapper around the sync driver — the API is identical, but the
+    # underlying I/O model is not. Same package name as ``cc``;
+    # mutually exclusive at sync time, like the asynch_pypi /
+    # asynch_tacto pair.
+    "clickhouse-connect[async]==1.0.0rc2",
+]
+
+[tool.uv.sources]
+# The editable parent project — every extra that pulls clickhouse-async
+# (currently just ``ca``) inherits this source.
+clickhouse-async = { path = "..", editable = true }
+
+[tool.uv]
+# Some extras install the same Python package from different sources or
+# versions and therefore can't be resolved together. Declare each
+# mutually-exclusive group so ``uv lock`` produces resolutions per
+# group instead of bailing out with an unsatisfiable conflict.
+conflicts = [
+    [
+        { extra = "asynch_pypi" },
+        { extra = "asynch_tacto" },
+    ],
+    [
+        { extra = "cc" },
+        { extra = "cc_async" },
+    ],
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# This is a tooling-only sub-project — Hatch doesn't need to package it.
+[tool.hatch.build.targets.wheel]
+bypass-selection = true
+
+[tool.hatch.metadata]
+# The ``asynch_tacto`` extra references ``asynch`` from a git URL —
+# Hatch refuses direct references by default; opt in here.
+allow-direct-references = true
+
+# Lint config lives in the parent ``pyproject.toml`` so a single
+# ``uv run ruff check`` from the repo root covers benchmarks too. The
+# parent's ``[tool.ruff.lint.per-file-ignores]`` table has a
+# ``benchmarks/**/*.py`` entry granting the rule waivers this directory
+# needs.

@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-05-07T07:11:54Z",
+  "timestamp": "2026-05-07T18:54:25Z",
   "os": "Darwin 25.2.0 arm64",
   "cpu": "Apple M3 Pro \u2014 11P/11L cores",
   "ram": "36.0 GiB",
@@ -8,9 +8,9 @@
   "docker": "29.4.0",
   "clickhouse_image": "26.3",
   "clickhouse_server": "26.3.9.8",
-  "git_sha": "349df5a",
+  "git_sha": "389e33f",
   "git_dirty": true,
-  "ca_version": "0.3.3",
+  "ca_version": "0.4.0",
   "cc_version": "0.15.1",
   "asynch_pypi_version": "0.3.1",
   "asynch_tacto_version": "0.3.1",

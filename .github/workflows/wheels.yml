@@ -33,12 +33,17 @@ jobs:
   # - manylinux2014 / aarch64: ARM Linux servers (AWS Graviton, Ampere).
   # - musllinux_1_2 / x86_64: Alpine-based images (common in containers).
   # - macOS / arm64: Apple Silicon, the default for new Macs.
-  # - macOS / x86_64: Intel Macs, still in service.
   # - Windows / AMD64: 64-bit Windows.
   #
-  # We intentionally don't build 32-bit wheels (i686, win32) — pre-v1
-  # production targets are 64-bit. ppc64le / s390x can be added later if
-  # demand surfaces; cibuildwheel supports them via `archs: all`.
+  # We intentionally don't build:
+  #
+  # - macOS / x86_64. Intel Macs are out of mainstream Python support
+  #   (the macos-13 runner is GitHub's last x86_64 macOS image and is
+  #   on borrowed time). Users on Intel Macs can build from sdist.
+  # - 32-bit wheels (i686, win32). Pre-v1 production targets are 64-bit.
+  #
+  # ppc64le / s390x can be added later if demand surfaces; cibuildwheel
+  # supports them via `archs: all`.
   wheels:
     name: Wheel ${{ matrix.os }} ${{ matrix.arch }}
     runs-on: ${{ matrix.runner }}
@@ -55,9 +60,6 @@ jobs:
           - os: macos
             arch: arm64
             runner: macos-14
-          - os: macos
-            arch: x86_64
-            runner: macos-13
           - os: windows
             arch: AMD64
             runner: windows-latest

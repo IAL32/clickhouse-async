@@ -5,8 +5,11 @@ description = "An async Python client for ClickHouse over the native TCP protoco
 authors = [{ name = "Adrian Castro", email = "562969+IAL32@users.noreply.github.com" }]
 requires-python = ">=3.11"
 readme = "README.md"
-license = "Apache-2.0"
-license-files = ["LICENSE"]
+# Older license-table form. The PEP 639 string form (``license =
+# "Apache-2.0"`` + ``license-files = …``) requires setuptools >= 77,
+# which conflicts with cibuildwheel's pinned ``packaging==24.1`` —
+# see the ``[build-system] requires`` cap below.
+license = {file = "LICENSE"}
 keywords = ["clickhouse", "async", "asyncio", "database", "tcp"]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
@@ -69,9 +72,18 @@ clickhouse_async = ["py.typed", "*.pyi", "*.c"]
 py_limited_api = "cp311"
 
 [build-system]
-# Setuptools handles the optional C extension declared in setup.py.
-# `wheel` is required for `bdist_wheel` to produce ABI3 artefacts.
-requires = ["setuptools>=68", "wheel"]
+# Setuptools handles the C extension declared in setup.py. `wheel` is
+# required for `bdist_wheel` to produce ABI3 artefacts.
+#
+# Pinned to ``setuptools<77`` because 77+ adds a PEP 639 license-
+# expression code path (``_finalize_license_expression`` →
+# ``packaging.licenses``) that requires ``packaging>=24.2``.
+# cibuildwheel's pinned constraints file ships ``packaging==24.1``,
+# so combining the two creates an unresolvable dependency conflict
+# inside pip's build-isolation env. Capping setuptools at < 77 keeps
+# us on the pre-PEP-639 code path that ``packaging`` 24.1 satisfies.
+# Lift this cap when cibuildwheel's constraints catch up.
+requires = ["setuptools>=68,<77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.coverage.run]

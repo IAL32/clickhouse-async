@@ -651,10 +651,13 @@ tests/
    silently picking the slow path.
 2. **cibuildwheel matrix.** A new `wheels.yml` workflow builds
    binary wheels for the common platforms (linux/x86_64,
-   linux/aarch64, linux/x86_64-musl, macos/arm64, macos/x86_64,
-   windows/AMD64) on every push and attaches them to GitHub
-   Releases on tag pushes. ABI3 means one wheel per platform covers
-   Python 3.11+, so the matrix is platforms only.
+   linux/aarch64, linux/x86_64-musl, macos/arm64, windows/AMD64) on
+   every push and attaches them to GitHub Releases on tag pushes.
+   ABI3 means one wheel per platform covers Python 3.11+, so the
+   matrix is platforms only. Intel macOS users build from sdist —
+   GitHub's last x86_64 macOS runner image is on borrowed time and
+   the cibuildwheel CI cost wasn't worth carrying for a shrinking
+   audience.
 
 ### v1
 

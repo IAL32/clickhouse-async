@@ -98,19 +98,27 @@ class Array:
             prev = end
         return out
 
-    def write(self, writer: BinaryWriter, values: Sequence[Sequence[Any]]) -> None:
+    def write(
+        self, writer: BinaryWriter, values: Sequence[Sequence[Any] | None]
+    ) -> None:
         n = len(values)
         if n == 0:
             return
+        # Coerce row-level ``None`` to the empty array. Mirrors
+        # ``Nullable.write`` and matches the server's own coercion when a
+        # NULL is inserted into an ``Array(T)`` column at SQL level.
+        rows: list[Sequence[Any]] = [
+            self.null_value if v is None else v for v in values
+        ]
         # Cumulative offsets.
         offsets = bytearray()
         running = 0
-        for v in values:
-            running += len(v)
+        for row in rows:
+            running += len(row)
             offsets.extend(running.to_bytes(8, "little", signed=False))
         writer.write_raw(bytes(offsets))
         # Flat inner body.
-        flat: list[Any] = [item for row in values for item in row]
+        flat: list[Any] = [item for row in rows for item in row]
         self.inner.write(writer, flat)
 
 
@@ -175,12 +183,19 @@ class Tuple:
             for i in range(n_rows)
         ]
 
-    def write(self, writer: BinaryWriter, values: Sequence[Sequence[Any]]) -> None:
+    def write(
+        self, writer: BinaryWriter, values: Sequence[Sequence[Any] | None]
+    ) -> None:
         n = len(values)
         if n == 0:
             return
+        # Coerce row-level ``None`` to a tuple of inner null_values, the
+        # same substitution ``Nullable.write`` applies one layer down.
+        rows: list[Sequence[Any]] = [
+            self.null_value if v is None else v for v in values
+        ]
         for c, component in enumerate(self.components):
-            component.write(writer, [row[c] for row in values])
+            component.write(writer, [row[c] for row in rows])
 
 
 class Nested:
@@ -255,8 +270,12 @@ class Map:
         rows = await self._inner.read(reader, n_rows)
         return [dict(row) for row in rows]
 
-    def write(self, writer: BinaryWriter, values: Sequence[dict[Any, Any]]) -> None:
-        rows = [list(d.items()) for d in values]
+    def write(
+        self, writer: BinaryWriter, values: Sequence[dict[Any, Any] | None]
+    ) -> None:
+        # Coerce row-level ``None`` to the empty map, matching the
+        # composite-codec convention shared with ``Array`` / ``Tuple``.
+        rows = [list((self.null_value if d is None else d).items()) for d in values]
         self._inner.write(writer, rows)
 
 

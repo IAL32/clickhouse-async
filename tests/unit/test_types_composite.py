@@ -107,6 +107,22 @@ async def test_nested_array_of_array_round_trip() -> None:
     assert decoded == values
 
 
+async def test_array_write_coerces_row_level_none_to_empty_array() -> None:
+    # BEGIN: an Array(Nullable(String)) codec and a row source with one
+    #        ``None`` (caller's "no array" sentinel) alongside a real list
+    codec = parse_type("Array(Nullable(String))")
+    values: list[Any] = [None, ["a", "b"], None]
+
+    # WHEN: round-tripping
+    decoded = await _round_trip(codec, values)
+
+    # THEN: each ``None`` lands as the codec's ``null_value`` (``[]``),
+    #       matching what the server itself does for a NULL inserted
+    #       into an Array column at SQL level. The interior Nullable
+    #       layer continues to handle element-level None on its own.
+    assert decoded == [[], ["a", "b"], []]
+
+
 # ---- Tuple(T1, T2, …) ----------------------------------------------------
 
 
@@ -139,6 +155,19 @@ async def test_tuple_writes_components_sequentially_not_row_major() -> None:
     # THEN: the wire layout is column-major — three Int8s for component 0,
     #       then three Int8s for component 1 (NOT interleaved row-major)
     assert writer.getvalue() == bytes([1, 2, 3, 10, 20, 30])
+
+
+async def test_tuple_write_coerces_row_level_none_to_default_tuple() -> None:
+    # BEGIN: a Tuple(Int32, String) codec and a None among real tuples
+    codec = parse_type("Tuple(Int32, String)")
+    values: list[Any] = [(1, "a"), None, (3, "c")]
+
+    # WHEN: round-tripping
+    decoded = await _round_trip(codec, values)
+
+    # THEN: the None lands as the codec's ``null_value`` — a tuple of
+    #       per-component defaults (Int32 → 0, String → "")
+    assert decoded == [(1, "a"), (0, ""), (3, "c")]
 
 
 async def test_tuple_one_component_round_trip() -> None:
@@ -325,6 +354,19 @@ async def test_map_string_int_round_trip() -> None:
     #       list of (k, v) pairs but content equality holds
     assert isinstance(codec, Map)
     assert decoded == values
+
+
+async def test_map_write_coerces_row_level_none_to_empty_map() -> None:
+    # BEGIN: a Map(String, Int32) codec and a None among real dicts
+    codec = parse_type("Map(String, Int32)")
+    values: list[Any] = [{"a": 1}, None, {"b": 2}]
+
+    # WHEN: round-tripping
+    decoded = await _round_trip(codec, values)
+
+    # THEN: the None lands as the codec's ``null_value`` (``{}``), the
+    #       same convention Array and Tuple now follow
+    assert decoded == [{"a": 1}, {}, {"b": 2}]
 
 
 async def test_map_wire_format_matches_array_of_tuple() -> None:

@@ -1,6 +1,6 @@
 [project]
 name = "clickhouse-async"
-version = "0.4.0"
+version = "0.4.1"
 description = "An async Python client for ClickHouse over the native TCP protocol"
 authors = [{ name = "Adrian Castro", email = "562969+IAL32@users.noreply.github.com" }]
 requires-python = ">=3.11"
@@ -196,7 +196,7 @@ line-ending = "auto"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.4.0"
+version = "0.4.1"
 tag_format = "v$version"
 version_files = [
     "pyproject.toml:version",

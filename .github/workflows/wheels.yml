@@ -125,8 +125,8 @@ jobs:
   # Attach the wheels + sdist to the GitHub Release on tag pushes.
   # `gh release upload --clobber` lets us re-run the workflow on an
   # existing tag without manually deleting the previous artefacts.
-  publish:
-    name: Attach to release
+  publish-github:
+    name: Attach to GitHub Release
     needs: [wheels, sdist]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
@@ -142,3 +142,51 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload "${GITHUB_REF_NAME}" dist/*.whl dist/*.tar.gz --clobber
+
+  # Publish the same artefacts to PyPI via Trusted Publishing
+  # (OIDC). No API token in the repo; PyPI verifies the
+  # GitHub-issued OIDC token against the publisher trust
+  # configuration on the project page.
+  #
+  # Setup steps that need to happen *outside* this workflow once,
+  # before the first tag push triggers PyPI uploads:
+  #
+  # 1. Create the project on https://pypi.org if it doesn't exist
+  #    (a manual upload of any wheel works as the seeding step;
+  #    afterwards trusted publishing handles every subsequent
+  #    release).
+  # 2. On the project's "Publishing" tab, add a Trusted Publisher:
+  #      Owner:                IAL32
+  #      Repository name:      clickhouse-async
+  #      Workflow filename:    wheels.yml
+  #      Environment name:     pypi
+  # 3. The `environment: pypi` reference below maps onto a GitHub
+  #    repository "Environments" entry (Settings → Environments).
+  #    Configure required reviewers / wait timers there if you want
+  #    a manual gate before each PyPI upload.
+  publish-pypi:
+    name: Publish to PyPI
+    needs: [wheels, sdist]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/clickhouse-async
+    permissions:
+      # `id-token: write` is the OIDC permission that lets PyPI
+      # verify the request came from this exact workflow + tag.
+      # No `contents` permission needed — we only push to PyPI.
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          # Skip already-published artefacts so re-running the
+          # workflow on the same tag (e.g. after a transient
+          # cibuildwheel flake on one row of the matrix) doesn't
+          # blow up on "filename already exists".
+          skip-existing: true

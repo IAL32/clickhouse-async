@@ -160,10 +160,20 @@ version advances to 1.0.
   draining whole frames; uncompressed installs hit the slow path
   unless they're behind a single readable chunk. Worth a smarter
   refill (drain whatever's already buffered without blocking).
-- **PyPI publishing job.** `wheels.yml` builds and attaches the
-  cibuildwheel matrix to GitHub Releases on tag pushes; pushing the
-  same artefacts to PyPI via `pypa/gh-action-pypi-publish` (with
-  trusted-publishing OIDC) is the next step.
+- **PyPI Trusted Publisher seeding.** `wheels.yml` has a
+  `publish-pypi` job that uploads the cibuildwheel matrix + sdist
+  to PyPI via OIDC trusted publishing — no API token. One-time
+  setup that has to happen on the PyPI side before the first tag
+  push lands:
+    1. Manually upload any seed artefact to create the project at
+       https://pypi.org/project/clickhouse-async (PyPI requires the
+       project to exist before trusted-publishing claims it).
+    2. On the project's "Publishing" tab, add a Trusted Publisher:
+       owner=IAL32, repo=clickhouse-async, workflow=wheels.yml,
+       environment=pypi.
+    3. In the GitHub repo, create an environment named `pypi`
+       (Settings → Environments). Add reviewers / wait timers
+       there if a manual gate is wanted before PyPI uploads.
 
 ### v1 — Observability and API stability
 

@@ -75,6 +75,22 @@ The 1M-row mixed-type read benchmark closes most of the gap to
 `clickhouse-connect`'s thread-pool baseline. The `tests/perf/` suite
 under `pytest-benchmark` tracks per-codec numbers across PRs.
 
+### v0.5 — Optional C extension for hot read codecs (shipped)
+
+Optional `_fast_read` C extension carries `decode_strings` and
+`decode_datetime`. The codecs detect the extension at runtime and
+route through it; the inlined pure-Python paths remain as the
+fallback so bare installs without a C compiler keep working. ABI3
+build (`Py_LIMITED_API = 0x030B0000`) means one `cp311-abi3` wheel
+per platform covers Python 3.11+. End-to-end read throughput on the
+1M-row mixed-type benchmark goes from 1.47 M r/s (v0.4.1) to 3.79
+M r/s — within 1.34x of `clickhouse-connect`'s native-async client.
+
+A pure-Python win that landed alongside: `Date` and `Date32` now
+build via `date.fromordinal(epoch_ord + d)` instead of the
+`epoch + timedelta(days=d)` two-allocation sequence — 4.3x faster
+on those codecs, no C extension required.
+
 ### Pre-v1 production requirements
 
 These block recommending the client for production use. They are not
@@ -137,10 +153,19 @@ version advances to 1.0.
 - **`polars` adapter.** Same shape as the Arrow adapter.
 - **Read-only / write-only pool variants.** Multi-host opens this up —
   primary-only writes, replica-fanout reads.
-- **C/Cython hot path** for int/float/string codecs *only if* profiling
-  shows pure-Python encoders are the bottleneck on large inserts. The
-  v0.4 sync codec refactor + bulk-unpack pass closed most of the read
-  gap; revisit only if the cross-library numbers still warrant it.
+- **Per-platform wheel publishing.** The C extension lands as a
+  `cp311-abi3` wheel on developer machines via `uv sync`, but PyPI
+  distribution still requires a cibuildwheel matrix
+  (`linux/x86_64`, `linux/aarch64`, `macos/universal2`,
+  `windows/x86_64`). Sdist already ships the `.c` source so source
+  builds work; binary wheels are the next gating item for v1.
+- **Uncompressed refill chunk size.** `_refill_uncompressed` reads
+  exactly `needed` bytes per `BufferUnderflow`. With small varuint
+  underflows (`needed=1`) and a multi-block result, this degrades to
+  O(n²) retry-from-scratch. Compressed connections sidestep this by
+  draining whole frames; uncompressed installs hit the slow path
+  unless they're behind a single readable chunk. Worth a smarter
+  refill (drain whatever's already buffered without blocking).
 
 ### v1 — Observability and API stability
 

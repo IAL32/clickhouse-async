@@ -3,11 +3,14 @@
 An async Python client for ClickHouse that speaks the native TCP protocol on
 port `9000` (or `9440` for TLS).
 
-> **Status:** v0.4. Native protocol, full v0 type system, client, pool,
-> multi-host failover, idle reaper, cross-connection cancel, and a
-> resync of the read path onto a synchronous codec interface that
-> closes most of the read-throughput gap to the thread-pool baseline of
-> `clickhouse-connect`. Not yet on PyPI — installable via VCS until the
+> **Status:** v0.5. Native protocol, full v0 type system, client, pool,
+> multi-host failover, idle reaper, cross-connection cancel. The hot
+> read codecs (`String`, `DateTime`) route through an optional
+> `_fast_read` C extension that drops the per-row Python frame; falls
+> back to pure Python automatically when the extension isn't built.
+> The 1M-row mixed-type read benchmark lands at ~3.8 M rows/sec, ~2.6×
+> faster than v0.4.1 and within 1.34× of `clickhouse-connect`'s
+> native-async client. Not yet on PyPI — installable via VCS until the
 > first release artefact ships.
 
 ## Why another ClickHouse client?
@@ -42,6 +45,13 @@ pip install clickhouse-async
 ```
 
 Requires Python 3.11+.
+
+The wheel includes an optional C extension (`_fast_read`) that
+accelerates `String` and `DateTime` decode. Pre-built `cp311-abi3`
+wheels carry the extension; source builds compile it via setuptools
+when a C compiler is available, and fall back to a pure-Python
+implementation otherwise — bare installs without a compiler stay
+import-clean.
 
 ## Quick start
 

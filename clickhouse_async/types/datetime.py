@@ -40,6 +40,7 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from typing import TYPE_CHECKING
 
+from clickhouse_async import _fast
 from clickhouse_async.types._datetime_helpers import _naive_utc_from_ts, _resolve_tz
 
 if TYPE_CHECKING:
@@ -201,8 +202,15 @@ class DateTime:
         if n_rows == 0:
             return []
         data = reader.read_exact(4 * n_rows)
-        # Bulk-unpack all timestamps in one C-level call rather than
-        # per-row `int.from_bytes`, then drive the per-row datetime
+        # Fast path: hand the buffer to the C extension which walks
+        # the UInt32 timestamps via gmtime_r and constructs `datetime`
+        # objects directly — skips the aware-then-strip dance the
+        # pure-Python path is forced into.
+        fast = _fast.module
+        if fast is not None:
+            return fast.decode_datetime(bytes(data), n_rows, self._tz)
+        # Pure-Python fallback. Bulk-unpack all timestamps in one
+        # C-level struct call, then drive the per-row datetime
         # construction off the resulting tuple.
         timestamps = struct.unpack(f"<{n_rows}I", data)
         from_ts = datetime.fromtimestamp

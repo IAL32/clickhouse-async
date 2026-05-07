@@ -16,7 +16,11 @@
 
 use pyo3::prelude::*;
 
+mod decode_strings;
+mod varuint;
+
 #[pymodule]
-fn _fast(_m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn _fast(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(decode_strings::decode_strings, m)?)?;
     Ok(())
 }

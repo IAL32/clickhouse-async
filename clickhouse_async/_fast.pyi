@@ -9,5 +9,18 @@ Hand-maintained — changes to the Rust pymodule signatures must be
 reflected here in the same PR.
 """
 
-# Empty for now (v0.4 step 1 ships the scaffold only). Subsequent
-# steps add ``decode_strings``, ``transpose``, and ``decode_big_int``.
+def decode_strings(buf: bytes, n_rows: int) -> list[str]:
+    """Decode ``n_rows`` varuint-prefixed UTF-8 strings from ``buf``.
+
+    ``buf`` is the on-wire layout of a String column body —
+    ``[varuint length, body bytes] x n_rows`` packed end-to-end. Rust
+    walks the buffer once, parsing each varuint and constructing one
+    ``str`` per row.
+
+    Raises :class:`ValueError` (with a precise row index) on:
+
+    - varuint truncation or > 64-bit overflow
+    - body bytes referencing offsets beyond ``buf``
+    - invalid UTF-8 within any row's body
+    """
+    ...
